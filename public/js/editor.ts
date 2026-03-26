@@ -144,7 +144,7 @@ function renderForm() {
 						</div>
 						<div class="form-group">
 							<label>Hourly Rate ($)</label>
-							<input type="number" data-field="hourly_rate" value="${agreement.hourly_rate || ""}" step="0.01">
+							<input type="number" data-field="hourly_rate" value="${agreement.hourly_rate || ""}" step="5">
 						</div>
 						<div class="form-group">
 							<label>Total Cost</label>
