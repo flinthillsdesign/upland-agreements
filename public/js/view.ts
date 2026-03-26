@@ -226,22 +226,20 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">7. </span><span class="doc-section-title">PAYMENT TERMS.</span>
-			<span class="doc-section-body">Upland shall submit all invoices to Client via email, with NET30 terms. Payment shall be made to ${esc(companyName)}, ${esc(companyAddress)}. If any invoice is not paid when due, interest will be added to and payable on all overdue amounts at 18 percent per year, or the maximum percentage allowed under applicable laws, whichever is less. Client shall pay all costs of collection, including without limitation, reasonable attorney fees.</span>
+			<span class="doc-section-number">7. </span><span class="doc-section-title">PAYMENT TERMS AND REMEDIES.</span>
+			<div class="doc-section-body">
+				<div>Upland shall submit all invoices to Client via email, with NET30 terms. Payment shall be made to ${esc(companyName)}, ${esc(companyAddress)}. If any invoice is not paid when due, interest will be added to and payable on all overdue amounts at 18 percent per year, or the maximum percentage allowed under applicable laws, whichever is less. Client shall pay all costs of collection, including without limitation, reasonable attorney fees.</div>
+				<div style="margin-top:8px">In addition to any other right or remedy provided by law, if Client fails to pay for the Services when due, Upland has the option to treat such failure to pay as a material breach of this Agreement, and may cancel this Agreement, suspend further services, and/or seek legal remedies.</div>
+			</div>
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">8. </span><span class="doc-section-title">REMEDIES FOR NON-PAYMENT.</span>
-			<span class="doc-section-body">In addition to any other right or remedy provided by law, if Client fails to pay for the Services when due, Upland has the option to treat such failure to pay as a material breach of this Agreement, and may cancel this Agreement, suspend further services, and/or seek legal remedies.</span>
-		</div>
-
-		<div class="doc-section">
-			<span class="doc-section-number">9. </span><span class="doc-section-title">BEST EFFORTS BASIS.</span>
+			<span class="doc-section-number">8. </span><span class="doc-section-title">BEST EFFORTS BASIS.</span>
 			<span class="doc-section-body">The Services will be provided on a "best effort" basis. That is, Designer will create designs based on training, experience, and professional judgment that represent Designer's best effort; non-acceptance of the design(s) shall not constitute reason for non-payment.</span>
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">10. </span><span class="doc-section-title">CHANGES.</span>
+			<span class="doc-section-number">9. </span><span class="doc-section-title">CHANGES.</span>
 			<div class="doc-section-body">
 				<div>Client shall pay additional charges for substantial changes requested by Client which are outside the scope of the Services on a time and materials basis, at Designer's Service Rates. Such charges shall be in addition to all other amounts payable, despite any maximum Project Cost. Designer may extend or modify any delivery schedule or deadlines as may be required by such changes, provided, however, that the delivery schedule does not exceed the contract termination date. All changes shall be documented in writing and may be approved by signed instrument or by email confirmation from Client.</div>
 				<div style="margin-top:8px">Revisions, modifications, or rework resulting from changes to previously approved work, including approved designs, drawings, text, graphic layouts, material selections, fabrication details, or installation conditions, shall be treated as Additional Services and billed accordingly.</div>
@@ -249,7 +247,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">11. </span><span class="doc-section-title">SERVICE RATES.</span>
+			<span class="doc-section-number">10. </span><span class="doc-section-title">SERVICE RATES.</span>
 			<div class="doc-section-body">
 				<div>If work outside the scope of Services is required, the following service rates will be used:</div>
 				<table class="rate-table">
@@ -264,7 +262,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">12. </span><span class="doc-section-title">CLIENT RESPONSIBILITIES.</span>
+			<span class="doc-section-number">11. </span><span class="doc-section-title">CLIENT RESPONSIBILITIES.</span>
 			<div class="doc-section-body">
 				<div>Client acknowledges that it shall be responsible for performing the following in a reasonable and timely manner, so as not to cause delays in the delivery of the Project by Upland:</div>
 				<div class="doc-term-sub">(a) <strong>Decision-making.</strong> Coordinate any decision-making with parties other than Upland;</div>
@@ -281,17 +279,17 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">13. </span><span class="doc-section-title">SCHEDULE; CLIENT DELAYS.</span>
+			<span class="doc-section-number">12. </span><span class="doc-section-title">SCHEDULE; CLIENT DELAYS.</span>
 			<span class="doc-section-body">The Project schedule is based on timely receipt of Client decisions, approvals, content, site information, access, and other Client-required inputs. Any delay caused by Client, its consultants, contractors, or other representatives shall automatically extend the Project schedule by a reasonable period of time. If such delay results in additional costs, inefficiencies, remobilization, storage, resequencing, or other impacts to Designer, Client shall pay such additional costs as Additional Services.</span>
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">14. </span><span class="doc-section-title">SUBSTITUTIONS.</span>
+			<span class="doc-section-number">13. </span><span class="doc-section-title">SUBSTITUTIONS.</span>
 			<span class="doc-section-body">Designer reserves the right, in its reasonable professional judgment, to substitute materials, components, equipment, finishes, fabrication methods, or installation methods of comparable quality, function, and design intent where required by availability, lead times, field conditions, code requirements, discontinuation, cost escalation, or other circumstances beyond Designer's reasonable control. Any substitution that materially affects the agreed design intent or functionality shall be communicated to Client.</span>
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">15. </span><span class="doc-section-title">TITLE AND ASSIGNMENT.</span>
+			<span class="doc-section-number">14. </span><span class="doc-section-title">TITLE AND ASSIGNMENT.</span>
 			<div class="doc-section-body">
 				<div class="doc-term-sub"><strong>Client Content,</strong> meaning all materials, information, photography, writings and other creative content provided by Client for use in the preparation of and/or incorporation in the Deliverables, including pre-existing Trademarks, shall remain the sole property of Client or its respective suppliers, and Client or its suppliers shall be the sole owner of all rights in connection therewith. Client hereby grants to Designer a nonexclusive, nontransferable license to use, reproduce, modify, display and publish the Client Content solely in connection with Designer's performance of the Services and limited promotional uses of the Deliverables as authorized in this Agreement.</div>
 				<div class="doc-term-sub"><strong>Final Art,</strong> meaning all graphic design, illustration, photography, animation, modifications to Client Content, and Designer's selection, arrangement and coordination of such elements together with Client Content and/or Third Party Materials to create graphic layouts, developed or created by Designer, or commissioned by Designer, exclusively for the Project and incorporated into and delivered as part of the Final Deliverables, shall be deemed works made for hire and all rights pertaining to the Final Art shall belong to and shall be the sole and exclusive property of Client upon full payment for the Services except when prohibited by licensing restrictions of included Third Party Materials.</div>
@@ -302,12 +300,12 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">16. </span><span class="doc-section-title">ACCREDITATION/PROMOTIONS.</span>
+			<span class="doc-section-number">15. </span><span class="doc-section-title">ACCREDITATION/PROMOTIONS.</span>
 			<span class="doc-section-body">Either party may reproduce, publish and display photographs of the Project, may describe its role in relation to the Project and, if applicable, the services provided to the other party on its website and in other promotional materials.</span>
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">17. </span><span class="doc-section-title">WARRANTIES AND REPRESENTATIONS.</span>
+			<span class="doc-section-number">16. </span><span class="doc-section-title">WARRANTIES AND REPRESENTATIONS.</span>
 			<div class="doc-section-body">
 				<div style="margin-bottom:8px">Designer represents, warrants, and covenants to Client that:</div>
 				<div class="doc-term-sub">(a) Designer shall provide its Services and meet its obligations under this Agreement in a timely manner consistent with the terms of this Agreement, using knowledge, methods, and recommendations for performing the Services which meet commercially acceptable standards.</div>
@@ -320,12 +318,12 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">18. </span><span class="doc-section-title">CONFIDENTIAL INFORMATION.</span>
+			<span class="doc-section-number">17. </span><span class="doc-section-title">CONFIDENTIAL INFORMATION.</span>
 			<span class="doc-section-body">Each party acknowledges that in connection with this Agreement it may receive certain confidential or proprietary technical and business information and materials of the other party, including without limitation Preliminary Works ("Confidential Information"). Each party, its agents and employees shall hold and maintain in strict confidence all Confidential Information, shall not disclose Confidential Information to any third party, and shall not share or use any Confidential Information except as may be necessary to perform its obligations under this Agreement, or as may be required by law, or by a court or governmental authority. Notwithstanding the foregoing, Confidential Information shall not include any information that is in the public domain or becomes publicly known through no fault of the receiving party or is otherwise properly received from a third party without an obligation of confidentiality.</span>
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">19. </span><span class="doc-section-title">RELATIONSHIP OF THE PARTIES.</span>
+			<span class="doc-section-number">18. </span><span class="doc-section-title">RELATIONSHIP OF THE PARTIES.</span>
 			<div class="doc-section-body">
 				<div>Designer is an independent contractor, not an employee of Client or any company affiliated with Client. Designer shall provide the Services under the general direction of Client, but Designer shall determine, in Designer's sole discretion, the manner and means by which the Services are accomplished. This Agreement does not create a partnership or joint venture and neither party is authorized to act as agent or bind the other party except as expressly stated in this Agreement. All rights, if any, granted to Client are contractual in nature and are wholly defined by the express written agreement of the parties and the various terms and conditions of this Agreement.</div>
 				<div style="margin-top:8px">If applicable, Designer shall contract with and pay all subcontractors used by Designer in the performance of the Services. Client shall in no event have any liability to any subcontractor of Designer, and Designer shall indemnify and hold Client harmless for, and against all damages, losses, and costs directly related to Designer's non-payment of subcontractors, including but not limited to reasonable attorney's fees.</div>
@@ -333,12 +331,12 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">20. </span><span class="doc-section-title">NO EXCLUSIVITY.</span>
+			<span class="doc-section-number">19. </span><span class="doc-section-title">NO EXCLUSIVITY.</span>
 			<span class="doc-section-body">Both parties are free to engage in similar agreements with other parties.</span>
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">21. </span><span class="doc-section-title">INDEMNIFICATION; HOLD HARMLESS.</span>
+			<span class="doc-section-number">20. </span><span class="doc-section-title">INDEMNIFICATION; HOLD HARMLESS.</span>
 			<div class="doc-section-body">
 				<div>To the maximum extent permitted by law, Designer agrees to indemnify and hold Client and their officers and employees harmless for, from and against all liabilities, damages, losses and costs, including, but not limited to, reasonable attorneys' fees, to the extent caused by (i) the gross negligence, recklessness, or intentionally wrongful conduct of the Designer and other persons employed or utilized by the Designer, including its consultants, in the performance of the Agreement; or (ii) Designer's breach of any material covenant, term, or provision of this Agreement. Designer further agrees to defend, indemnify and hold harmless Client and/or its licensees against all claims, suits, costs, damages and expenses, including attorneys' fees, that Client and/or its licensees may sustain by reason of any infringing, libelous or otherwise unlawful matter contained in the Works, excluding the Client Content.</div>
 				<div style="margin-top:8px">To the maximum extent permitted by law, Client agrees to indemnify and hold Designer and their officers and employees harmless for, from and against all liabilities, damages, losses and costs, including, but not limited to, reasonable attorneys' fees, to the extent caused by (i) the gross negligence, recklessness, or intentionally wrongful conduct of Client and other persons employed by Client, including its consultants, in the performance of the Agreement; or (ii) Client's breach of any material covenant, term, or provision of this Agreement. Client further agrees to indemnify and hold harmless Upland and/or its licensees against any and all claims, costs, damages and expenses, including attorneys' fees, that Upland sustains by reason of any infringing, libelous or otherwise unlawful matter contained in the Client Content.</div>
@@ -346,7 +344,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">22. </span><span class="doc-section-title">LIMITATION OF LIABILITY.</span>
+			<span class="doc-section-number">21. </span><span class="doc-section-title">LIMITATION OF LIABILITY.</span>
 			<div class="doc-section-body">
 				<div>In all circumstances, Designer's maximum liability to Client for damages for any and all causes whatsoever, and Client's maximum remedy, regardless of the form of action, shall be limited to 50% of the total compensation paid to Designer for the Services rendered.</div>
 				<div style="margin-top:8px">In no event shall Designer be liable for any lost data or content, lost profits, business interruption or for any indirect, incidental, special, consequential, exemplary or punitive damages arising out of or relating to the materials or the services provided by Designer or its agents, even if Designer has been advised of the possibility of such damages.</div>
@@ -354,27 +352,21 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">23. </span><span class="doc-section-title">DEFAULT.</span>
-			<span class="doc-section-body">If either party is in default with respect to any of the terms or conditions of this Agreement, including, without limitation, Client's failure to pay any invoice in accordance with the terms of this Agreement, the other party may, at its option, defer further performance until the default is remedied, and, without prejudice to any other legal remedy, may terminate this Agreement if the default is not remedied within thirty (30) calendar days (five (5) working days for nonpayment) after written notice is provided to the party in default, specifying the thing or matter in default. Unless waived by the party providing notice, the failure to cure the default(s) within such time period shall result in the automatic termination of this Agreement.</span>
+			<span class="doc-section-number">22. </span><span class="doc-section-title">DEFAULT, SUSPENSION, AND TERMINATION.</span>
+			<div class="doc-section-body">
+				<div>If either party is in default with respect to any of the terms or conditions of this Agreement, including, without limitation, Client's failure to pay any invoice in accordance with the terms of this Agreement, the other party may, at its option, defer further performance until the default is remedied, and, without prejudice to any other legal remedy, may terminate this Agreement if the default is not remedied within thirty (30) calendar days (five (5) working days for nonpayment) after written notice is provided to the party in default, specifying the thing or matter in default. Unless waived by the party providing notice, the failure to cure the default(s) within such time period shall result in the automatic termination of this Agreement.</div>
+				<div style="margin-top:8px">If the Project is paused, delayed, or suspended for more than thirty (30) days for reasons not caused by Designer, Designer may invoice Client for all Services performed and costs incurred to date, whether or not previously invoiced, and may require a reasonable restart fee before resuming Services. Designer may also revise the Project schedule and pricing to reflect then-current conditions.</div>
+				<div style="margin-top:8px">Upon termination of this Agreement for any reason, Client shall pay Designer for all Services performed, materials ordered, commitments made, non-cancelable costs incurred, and reimbursable expenses through the effective date of termination. If termination occurs after Designer has allocated scheduling, staffing, fabrication capacity, or subcontractor commitments to the Project, Client shall also pay any reasonable demobilization, cancellation, restocking, or administrative close-out costs.</div>
+			</div>
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">24. </span><span class="doc-section-title">PROJECT PAUSE; RESTART.</span>
-			<span class="doc-section-body">If the Project is paused, delayed, or suspended for more than thirty (30) days for reasons not caused by Designer, Designer may invoice Client for all Services performed and costs incurred to date, whether or not previously invoiced, and may require a reasonable restart fee before resuming Services. Designer may also revise the Project schedule and pricing to reflect then-current conditions.</span>
-		</div>
-
-		<div class="doc-section">
-			<span class="doc-section-number">25. </span><span class="doc-section-title">TERMINATION PAYMENT.</span>
-			<span class="doc-section-body">Upon termination of this Agreement for any reason, Client shall pay Designer for all Services performed, materials ordered, commitments made, non-cancelable costs incurred, and reimbursable expenses through the effective date of termination. If termination occurs after Designer has allocated scheduling, staffing, fabrication capacity, or subcontractor commitments to the Project, Client shall also pay any reasonable demobilization, cancellation, restocking, or administrative close-out costs.</span>
-		</div>
-
-		<div class="doc-section">
-			<span class="doc-section-number">26. </span><span class="doc-section-title">FORCE MAJEURE.</span>
+			<span class="doc-section-number">23. </span><span class="doc-section-title">FORCE MAJEURE.</span>
 			<span class="doc-section-body">If performance of this Agreement or any obligation under this Agreement is prevented, restricted, or interfered with by causes beyond either party's reasonable control ("Force Majeure"), and if the party unable to carry out its obligations gives the other party prompt written notice of such event, then the obligations of the party invoking this provision shall be suspended to the extent necessary by such event. The term Force Majeure shall include, without limitation, acts of God, pandemics, fire, explosion, vandalism, storm or other similar occurrence, orders or acts of military or civil authority, or by national emergencies, insurrections, riots, or wars, or strikes, or lock-outs. The excused party shall use reasonable efforts under the circumstances to avoid or remove such causes of non-performance and shall proceed to perform with reasonable dispatch whenever such causes are removed or ceased. An act or omission shall be deemed within the reasonable control of a party if committed, omitted, or caused by such party, or its employees, officers, agents, or affiliates.</span>
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">27. </span><span class="doc-section-title">NOTICE.</span>
+			<span class="doc-section-number">24. </span><span class="doc-section-title">NOTICE.</span>
 			<div class="doc-section-body">
 				<div>Any notice or communication required or permitted under this Agreement shall be sent via email. A notice shall be deemed received when the recipient confirms receipt by reply, or if no reply is received, on the third business day after sending. All notices shall be sent to:</div>
 				<div class="doc-term-sub">Designer: ${esc(agreement.designer_email) || "joel@uplandexhibits.com"}</div>
@@ -383,28 +375,14 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-section">
-			<span class="doc-section-number">28. </span><span class="doc-section-title">ENTIRE AGREEMENT.</span>
-			<span class="doc-section-body">This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements, understandings, and communications, whether written or oral.</span>
-		</div>
-
-		<div class="doc-section">
-			<span class="doc-section-number">29. </span><span class="doc-section-title">AMENDMENT.</span>
-			<span class="doc-section-body">This Agreement may only be amended by a written instrument signed by both parties.</span>
-		</div>
-
-		<div class="doc-section">
-			<span class="doc-section-number">30. </span><span class="doc-section-title">SEVERABILITY.</span>
-			<span class="doc-section-body">If any provision of this Agreement shall be held to be invalid or unenforceable for any reason, the remaining provisions shall continue to be valid and enforceable. If a court finds that any provision of this Agreement is invalid or unenforceable, but that by limiting such provision it would become valid and enforceable, then such provision shall be deemed to be written, construed, and enforced as so limited.</span>
-		</div>
-
-		<div class="doc-section">
-			<span class="doc-section-number">31. </span><span class="doc-section-title">WAIVER OF CONTRACTUAL RIGHT.</span>
-			<span class="doc-section-body">The failure of either party to enforce any provision of this Agreement shall not constitute a waiver of such provision or the right to enforce it at a later time.</span>
-		</div>
-
-		<div class="doc-section">
-			<span class="doc-section-number">32. </span><span class="doc-section-title">APPLICABLE LAW.</span>
-			<span class="doc-section-body">This Agreement shall be governed by and construed in accordance with the laws of the State of Kansas.</span>
+			<span class="doc-section-number">25. </span><span class="doc-section-title">GENERAL PROVISIONS.</span>
+			<div class="doc-section-body">
+				<div class="doc-term-sub">(a) <strong>Entire Agreement.</strong> This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements, understandings, and communications, whether written or oral.</div>
+				<div class="doc-term-sub">(b) <strong>Amendment.</strong> This Agreement may only be amended by a written instrument signed by both parties.</div>
+				<div class="doc-term-sub">(c) <strong>Severability.</strong> If any provision of this Agreement shall be held to be invalid or unenforceable for any reason, the remaining provisions shall continue to be valid and enforceable. If a court finds that any provision of this Agreement is invalid or unenforceable, but that by limiting such provision it would become valid and enforceable, then such provision shall be deemed to be written, construed, and enforced as so limited.</div>
+				<div class="doc-term-sub">(d) <strong>Waiver.</strong> The failure of either party to enforce any provision of this Agreement shall not constitute a waiver of such provision or the right to enforce it at a later time.</div>
+				<div class="doc-term-sub">(e) <strong>Applicable Law.</strong> This Agreement shall be governed by and construed in accordance with the laws of the State of Kansas.</div>
+			</div>
 		</div>
 
 		<div class="doc-signature-area" id="signatureArea"></div>

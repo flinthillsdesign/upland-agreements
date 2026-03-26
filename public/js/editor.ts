@@ -440,55 +440,41 @@ ACCREDITATION/PROMOTIONS. Either party may reproduce, publish and display photog
 		return text;
 	}
 
-	return `7. PAYMENT TERMS. Invoices submitted via email, NET30. Interest at 18% per year or max allowed by law, whichever is less. Client pays all collection costs including reasonable attorney fees.
+	return `7. PAYMENT TERMS AND REMEDIES. NET30 via email. Interest at 18%/year or max allowed by law. Collection costs including attorney fees. Non-payment is material breach — Upland may cancel, suspend, and/or seek legal remedies.
 
-8. REMEDIES FOR NON-PAYMENT. In addition to any other legal remedy, Upland may treat non-payment as material breach, cancel agreement, suspend services, and/or seek legal remedies.
+8. BEST EFFORTS BASIS. Designs based on training, experience, and professional judgment. Non-acceptance of designs shall not constitute reason for non-payment.
 
-9. BEST EFFORTS BASIS. Services provided on "best effort" basis — designs based on training, experience, and professional judgment. Non-acceptance of designs shall not constitute reason for non-payment.
+9. CHANGES. Out-of-scope changes billed T&M at Service Rates, despite any NTE. Schedule may extend. Approved by signed writing or email. Rework of previously approved work is Additional Services.
 
-10. CHANGES. Out-of-scope changes billed T&M at Service Rates, despite any NTE. Schedule may extend. Changes approved by signed writing or email. Rework of previously approved work is Additional Services.
+11. CLIENT RESPONSIBILITIES. Standard list (a-i): decision-making, Client Content, site info, naming approvals, electrical/structural, existing displays, space prep, final approval, ADA compliance.
 
-12. CLIENT RESPONSIBILITIES. Standard list (a-i): decision-making, Client Content, site info, naming approvals, electrical/structural, existing displays, space prep, final approval, ADA compliance.
+12. SCHEDULE; CLIENT DELAYS. Client delays automatically extend schedule. Additional costs billed as Additional Services.
 
-13. SCHEDULE; CLIENT DELAYS. Client delays automatically extend schedule. Additional costs from delays (remobilization, storage, etc.) billed as Additional Services.
+13. SUBSTITUTIONS. Designer may substitute materials/methods of comparable quality when required by availability, field conditions, codes, etc.
 
-14. SUBSTITUTIONS. Designer may substitute materials/methods of comparable quality when required by availability, field conditions, codes, etc. Material changes to design intent communicated to Client.
+14. TITLE AND ASSIGNMENT. Full IP terms: Client Content, Final Art (work-for-hire), Third Party Materials (Client indemnifies), Preliminary Works (Designer's), Designer IP (Designer's with license to Client).
 
-15. TITLE AND ASSIGNMENT. Full IP terms: Client Content, Final Art (work-for-hire), Third Party Materials (Client indemnifies), Preliminary Works (Designer's), Designer IP (Designer's with license to Client).
+15. ACCREDITATION/PROMOTIONS. Either party may use project in promotional materials.
 
-16. ACCREDITATION/PROMOTIONS. Either party may use project in promotional materials.
+16. WARRANTIES AND REPRESENTATIONS. Designer represents, warrants, and covenants: timely service, 2-year defect warranty, no infringement. Client: owns content, no infringement.
 
-17. WARRANTIES AND REPRESENTATIONS. Designer represents, warrants, and covenants: timely professional service, 2-year defect warranty, no infringement. Client: owns content, no infringement.
+17. CONFIDENTIAL INFORMATION. Mutual strict confidence. Includes Preliminary Works. Excludes public domain info.
 
-18. CONFIDENTIAL INFORMATION. Mutual strict confidence. Includes Preliminary Works. Excludes public domain info.
+18. RELATIONSHIP OF THE PARTIES. Independent contractor. Designer pays subs, indemnifies Client for sub non-payment.
 
-19. RELATIONSHIP OF THE PARTIES. Independent contractor. No partnership or agency. Designer pays subs, indemnifies Client for sub non-payment.
+19. NO EXCLUSIVITY. Both parties free to work with others.
 
-20. NO EXCLUSIVITY. Both parties free to work with others.
+20. INDEMNIFICATION; HOLD HARMLESS. Asymmetric. Threshold: gross negligence, recklessness, intentional wrongful conduct.
 
-21. INDEMNIFICATION; HOLD HARMLESS. Asymmetric. Threshold: gross negligence, recklessness, intentional wrongful conduct. Covers infringing/libelous content.
+21. LIMITATION OF LIABILITY. Designer's max = 50% of compensation paid. No consequential/indirect/punitive damages.
 
-22. LIMITATION OF LIABILITY. Designer's max liability = 50% of compensation paid. No consequential/indirect/punitive damages.
+22. DEFAULT, SUSPENSION, AND TERMINATION. Defer performance until cured. 30 days to cure (5 for non-payment). Auto-termination. Pause 30+ days: invoice all work, restart fee. On termination: Client pays all services, materials, commitments, and close-out costs.
 
-23. DEFAULT. Defer performance until cured. 30 calendar days to cure (5 working days for non-payment). Automatic termination if not cured.
+23. FORCE MAJEURE. Written notice. Obligations suspended. Duty to mitigate and resume.
 
-24. PROJECT PAUSE; RESTART. If paused 30+ days (not Designer's fault), Designer may invoice all work to date and require restart fee. Schedule and pricing may be revised.
+24. NOTICE. Via email with deemed-receipt rule.
 
-25. TERMINATION PAYMENT. Upon termination for any reason, Client pays for all services, materials ordered, commitments, and non-cancelable costs. Includes demobilization and close-out costs if resources were committed.
-
-26. FORCE MAJEURE. Written notice required. Obligations suspended. Duty to mitigate and resume.
-
-27. NOTICE. Via email with deemed-receipt rule.
-
-28. ENTIRE AGREEMENT. Supersedes all prior agreements.
-
-29. AMENDMENT. Written and signed by both parties, or by email confirmation.
-
-30. SEVERABILITY. Invalid provisions don't void the rest. Court may narrow overbroad provisions.
-
-31. WAIVER OF CONTRACTUAL RIGHT. Non-enforcement isn't waiver.
-
-32. APPLICABLE LAW. State of Kansas.`;
+25. GENERAL PROVISIONS. (a) Entire Agreement — supersedes all prior. (b) Amendment — written and signed. (c) Severability — court may narrow. (d) Waiver — non-enforcement isn't waiver. (e) Applicable Law — State of Kansas.`;
 }
 
 // === Chat ===
