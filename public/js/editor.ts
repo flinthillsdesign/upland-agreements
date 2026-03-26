@@ -185,7 +185,7 @@ function renderForm() {
 					return `
 					<div class="form-row">
 						<div class="form-group">
-							<label>NTE Amount ($)</label>
+							<label>Not-to-Exceed (NTE) Amount ($)</label>
 							<input type="number" data-field="total_cost" value="${agreement.total_cost || ""}" step="1000">
 						</div>
 						<div class="form-group">
