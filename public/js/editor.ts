@@ -68,6 +68,15 @@ async function load() {
 	loadConversation().catch((err) => console.error("Failed to load conversation:", err));
 }
 
+function getDurationMonths(a: Record<string, unknown>): string {
+	const dateStr = (a.end_date || a.timeframe_date || "") as string;
+	if (!dateStr) return "";
+	const target = new Date(dateStr + "T00:00:00");
+	const now = new Date();
+	const months = Math.round((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 30));
+	return months > 0 ? String(months) : "";
+}
+
 function renderForm() {
 	if (!agreement) return;
 	const main = document.getElementById("editorMain")!;
@@ -99,13 +108,7 @@ function renderForm() {
 							<input type="email" data-field="client_email" value="${esc(agreement.client_email)}">
 						</div>
 					</div>
-					<div class="form-row">
-						<div class="form-group">
-							<label>Contact Title</label>
-							<input type="text" data-field="client_title" value="${esc(agreement.client_title)}" placeholder="e.g., Executive Director">
-						</div>
 					</div>
-				</div>
 			</div>
 
 			<!-- Project Details -->
@@ -125,10 +128,17 @@ function renderForm() {
 						<label>Deliverable Description</label>
 						<textarea data-field="deliverable" rows="4">${esc(agreement.deliverable)}</textarea>
 					</div>` : ""}
-					<div class="form-group">
-						<label>Timeframe</label>
-						<input type="text" data-field="timeframe" value="${esc(agreement.timeframe)}" placeholder="${isMou ? "e.g., Goal is to deliver PDF within 8 weeks after MoU is signed" : "e.g., Contract term description"}">
+					<div class="form-row">
+						<div class="form-group">
+							<label>Duration (months)</label>
+							<input type="number" id="durationMonths" min="1" step="1" placeholder="e.g., 3" value="${getDurationMonths(agreement)}">
+						</div>
+						<div class="form-group flex-2">
+							<label>${isMou ? "Target Delivery Date" : "End Date"}</label>
+							<input type="date" id="targetDate" data-field="${isMou ? "timeframe_date" : "end_date"}" value="${isMou ? (agreement as any).timeframe_date || "" : agreement.end_date || ""}">
+						</div>
 					</div>
+					<input type="hidden" data-field="timeframe" value="${esc(agreement.timeframe)}">
 				</div>
 			</div>
 
@@ -161,10 +171,6 @@ function renderForm() {
 						<div class="form-group">
 							<label>Effective Date</label>
 							<input type="date" data-field="effective_date" value="${agreement.effective_date || ""}">
-						</div>
-						<div class="form-group">
-							<label>End Date</label>
-							<input type="date" data-field="end_date" value="${agreement.end_date || ""}">
 						</div>
 					</div>
 					<div class="form-group" style="margin-bottom:8px">
@@ -231,6 +237,43 @@ function renderForm() {
 			markDirty(field, value);
 		});
 	});
+
+	// Duration months -> date picker sync
+	const durationInput = document.getElementById("durationMonths") as HTMLInputElement;
+	const dateInput = document.getElementById("targetDate") as HTMLInputElement;
+	if (durationInput && dateInput) {
+		durationInput.addEventListener("input", () => {
+			const months = parseInt(durationInput.value);
+			if (!months || months < 1) return;
+			const target = new Date();
+			target.setMonth(target.getMonth() + months);
+			dateInput.value = target.toISOString().split("T")[0];
+			dateInput.dispatchEvent(new Event("input", { bubbles: true }));
+			updateTimeframeText();
+		});
+		dateInput.addEventListener("input", () => {
+			updateTimeframeText();
+		});
+	}
+
+	function updateTimeframeText() {
+		if (!dateInput?.value) return;
+		const date = new Date(dateInput.value + "T00:00:00");
+		const formatted = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+		const timeframeText = isMou
+			? `Goal is to deliver PDF by ${formatted}`
+			: formatted;
+		const hidden = main.querySelector("[data-field='timeframe']") as HTMLInputElement;
+		if (hidden) {
+			hidden.value = timeframeText;
+			(agreement as Record<string, unknown>).timeframe = timeframeText;
+			markDirty("timeframe", timeframeText);
+		}
+		if (!isMou) {
+			(agreement as Record<string, unknown>).end_date = dateInput.value;
+			markDirty("end_date", dateInput.value);
+		}
+	}
 
 	// Boilerplate toggle
 	const bp = document.getElementById("boilerplateTerms")!;
