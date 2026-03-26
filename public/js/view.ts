@@ -45,6 +45,16 @@ if (!token && !previewId) {
 	document.getElementById("documentContent")!.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted)">Invalid link.</p>';
 }
 
+function formatList(text: string | null): string {
+	if (!text) return "—";
+	const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+	const isList = lines.every((l) => l.startsWith("- ") || l.startsWith("* "));
+	if (isList && lines.length > 1) {
+		return "<ul>" + lines.map((l) => `<li>${esc(l.replace(/^[-*]\s*/, ""))}</li>`).join("") + "</ul>";
+	}
+	return esc(text);
+}
+
 const STATUS_TEXT: Record<string, string> = {
 	draft: "This agreement is still being prepared.",
 	sent: "This agreement is ready for your review.",
@@ -132,7 +142,7 @@ function renderMou(agreement: Agreement, settings: Settings) {
 				: agreement.total_cost ? formatCurrency(agreement.total_cost) : "—"}</div>
 		</div>
 
-		<div class="doc-terms-divider">----- PROJECT TERMS -----</div>
+		<div class="doc-terms-divider">Project Terms</div>
 
 		<div class="doc-term">
 			<div class="doc-term-title">TITLE AND ASSIGNMENT.</div>
@@ -182,52 +192,52 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">1. </span><span class="doc-section-title">TERM.</span>
-			<div class="doc-section-body">This Agreement shall begin on the Effective Date and shall end, unless earlier terminated, upon satisfactory completion of the Project as outlined in the Description of Services, but in any event, no later than ${formatDate(agreement.end_date, "long")}.</div>
+			<span class="doc-section-body">This Agreement shall begin on the Effective Date and shall end, unless earlier terminated, upon satisfactory completion of the Project as outlined in the Description of Services, but in any event, no later than ${formatDate(agreement.end_date, "long")}.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">2. </span><span class="doc-section-title">DESCRIPTION OF SERVICES.</span>
-			<div class="doc-section-body">${esc(agreement.project_description) || "—"}</div>
+			<span class="doc-section-body">${esc(agreement.project_description) || "—"}</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">3. </span><span class="doc-section-title">PROJECT COST.</span>
-			<div class="doc-section-body">The parties agree that all Services shall be performed on a Time-And-Material-Not-To-Exceed basis. The total compensation to Designer under this Agreement shall not exceed <strong>${formatCurrency(agreement.total_cost)}</strong> ("NTE Amount").</div>
+			<span class="doc-section-body">The parties agree that all Services shall be performed on a Time-And-Material-Not-To-Exceed basis. The total compensation to Designer under this Agreement shall not exceed <strong>${formatCurrency(agreement.total_cost)}</strong> ("NTE Amount").</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">4. </span><span class="doc-section-title">INITIAL PAYMENT.</span>
-			<div class="doc-section-body">A payment of <strong>${formatCurrency(paymentStructure.initial_amount)}</strong> (equaling approximately ${paymentStructure.initial_pct || 10}% of the Project Cost) will be required to retain Upland's services. This payment will be due within 30 days of signing this Agreement. Work shall not commence until the Initial Payment is received.</div>
+			<span class="doc-section-body">A payment of <strong>${formatCurrency(paymentStructure.initial_amount)}</strong> (equaling approximately ${paymentStructure.initial_pct || 10}% of the Project Cost) will be required to retain Upland's services. This payment will be due within 30 days of signing this Agreement. Work shall not commence until the Initial Payment is received.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">5. </span><span class="doc-section-title">PROGRESS BILLINGS.</span>
-			<div class="doc-section-body">${paymentStructure.progress_note || "Progress billings will be invoiced on a percentage of completion basis, not to exceed 90% of the NTE Amount."}</div>
+			<span class="doc-section-body">${paymentStructure.progress_note || "Progress billings will be invoiced on a percentage of completion basis, not to exceed 90% of the NTE Amount."}</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">6. </span><span class="doc-section-title">FINAL PAYMENT.</span>
-			<div class="doc-section-body">The remaining balance of approximately <strong>${formatCurrency(paymentStructure.final_amount)}</strong> (${paymentStructure.final_pct || 10}% of the Project Cost) will be invoiced upon Substantial Completion of the Project.</div>
+			<span class="doc-section-body">The remaining balance of approximately <strong>${formatCurrency(paymentStructure.final_amount)}</strong> (${paymentStructure.final_pct || 10}% of the Project Cost) will be invoiced upon Substantial Completion of the Project.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">7. </span><span class="doc-section-title">PAYMENT TERMS.</span>
-			<div class="doc-section-body">All invoices are due and payable within thirty (30) days of the invoice date (NET30). Past due amounts shall accrue interest at the rate of eighteen percent (18%) per annum. Client shall be responsible for all costs of collection, including reasonable attorney fees.</div>
+			<span class="doc-section-body">All invoices are due and payable within thirty (30) days of the invoice date (NET30). Past due amounts shall accrue interest at the rate of eighteen percent (18%) per annum. Client shall be responsible for all costs of collection, including reasonable attorney fees.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">8. </span><span class="doc-section-title">REMEDIES FOR NON-PAYMENT.</span>
-			<div class="doc-section-body">Non-payment of any amount due under this Agreement shall constitute a material breach. Upon such breach, Designer may, at its sole discretion: (a) cancel this Agreement; (b) suspend all work until payment is received; and (c) recover all amounts due plus damages.</div>
+			<span class="doc-section-body">Non-payment of any amount due under this Agreement shall constitute a material breach. Upon such breach, Designer may, at its sole discretion: (a) cancel this Agreement; (b) suspend all work until payment is received; and (c) recover all amounts due plus damages.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">9. </span><span class="doc-section-title">BEST EFFORTS BASIS.</span>
-			<div class="doc-section-body">Designer will use its best professional efforts to provide the Services. Non-acceptance of a particular design direction by Client does not justify non-payment for services rendered in good faith.</div>
+			<span class="doc-section-body">Designer will use its best professional efforts to provide the Services. Non-acceptance of a particular design direction by Client does not justify non-payment for services rendered in good faith.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">10. </span><span class="doc-section-title">CHANGES.</span>
-			<div class="doc-section-body">Any changes to the scope of Services as described herein shall be subject to additional charges. All changes must be agreed upon in writing by both parties prior to commencement of additional work.</div>
+			<span class="doc-section-body">Any changes to the scope of Services as described herein shall be subject to additional charges. All changes must be agreed upon in writing by both parties prior to commencement of additional work.</span>
 		</div>
 
 		<div class="doc-section">
@@ -246,87 +256,87 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">12. </span><span class="doc-section-title">CLIENT RESPONSIBILITIES.</span>
-			<div class="doc-section-body">${esc(agreement.client_responsibilities) || "—"}</div>
+			<span class="doc-section-body">${formatList(agreement.client_responsibilities)}</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">13. </span><span class="doc-section-title">TITLE AND ASSIGNMENT.</span>
-			<div class="doc-section-body">Client Content remains sole property of Client. Final Art becomes property of Client upon full payment. Third Party Materials remain property of their respective owners. Preliminary Works remain property of Designer. All intellectual property rights to systems, hardware, and software remain exclusive property of Designer, with license granted to Client.</div>
+			<span class="doc-section-body">Client Content remains sole property of Client. Final Art becomes property of Client upon full payment. Third Party Materials remain property of their respective owners. Preliminary Works remain property of Designer. All intellectual property rights to systems, hardware, and software remain exclusive property of Designer, with license granted to Client.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">14. </span><span class="doc-section-title">ACCREDITATION/PROMOTIONS.</span>
-			<div class="doc-section-body">Either party may reproduce, publish, and display photographs of the Project in portfolios, websites, social media, and other promotional materials.</div>
+			<span class="doc-section-body">Either party may reproduce, publish, and display photographs of the Project in portfolios, websites, social media, and other promotional materials.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">15. </span><span class="doc-section-title">WARRANTIES AND REPRESENTATIONS.</span>
-			<div class="doc-section-body">Designer warrants that: (a) Services will be performed in a timely and professional manner; (b) all work product will be free from defects in materials and workmanship for a period of two (2) years from delivery; (c) the work product will not infringe upon any third party intellectual property rights. Client warrants that: (a) Client owns or has rights to all content provided to Designer; (b) such content does not infringe upon any third party rights.</div>
+			<span class="doc-section-body">Designer warrants that: (a) Services will be performed in a timely and professional manner; (b) all work product will be free from defects in materials and workmanship for a period of two (2) years from delivery; (c) the work product will not infringe upon any third party intellectual property rights. Client warrants that: (a) Client owns or has rights to all content provided to Designer; (b) such content does not infringe upon any third party rights.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">16. </span><span class="doc-section-title">CONFIDENTIAL INFORMATION.</span>
-			<div class="doc-section-body">Each party agrees to keep confidential all proprietary information received from the other party and not to disclose such information to third parties without prior written consent, except as required by law.</div>
+			<span class="doc-section-body">Each party agrees to keep confidential all proprietary information received from the other party and not to disclose such information to third parties without prior written consent, except as required by law.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">17. </span><span class="doc-section-title">RELATIONSHIP OF THE PARTIES.</span>
-			<div class="doc-section-body">Designer is an independent contractor. Nothing in this Agreement shall be construed to create a partnership, joint venture, or employer-employee relationship.</div>
+			<span class="doc-section-body">Designer is an independent contractor. Nothing in this Agreement shall be construed to create a partnership, joint venture, or employer-employee relationship.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">18. </span><span class="doc-section-title">NO EXCLUSIVITY.</span>
-			<div class="doc-section-body">Both parties are free to engage in similar agreements with other parties.</div>
+			<span class="doc-section-body">Both parties are free to engage in similar agreements with other parties.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">19. </span><span class="doc-section-title">INDEMNIFICATION; HOLD HARMLESS.</span>
-			<div class="doc-section-body">Each party shall indemnify and hold harmless the other party from and against any claims, damages, losses, or expenses arising from: (a) the indemnifying party's negligence or willful misconduct; (b) breach of this Agreement; (c) any unlawful content provided by the indemnifying party.</div>
+			<span class="doc-section-body">Each party shall indemnify and hold harmless the other party from and against any claims, damages, losses, or expenses arising from: (a) the indemnifying party's negligence or willful misconduct; (b) breach of this Agreement; (c) any unlawful content provided by the indemnifying party.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">20. </span><span class="doc-section-title">LIMITATION OF LIABILITY.</span>
-			<div class="doc-section-body">Designer's maximum aggregate liability under this Agreement shall not exceed fifty percent (50%) of the total compensation paid or payable to Designer. In no event shall either party be liable for consequential, incidental, indirect, special, or punitive damages.</div>
+			<span class="doc-section-body">Designer's maximum aggregate liability under this Agreement shall not exceed fifty percent (50%) of the total compensation paid or payable to Designer. In no event shall either party be liable for consequential, incidental, indirect, special, or punitive damages.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">21. </span><span class="doc-section-title">DEFAULT.</span>
-			<div class="doc-section-body">In the event of a breach, the non-breaching party shall provide written notice and the breaching party shall have thirty (30) days to cure (five (5) business days for non-payment).</div>
+			<span class="doc-section-body">In the event of a breach, the non-breaching party shall provide written notice and the breaching party shall have thirty (30) days to cure (five (5) business days for non-payment).</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">22. </span><span class="doc-section-title">FORCE MAJEURE.</span>
-			<div class="doc-section-body">Neither party shall be liable for failure to perform due to causes beyond its reasonable control, including but not limited to acts of God, war, terrorism, pandemic, natural disasters, government action, or failure of third-party services.</div>
+			<span class="doc-section-body">Neither party shall be liable for failure to perform due to causes beyond its reasonable control, including but not limited to acts of God, war, terrorism, pandemic, natural disasters, government action, or failure of third-party services.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">23. </span><span class="doc-section-title">NOTICE.</span>
-			<div class="doc-section-body">All notices shall be sent via email to:<br>Designer: ${esc(agreement.designer_email) || "joel@uplandexhibits.com"}<br>Client: ${esc(agreement.client_email) || "_______________"}</div>
+			<span class="doc-section-body">All notices shall be sent via email to:<br>Designer: ${esc(agreement.designer_email) || "joel@uplandexhibits.com"}<br>Client: ${esc(agreement.client_email) || "_______________"}</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">24. </span><span class="doc-section-title">ENTIRE AGREEMENT.</span>
-			<div class="doc-section-body">This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements, understandings, and communications, whether written or oral.</div>
+			<span class="doc-section-body">This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements, understandings, and communications, whether written or oral.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">25. </span><span class="doc-section-title">AMENDMENT.</span>
-			<div class="doc-section-body">This Agreement may only be amended by a written instrument signed by both parties.</div>
+			<span class="doc-section-body">This Agreement may only be amended by a written instrument signed by both parties.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">26. </span><span class="doc-section-title">SEVERABILITY.</span>
-			<div class="doc-section-body">If any provision of this Agreement is found to be invalid or unenforceable, the remaining provisions shall continue in full force and effect.</div>
+			<span class="doc-section-body">If any provision of this Agreement is found to be invalid or unenforceable, the remaining provisions shall continue in full force and effect.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">27. </span><span class="doc-section-title">WAIVER OF CONTRACTUAL RIGHT.</span>
-			<div class="doc-section-body">The failure of either party to enforce any provision of this Agreement shall not constitute a waiver of such provision or the right to enforce it at a later time.</div>
+			<span class="doc-section-body">The failure of either party to enforce any provision of this Agreement shall not constitute a waiver of such provision or the right to enforce it at a later time.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">28. </span><span class="doc-section-title">APPLICABLE LAW.</span>
-			<div class="doc-section-body">This Agreement shall be governed by and construed in accordance with the laws of the State of Kansas.</div>
+			<span class="doc-section-body">This Agreement shall be governed by and construed in accordance with the laws of the State of Kansas.</span>
 		</div>
 
 		<div class="doc-signature-area" id="signatureArea"></div>

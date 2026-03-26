@@ -40,9 +40,9 @@
 /* === Document Header === */
 .doc-header {
 	text-align: center;
-	margin-bottom: 32px;
-	padding-bottom: 16px;
-	border-bottom: 2px solid #1a1a1a;
+	margin-bottom: 28px;
+	padding-bottom: 14px;
+	border-bottom: 1.5px solid #1a1a1a;
 }
 
 /* Strip border/radius/padding during PDF generation — html2pdf adds its own margins */
@@ -91,7 +91,7 @@
 
 /* === MoU Sections (Key-Value Style) === */
 .mou-field {
-	margin-bottom: 24px;
+	margin-bottom: 18px;
 }
 
 .mou-field-label {
@@ -106,9 +106,10 @@
 	white-space: pre-wrap;
 }
 
-/* === Agreement Sections (Numbered) === */
+/* === Agreement Sections (Numbered — inline heading + body) === */
 .doc-section {
-	margin-bottom: 24px;
+	margin-bottom: 16px;
+	line-height: 1.7;
 }
 
 .doc-section-number {
@@ -121,34 +122,49 @@
 	font-size: 14px;
 }
 
+/* Body flows inline with the heading — matches real legal documents */
 .doc-section-body {
-	margin-top: 4px;
-	line-height: 1.7;
-	white-space: pre-wrap;
+	display: inline;
+}
+
+/* When body has block content (lists, tables), break to new line */
+.doc-section-body ul,
+.doc-section-body table {
+	display: block;
 }
 
 .doc-section-body ul {
 	margin: 8px 0;
 	padding-left: 24px;
+	list-style-type: none;
 }
 
 .doc-section-body li {
-	margin-bottom: 4px;
+	margin-bottom: 3px;
+	text-indent: -12px;
+	padding-left: 12px;
+}
+
+.doc-section-body li::before {
+	content: "- ";
 }
 
 /* === Project Terms Divider === */
 .doc-terms-divider {
 	text-align: center;
-	padding: 24px 0;
-	font-size: 12px;
-	letter-spacing: 2px;
-	color: #6b6560;
+	padding: 28px 0 20px;
+	font-size: 11px;
+	letter-spacing: 3px;
+	text-transform: uppercase;
+	color: #999;
 	font-weight: 600;
+	border-top: 1px solid #ddd;
+	margin-top: 8px;
 }
 
 /* === Boilerplate Terms === */
 .doc-term {
-	margin-bottom: 16px;
+	margin-bottom: 12px;
 }
 
 .doc-term-title {
@@ -286,7 +302,8 @@
 }
 
 .rate-table td {
-	padding: 4px 12px 4px 0;
+	padding: 5px 12px 5px 0;
+	border-bottom: 1px solid #f0eeeb;
 }
 
 .rate-table td:last-child {
