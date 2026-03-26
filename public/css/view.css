@@ -45,11 +45,12 @@
 	border-bottom: 2px solid #1a1a1a;
 }
 
-/* Strip border/radius during PDF generation so html2canvas doesn't capture it */
+/* Strip border/radius/padding during PDF generation — html2pdf adds its own margins */
 .document.pdf-rendering {
 	border: none;
 	border-radius: 0;
 	box-shadow: none;
+	padding: 0;
 }
 
 .doc-header .doc-logo {
