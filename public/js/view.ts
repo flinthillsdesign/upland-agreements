@@ -578,7 +578,7 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 
 	html2pdf()
 		.set({
-			margin: [0.4, 0.5, 0.6, 0.5],
+			margin: [0.6, 0.7, 0.75, 0.7],
 			filename,
 			image: { type: "jpeg", quality: 0.98 },
 			html2canvas: { scale: 1.5, useCORS: true },
