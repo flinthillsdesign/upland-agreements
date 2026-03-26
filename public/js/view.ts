@@ -64,8 +64,8 @@ const STATUS_TEXT: Record<string, string> = {
 	draft: "This agreement is still being prepared.",
 	sent: "This agreement is ready for your review.",
 	viewed: "This agreement is ready for your review and signature.",
-	signed: "This agreement has been signed by the client. Awaiting countersignature.",
-	countersigned: "This agreement has been fully executed by both parties.",
+	signed: "Signed by client. Awaiting countersignature from Upland Exhibits to complete execution.",
+	countersigned: "Fully executed. Both parties have signed this agreement.",
 	declined: "This agreement has been declined.",
 	expired: "This agreement has expired.",
 };
@@ -498,7 +498,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			</div>
 			<div class="form-group" style="margin-bottom:12px">
 				<label>Organization Address</label>
-				<input type="text" id="signOrgAddress" value="${esc(agreement.client_address)}" placeholder="e.g., 123 Main St, City, State ZIP">
+				<input type="text" id="signOrgAddress" value="${esc(agreement.client_address)}" placeholder="e.g., 123 Main St, City, State ZIP" required>
 			</div>
 			<div class="form-group" style="margin-bottom:12px">
 				<label>Your Full Name</label>
@@ -506,8 +506,12 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			</div>
 			<div class="form-group" style="margin-bottom:16px">
 				<label>Your Title</label>
-				<input type="text" id="signTitle" placeholder="e.g., Executive Director">
+				<input type="text" id="signTitle" placeholder="e.g., Executive Director" required>
 			</div>
+			<label style="display:flex;align-items:flex-start;gap:8px;font-size:0.85rem;color:var(--text);margin-bottom:16px;cursor:pointer">
+				<input type="checkbox" id="signConsent" style="margin-top:3px;flex-shrink:0" required>
+				<span>I agree to sign this agreement electronically. I understand that my electronic signature has the same legal effect as a handwritten signature.</span>
+			</label>
 			<button class="btn btn-primary btn-lg" id="signBtn">Sign Agreement</button>
 		</div>
 		` : ""}
@@ -522,9 +526,13 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			const nameInput = document.getElementById("signName") as HTMLInputElement;
 			const titleInput = document.getElementById("signTitle") as HTMLInputElement;
 
-			// Validate required fields
+			// Validate all fields
 			if (orgNameInput && !orgNameInput.value.trim()) { orgNameInput.focus(); return; }
+			if (orgAddressInput && !orgAddressInput.value.trim()) { orgAddressInput.focus(); return; }
 			if (!nameInput.value.trim()) { nameInput.focus(); return; }
+			if (!titleInput.value.trim()) { titleInput.focus(); return; }
+			const consentBox = document.getElementById("signConsent") as HTMLInputElement;
+			if (!consentBox?.checked) { consentBox.focus(); return; }
 
 			const name = nameInput.value.trim();
 			const title = titleInput?.value.trim() || "";
