@@ -76,6 +76,7 @@ Example:
 - Use professional, specific language matching Upland's existing agreements
 - Be precise about deliverables — don't be vague
 - Reference similar past projects from the knowledge base when available
+- **Prioritize recent agreements** (last 1-2 years) for pricing and scope language — rates and project structures evolve over time. Older entries are useful for scope patterns but their pricing may be outdated.
 - For pricing, base suggestions on comparable past work and current rates
 - Client responsibilities should be specific to the project type
 - Payment schedules: ~10% initial, progress billings to 90% of NTE, ~10% final
@@ -86,21 +87,66 @@ function buildKnowledgeContext(entries: KnowledgeEntry[]): string {
 	if (entries.length === 0) return "";
 
 	let context = "\n\n## Knowledge Base\n";
+	context += "(Entries are ordered by relevance — recent agreements first, with more detail. Older entries are summarized.)\n";
 	let charCount = 0;
 	const maxChars = 60000;
 
-	// Rate sheets first
+	// Rate sheets always included in full
 	const rateSheets = entries.filter((e) => e.type === "rate_sheet");
 	const others = entries.filter((e) => e.type !== "rate_sheet");
 
-	for (const entry of [...rateSheets, ...others]) {
+	// Sort by metadata date or updated_at, newest first
+	others.sort((a, b) => {
+		const dateA = getEntryYear(a);
+		const dateB = getEntryYear(b);
+		return dateB - dateA;
+	});
+
+	// Rate sheets first (full content)
+	for (const entry of rateSheets) {
 		const block = `\n### ${entry.title} (${entry.type})\n${entry.content}\n`;
 		if (charCount + block.length > maxChars) break;
 		context += block;
 		charCount += block.length;
 	}
 
+	// Recent entries (last 2 years) get full content
+	// Older entries get a condensed summary (first 500 chars)
+	const now = new Date().getFullYear();
+	for (const entry of others) {
+		const year = getEntryYear(entry);
+		const isRecent = (now - year) <= 2;
+		const content = isRecent ? entry.content : condenseSummary(entry.content);
+		const label = isRecent ? "" : " [older — summarized]";
+		const block = `\n### ${entry.title} (${entry.type})${label}\n${content}\n`;
+		if (charCount + block.length > maxChars) break;
+		context += block;
+		charCount += block.length;
+	}
+
 	return context;
+}
+
+function getEntryYear(entry: KnowledgeEntry): number {
+	// Try to extract year from metadata
+	try {
+		const meta = entry.metadata ? JSON.parse(entry.metadata) : {};
+		if (meta.date) return new Date(meta.date).getFullYear();
+		if (meta.year) return meta.year;
+	} catch {}
+	// Fall back to updated_at
+	return new Date(entry.updated_at).getFullYear();
+}
+
+function condenseSummary(content: string): string {
+	const lines = content.split("\n").filter((l) => l.trim());
+	// Keep the key facts (client, type, cost, description) but trim the rest
+	const keyLines = lines.filter((l) =>
+		/^(Client:|Type:|NTE:|Total:|Hours:|Rate:|Description|Scope|Cost:)/i.test(l.trim())
+	);
+	if (keyLines.length > 0) return keyLines.join("\n");
+	// Fallback: first 500 chars
+	return content.substring(0, 500) + (content.length > 500 ? "..." : "");
 }
 
 function buildAgreementContext(agreement: Agreement): string {
