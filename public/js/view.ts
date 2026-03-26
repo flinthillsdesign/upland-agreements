@@ -454,9 +454,12 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 						<div class="signature-underline-label">Date</div>
 					</div>
 				</div>
-				<div style="margin-top:8px">
-					<div class="signature-line"></div>
-					<div class="signature-underline-label">Print Name and Title</div>
+				<div class="signature-line-row" style="margin-top:8px">
+					<div class="signature-field">
+						<div class="signature-line"></div>
+						<div class="signature-underline-label">Print Name and Title</div>
+					</div>
+					<div class="date-field"></div>
 				</div>
 			`}
 		</div>
@@ -583,7 +586,7 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 			image: { type: "jpeg", quality: 0.98 },
 			html2canvas: { scale: 1.5, useCORS: true },
 			jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-			pagebreak: { mode: ["css", "legacy"] },
+			pagebreak: { mode: ["avoid-all", "css"] },
 		})
 		.from(element)
 		.toPdf()
