@@ -293,12 +293,16 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	if (!agreement) return err("Not found", 404);
 	if (agreement.client_signature) return err("Already signed");
 
-	const { name, title } = await req.json() as { name?: string; title?: string };
+	const { name, title, client_name, client_address } = await req.json() as { name?: string; title?: string; client_name?: string; client_address?: string };
 	if (!name) return err("Signature name required");
 
 	const signature = buildSignature(name, getClientIp(req), title);
 
-	await updateAgreement(agreement.id, { client_signature: signature, status: "signed" });
+	// Update agreement: signature + any client-provided org info
+	const updates: Record<string, unknown> = { client_signature: signature, status: "signed" };
+	if (client_name) updates.client_name = client_name;
+	if (client_address) updates.client_address = client_address;
+	await updateAgreement(agreement.id, updates);
 
 	// Notify designer
 	if (agreement.designer_email) {

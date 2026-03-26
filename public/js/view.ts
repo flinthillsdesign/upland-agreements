@@ -488,7 +488,17 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 		${!isPreview && !clientSig && (agreement.status === "sent" || agreement.status === "viewed") ? `
 		<div class="sign-area" id="signArea">
 			<h3>Sign This Agreement</h3>
-			<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">By typing your name below and clicking "Sign Agreement", you acknowledge that you have read and agree to the terms above.</p>
+			<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Please confirm your information below. By clicking "Sign Agreement", you acknowledge that you have read and agree to the terms above.</p>
+			${!agreement.client_name ? `
+			<div class="form-group" style="margin-bottom:12px">
+				<label>Organization / Legal Entity Name</label>
+				<input type="text" id="signOrgName" placeholder="e.g., Museum at the Bighorns" required>
+			</div>` : ""}
+			${!agreement.client_address ? `
+			<div class="form-group" style="margin-bottom:12px">
+				<label>Organization Address</label>
+				<input type="text" id="signOrgAddress" placeholder="e.g., 123 Main St, City, State ZIP">
+			</div>` : ""}
 			<div class="form-group" style="margin-bottom:12px">
 				<label>Your Full Name</label>
 				<input type="text" id="signName" placeholder="Type your full legal name" required>
@@ -506,20 +516,25 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 	const signBtn = document.getElementById("signBtn");
 	if (signBtn) {
 		signBtn.addEventListener("click", async () => {
+			const orgNameInput = document.getElementById("signOrgName") as HTMLInputElement | null;
+			const orgAddressInput = document.getElementById("signOrgAddress") as HTMLInputElement | null;
 			const nameInput = document.getElementById("signName") as HTMLInputElement;
 			const titleInput = document.getElementById("signTitle") as HTMLInputElement;
+
+			// Validate required fields
+			if (orgNameInput && !orgNameInput.value.trim()) { orgNameInput.focus(); return; }
+			if (!nameInput.value.trim()) { nameInput.focus(); return; }
+
 			const name = nameInput.value.trim();
 			const title = titleInput?.value.trim() || "";
-			if (!name) {
-				nameInput.focus();
-				return;
-			}
+			const client_name = orgNameInput?.value.trim() || undefined;
+			const client_address = orgAddressInput?.value.trim() || undefined;
 
 			(signBtn as HTMLButtonElement).disabled = true;
 			signBtn.textContent = "Signing...";
 
 			try {
-				const result = (await api.signAgreement(token!, name, title)) as { error?: string };
+				const result = (await api.signAgreement(token!, name, title, client_name, client_address)) as { error?: string };
 
 				if (result.error) {
 					alert(result.error);
