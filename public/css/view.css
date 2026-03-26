@@ -40,8 +40,8 @@
 /* === Document Header === */
 .doc-header {
 	text-align: center;
-	margin-bottom: 48px;
-	padding-bottom: 24px;
+	margin-bottom: 32px;
+	padding-bottom: 16px;
 	border-bottom: 2px solid #1a1a1a;
 }
 
@@ -56,14 +56,14 @@
 .doc-header .doc-logo {
 	height: 36px;
 	width: auto;
-	margin-bottom: 16px;
+	margin-bottom: 8px;
 }
 
 .doc-header .company-name {
 	font-size: 11px;
 	letter-spacing: 0.5px;
 	color: #6b6560;
-	margin-bottom: 24px;
+	margin-bottom: 12px;
 }
 
 .doc-header h1 {
