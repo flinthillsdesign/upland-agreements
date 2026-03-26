@@ -185,11 +185,9 @@ function renderForm() {
 					return `
 					<div class="form-row">
 						<div class="form-group">
-							<label>NTE (Not-to-Exceed) Amount ($)</label>
-							<input type="number" data-field="total_cost" value="${agreement.total_cost || ""}" step="0.01">
+							<label>NTE Amount ($)</label>
+							<input type="number" data-field="total_cost" value="${agreement.total_cost || ""}" step="1000">
 						</div>
-					</div>
-					<div class="form-row">
 						<div class="form-group">
 							<label>Effective Date</label>
 							<input type="date" data-field="effective_date" value="${agreement.effective_date || ""}">

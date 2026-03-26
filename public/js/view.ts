@@ -504,16 +504,14 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 		<div class="sign-area" id="signArea">
 			<h3>Sign This Agreement</h3>
 			<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">Please confirm your information below. By clicking "Sign Agreement", you acknowledge that you have read and agree to the terms above.</p>
-			${!agreement.client_name ? `
 			<div class="form-group" style="margin-bottom:12px">
 				<label>Organization / Legal Entity Name</label>
-				<input type="text" id="signOrgName" placeholder="e.g., Museum at the Bighorns" required>
-			</div>` : ""}
-			${!agreement.client_address ? `
+				<input type="text" id="signOrgName" value="${esc(agreement.client_name)}" placeholder="e.g., Museum at the Bighorns" required>
+			</div>
 			<div class="form-group" style="margin-bottom:12px">
 				<label>Organization Address</label>
-				<input type="text" id="signOrgAddress" placeholder="e.g., 123 Main St, City, State ZIP">
-			</div>` : ""}
+				<input type="text" id="signOrgAddress" value="${esc(agreement.client_address)}" placeholder="e.g., 123 Main St, City, State ZIP">
+			</div>
 			<div class="form-group" style="margin-bottom:12px">
 				<label>Your Full Name</label>
 				<input type="text" id="signName" placeholder="Type your full legal name" required>
@@ -542,8 +540,8 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 
 			const name = nameInput.value.trim();
 			const title = titleInput?.value.trim() || "";
-			const client_name = orgNameInput?.value.trim() || undefined;
-			const client_address = orgAddressInput?.value.trim() || undefined;
+			const client_name = orgNameInput?.value.trim() || "";
+			const client_address = orgAddressInput?.value.trim() || "";
 
 			(signBtn as HTMLButtonElement).disabled = true;
 			signBtn.textContent = "Signing...";
