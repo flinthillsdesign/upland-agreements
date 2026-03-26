@@ -446,50 +446,49 @@ ACCREDITATION/PROMOTIONS. Either party may reproduce, publish and display photog
 
 9. BEST EFFORTS BASIS. Services provided on "best effort" basis — designs based on training, experience, and professional judgment. Non-acceptance of designs shall not constitute reason for non-payment.
 
-10. CHANGES. Additional charges for out-of-scope changes on T&M basis at Service Rates, despite any maximum Project Cost. Designer may extend delivery schedule. All changes in writing.
+10. CHANGES. Out-of-scope changes billed T&M at Service Rates, despite any NTE. Schedule may extend. Changes approved by signed writing or email. Rework of previously approved work is Additional Services.
 
-12. CLIENT RESPONSIBILITIES. Client shall:
-(a) Coordinate decision-making with parties other than Upland
-(b) Provide all needed Client Content (specs, photographs, exhibit text, creative content)
-(c) Provide site plans, building plans, utility locations, codes/regulations
-(d) Secure naming nomenclature approvals
-(e) Arrange/pay for electrical, structural, mechanical work
-(f) If applicable, remove existing casework/displays
-(g) If applicable, prepare space (walls, floors, ceiling lights)
-(h) Final proofreading and approval — client-approved errors are at client's cost
-(i) ADA and public accommodation law compliance
+12. CLIENT RESPONSIBILITIES. Standard list (a-i): decision-making, Client Content, site info, naming approvals, electrical/structural, existing displays, space prep, final approval, ADA compliance.
 
-13. TITLE AND ASSIGNMENT. Client Content remains Client's property. Final Art is work-for-hire, becomes Client's upon full payment. Third Party Materials belong to their owners — Client indemnifies Designer for licensing failures. Preliminary Works remain Designer's property. Designer IP (hardware, systems, software) remains Designer's with license to Client.
+13. SCHEDULE; CLIENT DELAYS. Client delays automatically extend schedule. Additional costs from delays (remobilization, storage, etc.) billed as Additional Services.
 
-14. ACCREDITATION/PROMOTIONS. Either party may use project photographs in promotional materials.
+14. SUBSTITUTIONS. Designer may substitute materials/methods of comparable quality when required by availability, field conditions, codes, etc. Material changes to design intent communicated to Client.
 
-15. WARRANTIES AND REPRESENTATIONS. Designer represents, warrants, and covenants: timely professional service, 2-year defect warranty, no infringement. Client represents, warrants, and covenants: owns provided content, no third-party infringement.
+15. TITLE AND ASSIGNMENT. Full IP terms: Client Content, Final Art (work-for-hire), Third Party Materials (Client indemnifies), Preliminary Works (Designer's), Designer IP (Designer's with license to Client).
 
-16. CONFIDENTIAL INFORMATION. Mutual obligation of strict confidence on proprietary information including Preliminary Works. Excludes public domain info and info received from third parties.
+16. ACCREDITATION/PROMOTIONS. Either party may use project in promotional materials.
 
-17. RELATIONSHIP OF THE PARTIES. Independent contractor. No partnership or agency. Subcontractor paragraph: Designer pays subs, indemnifies Client for sub non-payment.
+17. WARRANTIES AND REPRESENTATIONS. Designer represents, warrants, and covenants: timely professional service, 2-year defect warranty, no infringement. Client: owns content, no infringement.
 
-18. NO EXCLUSIVITY. Both parties free to work with others.
+18. CONFIDENTIAL INFORMATION. Mutual strict confidence. Includes Preliminary Works. Excludes public domain info.
 
-19. INDEMNIFICATION; HOLD HARMLESS. Separate asymmetric indemnification for each party. Threshold: gross negligence, recklessness, or intentionally wrongful conduct. Covers infringing/libelous content.
+19. RELATIONSHIP OF THE PARTIES. Independent contractor. No partnership or agency. Designer pays subs, indemnifies Client for sub non-payment.
 
-20. LIMITATION OF LIABILITY. Designer's max liability = 50% of compensation paid. No consequential, indirect, special, or punitive damages.
+20. NO EXCLUSIVITY. Both parties free to work with others.
 
-21. DEFAULT. Either party may defer performance until default is remedied. 30 calendar days to cure (5 working days for non-payment). Automatic termination if not cured.
+21. INDEMNIFICATION; HOLD HARMLESS. Asymmetric. Threshold: gross negligence, recklessness, intentional wrongful conduct. Covers infringing/libelous content.
 
-22. FORCE MAJEURE. Written notice required. Obligations suspended to extent necessary. Duty to mitigate and resume with reasonable dispatch.
+22. LIMITATION OF LIABILITY. Designer's max liability = 50% of compensation paid. No consequential/indirect/punitive damages.
 
-23. NOTICE. Via email with deemed-receipt rule.
+23. DEFAULT. Defer performance until cured. 30 calendar days to cure (5 working days for non-payment). Automatic termination if not cured.
 
-24. ENTIRE AGREEMENT. Supersedes all prior agreements.
+24. PROJECT PAUSE; RESTART. If paused 30+ days (not Designer's fault), Designer may invoice all work to date and require restart fee. Schedule and pricing may be revised.
 
-25. AMENDMENT. Written and signed by both parties.
+25. TERMINATION PAYMENT. Upon termination for any reason, Client pays for all services, materials ordered, commitments, and non-cancelable costs. Includes demobilization and close-out costs if resources were committed.
 
-26. SEVERABILITY. Invalid provisions don't void the rest. Court may narrow overbroad provisions.
+26. FORCE MAJEURE. Written notice required. Obligations suspended. Duty to mitigate and resume.
 
-27. WAIVER OF CONTRACTUAL RIGHT. Non-enforcement isn't waiver.
+27. NOTICE. Via email with deemed-receipt rule.
 
-28. APPLICABLE LAW. State of Kansas.`;
+28. ENTIRE AGREEMENT. Supersedes all prior agreements.
+
+29. AMENDMENT. Written and signed by both parties, or by email confirmation.
+
+30. SEVERABILITY. Invalid provisions don't void the rest. Court may narrow overbroad provisions.
+
+31. WAIVER OF CONTRACTUAL RIGHT. Non-enforcement isn't waiver.
+
+32. APPLICABLE LAW. State of Kansas.`;
 }
 
 // === Chat ===
