@@ -553,14 +553,7 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 	btn.disabled = true;
 	btn.textContent = "Generating...";
 
-	// Clone off-screen so the visible document doesn't flash
-	const clone = element.cloneNode(true) as HTMLElement;
-	clone.classList.add("pdf-rendering");
-	clone.style.position = "absolute";
-	clone.style.left = "-9999px";
-	clone.style.top = "0";
-	clone.style.width = element.offsetWidth + "px";
-	document.body.appendChild(clone);
+	element.classList.add("pdf-rendering");
 
 	html2pdf()
 		.set({
@@ -571,7 +564,7 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 			jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
 			pagebreak: { mode: ["css", "legacy"] },
 		})
-		.from(clone)
+		.from(element)
 		.toPdf()
 		.get("pdf")
 		.then((pdf: any) => {
@@ -585,12 +578,12 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 		})
 		.save()
 		.then(() => {
-			clone.remove();
+			element.classList.remove("pdf-rendering");
 			btn.disabled = false;
 			btn.textContent = "Download PDF";
 		})
 		.catch(() => {
-			clone.remove();
+			element.classList.remove("pdf-rendering");
 			btn.disabled = false;
 			btn.textContent = "Download PDF";
 			alert("Failed to generate PDF. Try using the Print button instead.");
