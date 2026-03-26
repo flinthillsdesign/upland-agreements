@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Knowledge Base — Agreements</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/css/shared.css">
+	<link rel="stylesheet" href="/css/knowledge.css">
+</head>
+<body>
+	<nav class="top-nav">
+		<div class="nav-left">
+			<a href="/dashboard.html" class="nav-brand">Agreements</a>
+			<span class="nav-sep">/</span>
+			<span class="nav-title">Knowledge Base</span>
+		</div>
+		<div class="nav-right">
+			<a href="/dashboard.html" class="nav-link">Dashboard</a>
+			<a href="/settings.html" class="nav-link">Settings</a>
+			<div class="nav-divider"></div>
+			<button class="btn btn-ghost btn-sm" id="logoutBtn">Log out</button>
+		</div>
+	</nav>
+
+	<div class="knowledge-page">
+		<div class="knowledge-header">
+			<h1>Knowledge Base</h1>
+			<button class="btn btn-primary" id="addBtn">Add Entry</button>
+		</div>
+
+		<div class="knowledge-filters" id="typeFilters">
+			<button class="tab active" data-type="">All</button>
+			<button class="tab" data-type="past_agreement">Past Agreements</button>
+			<button class="tab" data-type="rate_sheet">Rate Sheets</button>
+			<button class="tab" data-type="scope_template">Scope Templates</button>
+			<button class="tab" data-type="responsibilities_template">Responsibilities</button>
+			<button class="tab" data-type="notes">Notes</button>
+		</div>
+
+		<div class="knowledge-grid" id="knowledgeList"></div>
+	</div>
+
+	<!-- Editor Modal -->
+	<div class="modal" id="editorModal" hidden>
+		<div class="modal-backdrop"></div>
+		<div class="modal-content modal-lg knowledge-editor">
+			<div class="modal-header">
+				<h2 id="editorTitle">Add Entry</h2>
+				<button class="modal-close" id="closeEditor">&times;</button>
+			</div>
+			<form id="editorForm">
+				<div class="form-row">
+					<div class="form-group flex-2">
+						<label>Title</label>
+						<input type="text" id="entryTitle" required>
+					</div>
+					<div class="form-group">
+						<label>Type</label>
+						<select id="entryType" required>
+							<option value="past_agreement">Past Agreement</option>
+							<option value="rate_sheet">Rate Sheet</option>
+							<option value="scope_template">Scope Template</option>
+							<option value="responsibilities_template">Responsibilities Template</option>
+							<option value="notes">Notes</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label>Content</label>
+					<textarea id="entryContent" required></textarea>
+				</div>
+				<div class="form-group">
+					<label>Metadata (JSON, optional)</label>
+					<textarea id="entryMetadata" rows="3" placeholder='{"tags": ["concept", "museum"], "project_size": "medium"}'></textarea>
+				</div>
+				<div class="modal-actions">
+					<button type="button" class="btn btn-danger btn-sm" id="deleteEntry" hidden>Delete</button>
+					<div style="flex:1"></div>
+					<button type="button" class="btn" id="cancelEntry">Cancel</button>
+					<button type="submit" class="btn btn-primary">Save</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<script src="/js/knowledge.bundle.js" type="module"></script>
+</body>
+</html>

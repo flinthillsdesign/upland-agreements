@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Settings — Agreements</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/css/shared.css">
+</head>
+<body>
+	<nav class="top-nav">
+		<div class="nav-left">
+			<a href="/dashboard.html" class="nav-brand">Agreements</a>
+			<span class="nav-sep">/</span>
+			<span class="nav-title">Settings</span>
+		</div>
+		<div class="nav-right">
+			<a href="/dashboard.html" class="nav-link">Dashboard</a>
+			<a href="/knowledge.html" class="nav-link">Knowledge</a>
+			<div class="nav-divider"></div>
+			<button class="btn btn-ghost btn-sm" id="logoutBtn">Log out</button>
+		</div>
+	</nav>
+
+	<div class="settings-page">
+		<h1>Settings</h1>
+
+		<div class="settings-section">
+			<h2>Company Information</h2>
+			<form id="companyForm">
+				<div class="form-row">
+					<div class="form-group flex-2">
+						<label>Legal Name</label>
+						<input type="text" id="legalName" value="Flint Hills Design, LLC dba Upland Exhibits">
+					</div>
+				</div>
+				<div class="form-group" style="margin-bottom:8px">
+					<label>Address</label>
+					<input type="text" id="companyAddress" value="507 SE 36th St., Newton, Kansas 67114">
+				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<label>Designer Name</label>
+						<input type="text" id="designerName" value="Joel Gaeddert">
+					</div>
+					<div class="form-group">
+						<label>Designer Title</label>
+						<input type="text" id="designerTitle" value="CEO">
+					</div>
+				</div>
+				<div class="form-group" style="margin-bottom:12px">
+					<label>Designer Email</label>
+					<input type="email" id="designerEmail" value="joel@uplandexhibits.com">
+				</div>
+				<button type="submit" class="btn btn-primary btn-sm">Save Company Info</button>
+			</form>
+		</div>
+
+		<div class="settings-section">
+			<h2>Default Rates</h2>
+			<form id="ratesForm">
+				<div class="form-row">
+					<div class="form-group">
+						<label>MoU Hourly Rate</label>
+						<input type="number" id="mouRate" step="0.01" value="85">
+					</div>
+					<div class="form-group">
+						<label>Head of Design/Fab Rate</label>
+						<input type="number" id="headRate" step="0.01" value="95">
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<label>Design Staff Rate</label>
+						<input type="number" id="designRate" step="0.01" value="75">
+					</div>
+					<div class="form-group">
+						<label>Fabrication Staff Rate</label>
+						<input type="number" id="fabRate" step="0.01" value="65">
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<label>Materials Markup %</label>
+						<input type="number" id="materialsMarkup" step="1" value="15">
+					</div>
+					<div class="form-group">
+						<label>Travel Time Rate</label>
+						<input type="number" id="travelRate" step="0.01" value="55">
+					</div>
+				</div>
+				<button type="submit" class="btn btn-primary btn-sm">Save Rates</button>
+			</form>
+		</div>
+
+		<div class="settings-section" id="usersSection">
+			<h2>Users</h2>
+			<div class="users-list" id="usersList"></div>
+			<button class="btn btn-sm" id="addUserBtn" style="margin-top:12px">Add User</button>
+		</div>
+	</div>
+
+	<script src="/js/settings.bundle.js" type="module"></script>
+</body>
+</html>

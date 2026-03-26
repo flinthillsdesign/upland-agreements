@@ -1,0 +1,9 @@
+node_modules/
+dist/
+data/
+.env
+*.bundle.js
+*.bundle.js.map
+netlify/functions/*.mjs
+netlify/functions/*.mjs.map
+.netlify/

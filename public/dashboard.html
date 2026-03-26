@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Dashboard — Agreements</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/css/shared.css">
+</head>
+<body>
+	<nav class="top-nav">
+		<div class="nav-left">
+			<a href="/dashboard.html" class="nav-brand">Agreements</a>
+		</div>
+		<div class="nav-right">
+			<a href="/knowledge.html" class="nav-link">Knowledge</a>
+			<a href="/settings.html" class="nav-link" id="settingsLink">Settings</a>
+			<div class="nav-divider"></div>
+			<button class="btn btn-ghost btn-sm" id="logoutBtn">Log out</button>
+		</div>
+	</nav>
+
+	<div class="dashboard">
+		<div class="dashboard-header">
+			<h1>Agreements</h1>
+			<button class="btn btn-primary" id="createBtn">New Agreement</button>
+		</div>
+
+		<div class="dashboard-filters">
+			<div class="status-tabs" id="typeTabs">
+				<button class="tab active" data-type="">All</button>
+				<button class="tab" data-type="mou_concept">MoU — Concept</button>
+				<button class="tab" data-type="mou_small">MoU — Small Design</button>
+				<button class="tab" data-type="full_services">Agreement for Services</button>
+			</div>
+			<div class="status-tabs" id="statusTabs">
+				<button class="tab active" data-status="">All</button>
+				<button class="tab" data-status="draft">Draft</button>
+				<button class="tab" data-status="sent">Sent</button>
+				<button class="tab" data-status="viewed">Viewed</button>
+				<button class="tab" data-status="signed">Signed</button>
+				<button class="tab" data-status="countersigned">Countersigned</button>
+			</div>
+			<div class="search-sort-row">
+				<input type="text" placeholder="Search by client or title..." id="searchInput">
+			</div>
+		</div>
+
+		<div class="agreements-grid" id="agreementsList"></div>
+	</div>
+
+	<!-- Create Modal -->
+	<div class="modal" id="createModal" hidden>
+		<div class="modal-backdrop"></div>
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2>New Agreement</h2>
+				<button class="modal-close" id="closeModal">&times;</button>
+			</div>
+			<form id="createForm">
+				<div class="form-group" style="margin-bottom:12px">
+					<label>Agreement Type</label>
+					<select id="createType" required>
+						<option value="">Select type...</option>
+						<option value="mou_concept">MoU — Concept</option>
+						<option value="mou_small">MoU — Small Design</option>
+						<option value="full_services">Agreement for Services</option>
+					</select>
+				</div>
+				<div class="form-group" style="margin-bottom:12px">
+					<label>Project Title</label>
+					<input type="text" id="createTitle" required placeholder="e.g., Heritage Center Concept Design">
+				</div>
+				<div class="form-group" style="margin-bottom:12px">
+					<label>Client Name (optional)</label>
+					<input type="text" id="createClient" placeholder="e.g., Kansas Heritage Museum">
+				</div>
+				<div class="modal-actions">
+					<button type="button" class="btn" id="cancelCreate">Cancel</button>
+					<button type="submit" class="btn btn-primary">Create Agreement</button>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<script src="/js/dashboard.bundle.js" type="module"></script>
+</body>
+</html>

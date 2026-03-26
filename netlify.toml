@@ -1,0 +1,22 @@
+[build]
+  command = "npm run build -- --minify"
+  publish = "public"
+  environment = { NODE_VERSION = "22" }
+
+[functions]
+  directory = "netlify/functions"
+
+[functions."api"]
+  timeout = 60
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

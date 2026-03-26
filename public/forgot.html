@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Forgot Password — Agreements</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/css/shared.css">
+</head>
+<body>
+	<div class="login-page">
+		<div class="login-container">
+			<div class="login-brand">
+				<h1>Reset Password</h1>
+				<p>Enter your email to receive a reset link</p>
+			</div>
+			<form class="login-form" id="forgotForm">
+				<div id="forgotMsg" hidden></div>
+				<div class="form-group">
+					<label for="email">Email</label>
+					<input type="email" id="email" required>
+				</div>
+				<button type="submit" class="btn btn-primary btn-full btn-lg">Send Reset Link</button>
+			</form>
+			<p class="forgot-link"><a href="/">Back to login</a></p>
+		</div>
+	</div>
+	<script type="module">
+		document.getElementById("forgotForm").addEventListener("submit", async (e) => {
+			e.preventDefault();
+			const msg = document.getElementById("forgotMsg");
+			try {
+				const res = await fetch("/api/forgot-password", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ email: document.getElementById("email").value }),
+				});
+				if (res.ok) {
+					msg.className = "form-success";
+					msg.textContent = "Check your email for a reset link.";
+				} else {
+					msg.className = "form-error";
+					msg.textContent = "Something went wrong. Try again.";
+				}
+			} catch {
+				msg.className = "form-error";
+				msg.textContent = "Network error. Try again.";
+			}
+			msg.hidden = false;
+		});
+	</script>
+</body>
+</html>

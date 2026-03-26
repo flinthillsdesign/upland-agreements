@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Reset Password — Agreements</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/css/shared.css">
+</head>
+<body>
+	<div class="login-page">
+		<div class="login-container">
+			<div class="login-brand">
+				<h1>New Password</h1>
+				<p>Enter your new password</p>
+			</div>
+			<form class="login-form" id="resetForm">
+				<div id="resetMsg" hidden></div>
+				<div class="form-group">
+					<label for="password">New Password</label>
+					<input type="password" id="password" required minlength="6">
+				</div>
+				<div class="form-group">
+					<label for="confirm">Confirm Password</label>
+					<input type="password" id="confirm" required minlength="6">
+				</div>
+				<button type="submit" class="btn btn-primary btn-full btn-lg">Reset Password</button>
+			</form>
+			<p class="forgot-link"><a href="/">Back to login</a></p>
+		</div>
+	</div>
+	<script type="module">
+		const params = new URLSearchParams(window.location.search);
+		const token = params.get("token");
+		if (!token) {
+			document.getElementById("resetMsg").textContent = "Invalid reset link.";
+			document.getElementById("resetMsg").className = "form-error";
+			document.getElementById("resetMsg").hidden = false;
+		}
+		document.getElementById("resetForm").addEventListener("submit", async (e) => {
+			e.preventDefault();
+			const msg = document.getElementById("resetMsg");
+			const password = document.getElementById("password").value;
+			const confirm = document.getElementById("confirm").value;
+			if (password !== confirm) {
+				msg.className = "form-error";
+				msg.textContent = "Passwords don't match.";
+				msg.hidden = false;
+				return;
+			}
+			try {
+				const res = await fetch("/api/reset-password", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ token, password }),
+				});
+				if (res.ok) {
+					msg.className = "form-success";
+					msg.textContent = "Password reset! Redirecting to login...";
+					msg.hidden = false;
+					setTimeout(() => window.location.href = "/", 2000);
+				} else {
+					const data = await res.json();
+					msg.className = "form-error";
+					msg.textContent = data.error || "Reset failed. Try again.";
+					msg.hidden = false;
+				}
+			} catch {
+				msg.className = "form-error";
+				msg.textContent = "Network error. Try again.";
+				msg.hidden = false;
+			}
+		});
+	</script>
+</body>
+</html>

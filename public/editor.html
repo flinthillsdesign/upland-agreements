@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Editor — Agreements</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/css/shared.css">
+	<link rel="stylesheet" href="/css/editor.css">
+</head>
+<body>
+	<nav class="top-nav">
+		<div class="nav-left">
+			<a href="/dashboard.html" class="nav-brand">Agreements</a>
+			<span class="nav-sep">/</span>
+			<span class="nav-title" id="navTitle">Loading...</span>
+		</div>
+		<div class="nav-right">
+			<div class="editor-status">
+				<span class="status-badge" id="statusBadge"></span>
+				<span class="type-badge" id="typeBadge"></span>
+			</div>
+			<div class="nav-divider"></div>
+			<button class="btn btn-sm" id="previewBtn">Preview</button>
+			<button class="btn btn-sm" id="shareBtn">Share</button>
+			<button class="btn btn-ghost btn-sm nav-more-btn" id="moreBtn">...</button>
+			<div class="nav-actions" id="moreMenu">
+				<button class="nav-action-item" id="duplicateBtn">Duplicate</button>
+				<button class="nav-action-item" id="countersignBtn">Countersign</button>
+				<div class="nav-action-divider"></div>
+				<button class="nav-action-item nav-action-danger" id="deleteBtn">Delete</button>
+			</div>
+		</div>
+	</nav>
+
+	<div class="editor-layout">
+		<div class="editor-main" id="editorMain">
+			<!-- Populated by JS -->
+		</div>
+		<div class="editor-sidebar" id="chatSidebar">
+			<div class="chat-header">
+				<h3>AI Assistant</h3>
+				<button class="chat-toggle" id="chatToggle" title="Toggle sidebar">&#x2715;</button>
+			</div>
+			<div class="chat-messages" id="chatMessages">
+				<div class="chat-empty">
+					Describe your project and I'll draft the agreement sections.
+				</div>
+			</div>
+			<div class="chat-input-area">
+				<textarea id="chatInput" placeholder="Describe the project..." rows="1"></textarea>
+				<button class="btn btn-primary btn-sm" id="chatSend">Send</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Share Modal -->
+	<div class="modal" id="shareModal" hidden>
+		<div class="modal-backdrop"></div>
+		<div class="modal-content modal-sm">
+			<div class="modal-header">
+				<h2>Share Agreement</h2>
+				<button class="modal-close" id="closeShare">&times;</button>
+			</div>
+			<div id="shareContent">
+				<p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px">Generate a shareable link for your client to review and sign.</p>
+				<div class="copy-field" id="shareLinkField" hidden>
+					<input type="text" id="shareLinkInput" readonly>
+					<button class="btn btn-sm" id="copyShareLink">Copy</button>
+				</div>
+				<div class="modal-actions">
+					<button class="btn btn-primary" id="generateShareLink">Generate Link</button>
+					<button class="btn btn-danger btn-sm" id="revokeShareLink" hidden>Revoke</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="/js/editor.bundle.js" type="module"></script>
+</body>
+</html>
