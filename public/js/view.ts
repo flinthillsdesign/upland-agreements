@@ -101,7 +101,6 @@ function renderMou(agreement: Agreement, settings: Settings) {
 	document.getElementById("documentContent")!.innerHTML = `
 		<div class="doc-header">
 			<img src="/upland-logo.svg" alt="Upland Exhibits" class="doc-logo">
-			<div class="company-name">${esc(companyName)}</div>
 			<h1>Memo of Understanding</h1>
 			<div class="doc-subtitle">for Design Services</div>
 		</div>
@@ -174,7 +173,6 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 	document.getElementById("documentContent")!.innerHTML = `
 		<div class="doc-header">
 			<img src="/upland-logo.svg" alt="Upland Exhibits" class="doc-logo">
-			<div class="company-name">${esc(companyName)}</div>
 			<h1>General Agreement for Services</h1>
 		</div>
 
