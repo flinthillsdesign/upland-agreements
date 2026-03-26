@@ -591,8 +591,8 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 
 	element.classList.add("pdf-rendering");
 	// Force a narrow width so content reflows to fit the PDF page
-	// Letter = 8.5in, minus 0.7in margins each side = 7.1in content width
-	element.style.width = "7.1in";
+	// Letter = 8.5in, minus margins and buffer for rendering tolerance
+	element.style.width = "6.8in";
 
 	html2pdf()
 		.set({
