@@ -189,7 +189,7 @@ function renderForm() {
 							<input type="number" data-field="total_cost" value="${agreement.total_cost || ""}" step="1000">
 						</div>
 						<div class="form-group">
-							<label>Effective Date</label>
+							<label>Effective Date (blank = date of signing)</label>
 							<input type="date" data-field="effective_date" value="${agreement.effective_date || ""}">
 						</div>
 					</div>

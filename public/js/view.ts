@@ -192,7 +192,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-preamble">
-			This Agreement ("Agreement") is made effective as of ${formatDate(agreement.effective_date, "long")} by and between <strong>${esc(companyName)}</strong>, of ${esc(companyAddress)}, ("Upland" or "Designer"), and <strong>${esc(agreement.client_name) || "_______________"}</strong>, ${esc(agreement.client_address) || "_______________"} ("Client").
+			This Agreement ("Agreement") is made effective as of ${agreement.effective_date ? formatDate(agreement.effective_date, "long") : "the date of signing"} (the "Effective Date") by and between <strong>${esc(companyName)}</strong>, of ${esc(companyAddress)}, ("Upland" or "Designer"), and <strong>${esc(agreement.client_name) || "_______________"}</strong>, ${esc(agreement.client_address) || "_______________"} ("Client").
 		</div>
 
 		<div class="doc-section">

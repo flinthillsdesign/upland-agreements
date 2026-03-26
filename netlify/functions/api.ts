@@ -298,10 +298,11 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 
 	const signature = buildSignature(name, getClientIp(req), title);
 
-	// Update agreement: signature + client-confirmed org info
+	// Update agreement: signature + client-confirmed org info + effective date if blank
 	const updates: Record<string, unknown> = { client_signature: signature, status: "signed" };
 	if (client_name !== undefined) updates.client_name = client_name;
 	if (client_address !== undefined) updates.client_address = client_address;
+	if (!agreement.effective_date) updates.effective_date = new Date().toISOString().split("T")[0];
 	await updateAgreement(agreement.id, updates);
 
 	// Notify designer
