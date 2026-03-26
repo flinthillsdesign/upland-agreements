@@ -222,32 +222,33 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">6. </span><span class="doc-section-title">FINAL PAYMENT.</span>
-			<span class="doc-section-body">The remaining balance of approximately <strong>${formatCurrency(paymentStructure.final_amount)}</strong> (${paymentStructure.final_pct || 10}% of the Project Cost) will be invoiced upon Substantial Completion of the Project.</span>
+			<span class="doc-section-body">The remaining balance of approximately <strong>${formatCurrency(paymentStructure.final_amount)}</strong> (${paymentStructure.final_pct || 10}% of the Project Cost) may be invoiced upon Substantial Completion of the Project, defined as installation of the exhibit such that it is suitable for public viewing, subject only to minor punch list items that do not materially impair use. Client approval shall not be unreasonably withheld.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">7. </span><span class="doc-section-title">PAYMENT TERMS.</span>
-			<span class="doc-section-body">All invoices are due and payable within thirty (30) days of the invoice date (NET30). Past due amounts shall accrue interest at the rate of eighteen percent (18%) per annum. Client shall be responsible for all costs of collection, including reasonable attorney fees.</span>
+			<span class="doc-section-body">Upland shall submit all invoices to Client via email, with NET30 terms. Payment shall be made to ${esc(companyName)}, ${esc(companyAddress)}. If any invoice is not paid when due, interest will be added to and payable on all overdue amounts at 18 percent per year, or the maximum percentage allowed under applicable laws, whichever is less. Client shall pay all costs of collection, including without limitation, reasonable attorney fees.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">8. </span><span class="doc-section-title">REMEDIES FOR NON-PAYMENT.</span>
-			<span class="doc-section-body">Non-payment of any amount due under this Agreement shall constitute a material breach. Upon such breach, Designer may, at its sole discretion: (a) cancel this Agreement; (b) suspend all work until payment is received; and (c) recover all amounts due plus damages.</span>
+			<span class="doc-section-body">In addition to any other right or remedy provided by law, if Client fails to pay for the Services when due, Upland has the option to treat such failure to pay as a material breach of this Agreement, and may cancel this Agreement, suspend further services, and/or seek legal remedies.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">9. </span><span class="doc-section-title">BEST EFFORTS BASIS.</span>
-			<span class="doc-section-body">Designer will use its best professional efforts to provide the Services. Non-acceptance of a particular design direction by Client does not justify non-payment for services rendered in good faith.</span>
+			<span class="doc-section-body">The Services will be provided on a "best effort" basis. That is, Designer will create designs based on training, experience, and professional judgment that represent Designer's best effort; non-acceptance of the design(s) shall not constitute reason for non-payment.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">10. </span><span class="doc-section-title">CHANGES.</span>
-			<span class="doc-section-body">Any changes to the scope of Services as described herein shall be subject to additional charges. All changes must be agreed upon in writing by both parties prior to commencement of additional work.</span>
+			<span class="doc-section-body">Client shall pay additional charges for substantial changes requested by Client which are outside the scope of the Services on a time and materials basis, at Designer's Service Rates. Such charges shall be in addition to all other amounts payable, despite any maximum Project Cost. Designer may extend or modify any delivery schedule or deadlines as may be required by such changes, provided, however, that the delivery schedule does not exceed the contract termination date. All changes shall be put in writing and agreed to by both parties.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">11. </span><span class="doc-section-title">SERVICE RATES.</span>
 			<div class="doc-section-body">
+				<div>If work outside the scope of Services is required, the following service rates will be used:</div>
 				<table class="rate-table">
 					<tr><td>Head of Design & Head of Fabrication</td><td>$${rates.head_rate}/hour</td></tr>
 					<tr><td>Design staff</td><td>$${rates.design_rate}/hour</td></tr>
@@ -267,11 +268,11 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		<div class="doc-section">
 			<span class="doc-section-number">13. </span><span class="doc-section-title">TITLE AND ASSIGNMENT.</span>
 			<div class="doc-section-body">
-				<div class="doc-term-sub">- <strong>Client Content.</strong> All materials, information, photographs, data, and content provided by the Client for incorporation into the Project shall remain the sole property of Client.</div>
-				<div class="doc-term-sub">- <strong>Final Art.</strong> All original artwork, designs, and creative works produced by Designer specifically for this Project and selected by Client as Final Art shall be considered works made for hire and shall become the property of Client upon Client's full payment of all amounts due under this Agreement.</div>
-				<div class="doc-term-sub">- <strong>Third Party Materials.</strong> All third party materials incorporated into the Project are the exclusive property of their respective owners. Designer shall obtain appropriate licenses for third party materials.</div>
-				<div class="doc-term-sub">- <strong>Preliminary Works.</strong> All sketches, concepts, preliminary designs, and other creative works not selected as Final Art shall remain the exclusive property of Designer.</div>
-				<div class="doc-term-sub">- <strong>Designer IP.</strong> All intellectual property rights to systems, hardware, software, fabrication methods, and proprietary processes developed or used by Designer shall remain the exclusive property of Designer, with a license granted to Client for use in connection with the Project.</div>
+				<div class="doc-term-sub"><strong>Client Content,</strong> meaning all materials, information, photography, writings and other creative content provided by Client for use in the preparation of and/or incorporation in the Deliverables, including pre-existing Trademarks, shall remain the sole property of Client or its respective suppliers, and Client or its suppliers shall be the sole owner of all rights in connection therewith. Client hereby grants to Designer a nonexclusive, nontransferable license to use, reproduce, modify, display and publish the Client Content solely in connection with Designer's performance of the Services and limited promotional uses of the Deliverables as authorized in this Agreement.</div>
+				<div class="doc-term-sub"><strong>Final Art,</strong> meaning all graphic design, illustration, photography, animation, modifications to Client Content, and Designer's selection, arrangement and coordination of such elements together with Client Content and/or Third Party Materials to create graphic layouts, developed or created by Designer, or commissioned by Designer, exclusively for the Project and incorporated into and delivered as part of the Final Deliverables, shall be deemed works made for hire and all rights pertaining to the Final Art shall belong to and shall be the sole and exclusive property of Client upon full payment for the Services except when prohibited by licensing restrictions of included Third Party Materials.</div>
+				<div class="doc-term-sub"><strong>Third Party Materials,</strong> including without limitation stock photography, commissioned illustrations, or fonts, are the exclusive property of their respective owners. If Designer suggests incorporating Third Party Materials into the Final Art and additional licensing considerations are required, Designer shall inform Client of any need to license those Third Party Materials. Client shall obtain the license(s) necessary to permit Client's use of the Third Party Materials consistent with the usage rights granted herein, at Client's expense, or provide suitable alternatives as part of the Client Content. In the event Client fails to properly secure or otherwise arrange for any necessary licenses or instructs the use of Third Party Materials, Client hereby indemnifies, saves and holds harmless Designer from any and all damages, liabilities, costs, losses or expenses arising out of any claim, demand, or action by a third party arising out of Client's failure to obtain copyright, trademark, publicity, privacy, defamation or other releases or permissions with respect to materials included in the Final Art.</div>
+				<div class="doc-term-sub"><strong>Preliminary Works,</strong> meaning all artwork including, but not limited to, concepts, sketches, visual presentations, or other alternate or preliminary designs and documents developed by Designer and which may or may not be shown and or delivered to Client for consideration but do not form part of the Final Art, are and shall remain exclusive property of Designer.</div>
+				<div class="doc-term-sub"><strong>Designer IP.</strong> All intellectual property rights to all other work from the Project, including without limitation pre-existing and newly developed hardware, inventions, patents, products, exhibit systems, custom display components, and software, are and shall remain exclusive property of Designer. Designer hereby grants to Client a nonexclusive, nontransferable, perpetual, worldwide license to utilize this work solely to the extent necessary to produce the Final Deliverables.</div>
 			</div>
 		</div>
 
@@ -282,17 +283,28 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">15. </span><span class="doc-section-title">WARRANTIES AND REPRESENTATIONS.</span>
-			<span class="doc-section-body">Designer warrants that: (a) Services will be performed in a timely and professional manner; (b) all work product will be free from defects in materials and workmanship for a period of two (2) years from delivery; (c) the work product will not infringe upon any third party intellectual property rights. Client warrants that: (a) Client owns or has rights to all content provided to Designer; (b) such content does not infringe upon any third party rights.</span>
+			<div class="doc-section-body">
+				<div style="margin-bottom:8px">Designer represents, warrants, and covenants to Client that:</div>
+				<div class="doc-term-sub">(a) Designer shall provide its Services and meet its obligations under this Agreement in a timely manner consistent with the terms of this Agreement, using knowledge, methods, and recommendations for performing the Services which meet commercially acceptable standards.</div>
+				<div class="doc-term-sub">(b) The Project exhibits shall be free from design, manufacture, or production defect for a period of two years from the Agreement completion date, normal wear and tear excepted.</div>
+				<div class="doc-term-sub">(c) To the best of Designer's knowledge, the Works do not infringe any copyright, violate any property or other rights of any third party or contain any scandalous, libelous or unlawful matter.</div>
+				<div style="margin-top:12px;margin-bottom:8px">Client represents, warrants and covenants to Designer that:</div>
+				<div class="doc-term-sub">(a) Client owns all right, title, and interest in, or otherwise has full right and authority to permit the use of all materials, information, photography, writings and other Client Content provided by Client for use in the Project.</div>
+				<div class="doc-term-sub">(b) To the best of Client's knowledge, the Client Content does not infringe the rights of any third party, and use of the Client Content as well as any Trademarks in connection with the Project does not and will not violate the rights of any third parties.</div>
+			</div>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">16. </span><span class="doc-section-title">CONFIDENTIAL INFORMATION.</span>
-			<span class="doc-section-body">Each party agrees to keep confidential all proprietary information received from the other party and not to disclose such information to third parties without prior written consent, except as required by law.</span>
+			<span class="doc-section-body">Each party acknowledges that in connection with this Agreement it may receive certain confidential or proprietary technical and business information and materials of the other party, including without limitation Preliminary Works ("Confidential Information"). Each party, its agents and employees shall hold and maintain in strict confidence all Confidential Information, shall not disclose Confidential Information to any third party, and shall not share or use any Confidential Information except as may be necessary to perform its obligations under this Agreement, or as may be required by law, or by a court or governmental authority. Notwithstanding the foregoing, Confidential Information shall not include any information that is in the public domain or becomes publicly known through no fault of the receiving party or is otherwise properly received from a third party without an obligation of confidentiality.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">17. </span><span class="doc-section-title">RELATIONSHIP OF THE PARTIES.</span>
-			<span class="doc-section-body">Designer is an independent contractor. Nothing in this Agreement shall be construed to create a partnership, joint venture, or employer-employee relationship.</span>
+			<div class="doc-section-body">
+				<div>Designer is an independent contractor, not an employee of Client or any company affiliated with Client. Designer shall provide the Services under the general direction of Client, but Designer shall determine, in Designer's sole discretion, the manner and means by which the Services are accomplished. This Agreement does not create a partnership or joint venture and neither party is authorized to act as agent or bind the other party except as expressly stated in this Agreement. All rights, if any, granted to Client are contractual in nature and are wholly defined by the express written agreement of the parties and the various terms and conditions of this Agreement.</div>
+				<div style="margin-top:8px">If applicable, Designer shall contract with and pay all subcontractors used by Designer in the performance of the Services. Client shall in no event have any liability to any subcontractor of Designer, and Designer shall indemnify and hold Client harmless for, and against all damages, losses, and costs directly related to Designer's non-payment of subcontractors, including but not limited to reasonable attorney's fees.</div>
+			</div>
 		</div>
 
 		<div class="doc-section">
@@ -302,28 +314,34 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">19. </span><span class="doc-section-title">INDEMNIFICATION; HOLD HARMLESS.</span>
-			<span class="doc-section-body">Each party shall indemnify and hold harmless the other party from and against any claims, damages, losses, or expenses arising from: (a) the indemnifying party's negligence or willful misconduct; (b) breach of this Agreement; (c) any unlawful content provided by the indemnifying party.</span>
+			<div class="doc-section-body">
+				<div>To the maximum extent permitted by law, Designer agrees to indemnify and hold Client and their officers and employees harmless for, from and against all liabilities, damages, losses and costs, including, but not limited to, reasonable attorneys' fees, to the extent caused by (i) the gross negligence, recklessness, or intentionally wrongful conduct of the Designer and other persons employed or utilized by the Designer, including its consultants, in the performance of the Agreement; or (ii) Designer's breach of any material covenant, term, or provision of this Agreement. Designer further agrees to defend, indemnify and hold harmless Client and/or its licensees against all claims, suits, costs, damages and expenses, including attorneys' fees, that Client and/or its licensees may sustain by reason of any infringing, libelous or otherwise unlawful matter contained in the Works, excluding the Client Content.</div>
+				<div style="margin-top:8px">To the maximum extent permitted by law, Client agrees to indemnify and hold Designer and their officers and employees harmless for, from and against all liabilities, damages, losses and costs, including, but not limited to, reasonable attorneys' fees, to the extent caused by (i) the gross negligence, recklessness, or intentionally wrongful conduct of Client and other persons employed by Client, including its consultants, in the performance of the Agreement; or (ii) Client's breach of any material covenant, term, or provision of this Agreement. Client further agrees to indemnify and hold harmless Upland and/or its licensees against any and all claims, costs, damages and expenses, including attorneys' fees, that Upland sustains by reason of any infringing, libelous or otherwise unlawful matter contained in the Client Content.</div>
+			</div>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">20. </span><span class="doc-section-title">LIMITATION OF LIABILITY.</span>
-			<span class="doc-section-body">Designer's maximum aggregate liability under this Agreement shall not exceed fifty percent (50%) of the total compensation paid or payable to Designer. In no event shall either party be liable for consequential, incidental, indirect, special, or punitive damages.</span>
+			<div class="doc-section-body">
+				<div>In all circumstances, Designer's maximum liability to Client for damages for any and all causes whatsoever, and Client's maximum remedy, regardless of the form of action, shall be limited to 50% of the total compensation paid to Designer for the Services rendered.</div>
+				<div style="margin-top:8px">In no event shall Designer be liable for any lost data or content, lost profits, business interruption or for any indirect, incidental, special, consequential, exemplary or punitive damages arising out of or relating to the materials or the services provided by Designer or its agents, even if Designer has been advised of the possibility of such damages.</div>
+			</div>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">21. </span><span class="doc-section-title">DEFAULT.</span>
-			<span class="doc-section-body">In the event of a breach, the non-breaching party shall provide written notice and the breaching party shall have thirty (30) days to cure (five (5) business days for non-payment).</span>
+			<span class="doc-section-body">If either party is in default with respect to any of the terms or conditions of this Agreement, including, without limitation, Client's failure to pay any invoice in accordance with the terms of this Agreement, the other party may, at its option, defer further performance until the default is remedied, and, without prejudice to any other legal remedy, may terminate this Agreement if the default is not remedied within thirty (30) calendar days (five (5) working days for nonpayment) after written notice is provided to the party in default, specifying the thing or matter in default. Unless waived by the party providing notice, the failure to cure the default(s) within such time period shall result in the automatic termination of this Agreement.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">22. </span><span class="doc-section-title">FORCE MAJEURE.</span>
-			<span class="doc-section-body">Neither party shall be liable for failure to perform due to causes beyond its reasonable control, including but not limited to acts of God, war, terrorism, pandemic, natural disasters, government action, or failure of third-party services.</span>
+			<span class="doc-section-body">If performance of this Agreement or any obligation under this Agreement is prevented, restricted, or interfered with by causes beyond either party's reasonable control ("Force Majeure"), and if the party unable to carry out its obligations gives the other party prompt written notice of such event, then the obligations of the party invoking this provision shall be suspended to the extent necessary by such event. The term Force Majeure shall include, without limitation, acts of God, pandemics, fire, explosion, vandalism, storm or other similar occurrence, orders or acts of military or civil authority, or by national emergencies, insurrections, riots, or wars, or strikes, or lock-outs. The excused party shall use reasonable efforts under the circumstances to avoid or remove such causes of non-performance and shall proceed to perform with reasonable dispatch whenever such causes are removed or ceased. An act or omission shall be deemed within the reasonable control of a party if committed, omitted, or caused by such party, or its employees, officers, agents, or affiliates.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">23. </span><span class="doc-section-title">NOTICE.</span>
 			<div class="doc-section-body">
-				<div>All notices shall be sent via email to:</div>
+				<div>Any notice or communication required or permitted under this Agreement shall be sent via email. A notice shall be deemed received when the recipient confirms receipt by reply, or if no reply is received, on the third business day after sending. All notices shall be sent to:</div>
 				<div class="doc-term-sub">Designer: ${esc(agreement.designer_email) || "joel@uplandexhibits.com"}</div>
 				<div class="doc-term-sub">Client: ${esc(agreement.client_email) || "_______________"}</div>
 			</div>
@@ -341,7 +359,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">26. </span><span class="doc-section-title">SEVERABILITY.</span>
-			<span class="doc-section-body">If any provision of this Agreement is found to be invalid or unenforceable, the remaining provisions shall continue in full force and effect.</span>
+			<span class="doc-section-body">If any provision of this Agreement shall be held to be invalid or unenforceable for any reason, the remaining provisions shall continue to be valid and enforceable. If a court finds that any provision of this Agreement is invalid or unenforceable, but that by limiting such provision it would become valid and enforceable, then such provision shall be deemed to be written, construed, and enforced as so limited.</span>
 		</div>
 
 		<div class="doc-section">
