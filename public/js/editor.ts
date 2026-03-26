@@ -44,9 +44,20 @@ let conversationStarted = false;
 let dirtyFields: Record<string, unknown> = {};
 let saveTimeout: ReturnType<typeof setTimeout>;
 
+function setSaveStatus(status: "dirty" | "saving" | "saved" | "error") {
+	const el = document.getElementById("saveStatus");
+	if (!el) return;
+	el.textContent = status === "dirty" ? "Unsaved changes" : status === "saving" ? "Saving..." : status === "saved" ? "Saved" : "Save failed";
+	el.className = `save-status ${status}`;
+	if (status === "saved") {
+		setTimeout(() => { if (el.className.includes("saved")) { el.textContent = ""; el.className = "save-status"; } }, 2000);
+	}
+}
+
 function markDirty(field: string, value: unknown) {
 	dirtyFields[field] = value;
 	clearTimeout(saveTimeout);
+	setSaveStatus("dirty");
 	saveTimeout = setTimeout(flushSave, 500);
 }
 
@@ -54,7 +65,13 @@ async function flushSave() {
 	const fields = dirtyFields;
 	dirtyFields = {};
 	if (Object.keys(fields).length === 0) return;
-	await api.updateAgreement(agreementId!, fields);
+	setSaveStatus("saving");
+	try {
+		await api.updateAgreement(agreementId!, fields);
+		setSaveStatus("saved");
+	} catch {
+		setSaveStatus("error");
+	}
 }
 
 async function load() {
@@ -181,17 +198,17 @@ function renderForm() {
 					<div style="margin-bottom:12px">
 						<label style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:6px;display:block">Payment Schedule</label>
 						<div class="form-row">
-							<div class="form-group">
-								<label>Initial Payment %</label>
+							<div class="form-group" style="flex:0 0 80px">
+								<label>Initial %</label>
 								<input type="number" id="ps_initial_pct" value="${ps.initial_pct}" step="1" min="0" max="100">
 							</div>
-							<div class="form-group">
-								<label>Final Payment %</label>
+							<div class="form-group" style="flex:0 0 80px">
+								<label>Final %</label>
 								<input type="number" id="ps_final_pct" value="${ps.final_pct}" step="1" min="0" max="100">
 							</div>
-							<div class="form-group">
-								<label>Calculated</label>
-								<div class="calculated-field" id="paymentCalc" style="font-size:0.8rem"></div>
+							<div class="form-group" style="flex:1">
+								<label>Payment Breakdown</label>
+								<div class="calculated-field" id="paymentCalc"></div>
 							</div>
 						</div>
 					</div>

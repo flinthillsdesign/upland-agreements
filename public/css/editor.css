@@ -243,6 +243,18 @@
 	gap: 8px;
 }
 
+/* === Save Status === */
+.save-status {
+	font-size: 0.75rem;
+	padding: 2px 8px;
+	border-radius: 4px;
+	transition: all 150ms ease;
+}
+.save-status.dirty { color: var(--warning); }
+.save-status.saving { color: var(--text-muted); font-style: italic; }
+.save-status.saved { color: var(--success); }
+.save-status.error { color: var(--danger); }
+
 /* === Responsive === */
 @media (max-width: 900px) {
 	.editor-sidebar { width: 320px; }
