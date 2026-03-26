@@ -27,7 +27,7 @@ let handler: ((req: Request) => Promise<Response>) | null = null;
 
 async function getHandler() {
 	if (!handler) {
-		const mod = await import("./netlify/functions/api.js");
+		const mod = await import("./netlify/functions/api.mjs");
 		handler = mod.default;
 	}
 	return handler;
