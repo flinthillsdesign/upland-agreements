@@ -557,7 +557,7 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 
 	html2pdf()
 		.set({
-			margin: [0.4, 0.5, 0.5, 0.5],
+			margin: [0.4, 0.5, 0.6, 0.5],
 			filename,
 			image: { type: "jpeg", quality: 0.98 },
 			html2canvas: { scale: 1.5, useCORS: true },
@@ -565,6 +565,17 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 			pagebreak: { mode: ["css", "legacy"] },
 		})
 		.from(element)
+		.toPdf()
+		.get("pdf")
+		.then((pdf: any) => {
+			const totalPages = pdf.internal.getNumberOfPages();
+			for (let i = 1; i <= totalPages; i++) {
+				pdf.setPage(i);
+				pdf.setFontSize(8);
+				pdf.setTextColor(150);
+				pdf.text(`Page ${i} of ${totalPages}`, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 0.3, { align: "center" });
+			}
+		})
 		.save()
 		.then(() => {
 			element.classList.remove("pdf-rendering");
