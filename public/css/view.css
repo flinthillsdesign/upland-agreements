@@ -30,7 +30,7 @@
 .document {
 	background: var(--surface);
 	border: 1px solid var(--border);
-	border-radius: var(--radius-lg);
+	border-radius: 2px;
 	padding: 60px 64px;
 	font-size: 14px;
 	line-height: 1.7;
@@ -308,15 +308,17 @@
 
 /* === Rate Table === */
 .rate-table {
-	width: 100%;
 	border-collapse: collapse;
-	margin: 12px 0;
+	margin: 8px 0 4px 24px;
 	font-size: 13px;
 }
 
 .rate-table td {
-	padding: 5px 12px 5px 0;
-	border-bottom: 1px solid #f0eeeb;
+	padding: 3px 0;
+}
+
+.rate-table td:first-child {
+	padding-right: 32px;
 }
 
 .rate-table td:last-child {
