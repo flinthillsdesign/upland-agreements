@@ -71,15 +71,18 @@
 				<button class="modal-close" id="closeShare">&times;</button>
 			</div>
 			<div id="shareContent">
-				<p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px">Generate a shareable link for your client to review and sign.</p>
+				<p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:16px" id="shareDescription">Generate a shareable link for your client to review and sign.</p>
 				<div class="copy-field" id="shareLinkField" hidden>
 					<input type="text" id="shareLinkInput" readonly>
 					<button class="btn btn-sm" id="copyShareLink">Copy</button>
 				</div>
-				<div class="modal-actions">
-					<button class="btn btn-primary" id="generateShareLink">Generate Link</button>
-					<button class="btn btn-sm" id="resendEmail" hidden>Resend Email</button>
-					<button class="btn btn-danger btn-sm" id="revokeShareLink" hidden>Revoke</button>
+				<p class="form-success" id="shareStatus" hidden style="margin-top:12px"></p>
+				<div class="modal-actions" id="shareActions">
+					<button class="btn btn-primary" id="generateShareLink">Generate & Send Link</button>
+				</div>
+				<div class="modal-actions" id="shareManage" hidden>
+					<button class="btn btn-sm" id="resendEmail">Resend Email</button>
+					<button class="btn btn-sm btn-danger" id="revokeShareLink">Revoke Link</button>
 				</div>
 			</div>
 		</div>

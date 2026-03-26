@@ -619,59 +619,68 @@ document.getElementById("countersignBtn")!.addEventListener("click", async () =>
 
 // === Share modal ===
 const shareModal = document.getElementById("shareModal")!;
+
+function showShareState() {
+	const hasToken = !!agreement?.share_token;
+	document.getElementById("shareLinkField")!.hidden = !hasToken;
+	document.getElementById("shareActions")!.hidden = hasToken;
+	document.getElementById("shareManage")!.hidden = !hasToken;
+	document.getElementById("shareStatus")!.hidden = true;
+	document.getElementById("shareDescription")!.textContent = hasToken
+		? "This agreement has been shared with your client."
+		: "Generate a shareable link for your client to review and sign.";
+	if (hasToken) {
+		(document.getElementById("shareLinkInput") as HTMLInputElement).value = `${window.location.origin}/view.html?token=${agreement!.share_token}`;
+	}
+}
+
 document.getElementById("shareBtn")!.addEventListener("click", () => {
 	if (!agreement) return;
-	const linkField = document.getElementById("shareLinkField")!;
-	const revokeBtn = document.getElementById("revokeShareLink")!;
-	if (agreement.share_token) {
-		const url = `${window.location.origin}/view.html?token=${agreement.share_token}`;
-		(document.getElementById("shareLinkInput") as HTMLInputElement).value = url;
-		linkField.hidden = false;
-		revokeBtn.hidden = false;
-	} else {
-		linkField.hidden = true;
-		revokeBtn.hidden = true;
-	}
+	showShareState();
 	shareModal.hidden = false;
 });
 document.getElementById("closeShare")!.addEventListener("click", () => { shareModal.hidden = true; });
 shareModal.querySelector(".modal-backdrop")!.addEventListener("click", () => { shareModal.hidden = true; });
 
 document.getElementById("generateShareLink")!.addEventListener("click", async () => {
+	const btn = document.getElementById("generateShareLink") as HTMLButtonElement;
+	btn.disabled = true;
+	btn.textContent = "Sending...";
 	const data = (await api.shareAgreement(agreementId!)) as { token: string; url: string; emailSent: boolean };
 	agreement!.share_token = data.token;
-	(document.getElementById("shareLinkInput") as HTMLInputElement).value = data.url;
-	document.getElementById("shareLinkField")!.hidden = false;
-	document.getElementById("revokeShareLink")!.hidden = false;
-	document.getElementById("resendEmail")!.hidden = false;
-	if (data.emailSent) {
-		document.getElementById("generateShareLink")!.textContent = "Link Generated — Email Sent";
-	} else {
-		document.getElementById("generateShareLink")!.textContent = "Link Generated";
-	}
+	showShareState();
+	const status = document.getElementById("shareStatus")!;
+	status.textContent = data.emailSent ? "Link generated and email sent to client." : "Link generated.";
+	status.hidden = false;
+	btn.disabled = false;
+	btn.textContent = "Generate & Send Link";
 });
 
 document.getElementById("resendEmail")!.addEventListener("click", async () => {
+	const btn = document.getElementById("resendEmail") as HTMLButtonElement;
+	btn.disabled = true;
+	btn.textContent = "Sending...";
 	const data = (await api.shareAgreement(agreementId!, true)) as { emailSent: boolean };
-	if (data.emailSent) {
-		const btn = document.getElementById("resendEmail") as HTMLButtonElement;
-		btn.textContent = "Email Sent";
-		btn.disabled = true;
-		setTimeout(() => { btn.textContent = "Resend Email"; btn.disabled = false; }, 3000);
-	}
+	const status = document.getElementById("shareStatus")!;
+	status.textContent = data.emailSent ? "Email resent." : "No client email on file.";
+	status.hidden = false;
+	btn.textContent = "Resend Email";
+	btn.disabled = false;
 });
 
 document.getElementById("copyShareLink")!.addEventListener("click", () => {
 	const input = document.getElementById("shareLinkInput") as HTMLInputElement;
 	navigator.clipboard.writeText(input.value);
+	const status = document.getElementById("shareStatus")!;
+	status.textContent = "Link copied to clipboard.";
+	status.hidden = false;
 });
 
 document.getElementById("revokeShareLink")!.addEventListener("click", async () => {
 	if (!confirm("Revoke the share link? The client will no longer be able to access this agreement.")) return;
 	await api.revokeShare(agreementId!);
-	agreement.share_token = null;
-	document.getElementById("shareLinkField")!.hidden = true;
-	document.getElementById("revokeShareLink")!.hidden = true;
+	agreement!.share_token = null;
+	showShareState();
 });
 
 // Initial load
