@@ -46,7 +46,7 @@ For Agreements for Services, draft:
 - total_cost: NTE (not-to-exceed) amount
 - payment_structure: JSON with {initial_pct, initial_amount, progress_note, final_pct, final_amount}
 - service_rates: JSON with current rates {head_rate, design_rate, fab_rate, materials_markup, travel_rate}
-- client_responsibilities: Markdown list of what the client must provide
+- Do NOT draft client_responsibilities — these are hardcoded in the agreement template. Only add to client_responsibilities if the user explicitly asks for project-specific additions.
 - timeframe: Contract term description
 - effective_date: Suggested effective date
 - end_date: Suggested end date
