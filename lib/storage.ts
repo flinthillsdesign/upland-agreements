@@ -1,11 +1,10 @@
-import type { Client } from "@libsql/client";
+import { createClient, type Client } from "@libsql/client";
 import { nanoid } from "nanoid";
 
 let client: Client;
 
 function getClient(): Client {
 	if (!client) {
-		const { createClient } = require("@libsql/client");
 		client = createClient({
 			url: process.env.TURSO_URL || "file:./data/local.db",
 			authToken: process.env.TURSO_TOKEN || undefined,

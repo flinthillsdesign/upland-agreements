@@ -29,7 +29,7 @@ await build({
 	platform: "node",
 	target: "node20",
 	sourcemap: true,
-	external: ["@libsql/client", "bcryptjs", "jsonwebtoken", "@anthropic-ai/sdk", "postmark", "node:module"],
+	external: ["bcryptjs", "jsonwebtoken", "@anthropic-ai/sdk", "postmark", "node:module"],
 	banner: {
 		js: 'import { createRequire } from "module"; const require = createRequire(import.meta.url);',
 	},
