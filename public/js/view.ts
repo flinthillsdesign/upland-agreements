@@ -45,6 +45,11 @@ if (!token && !previewId) {
 	document.getElementById("documentContent")!.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted)">Invalid link.</p>';
 }
 
+function formatParagraphs(text: string | null): string {
+	if (!text) return "<p>—</p>";
+	return text.split(/\n\n+/).map((p) => p.trim()).filter(Boolean).map((p) => `<p style="margin:0 0 8px">${esc(p)}</p>`).join("");
+}
+
 function formatList(text: string | null): string {
 	if (!text) return "—";
 	const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
@@ -127,7 +132,7 @@ function renderMou(agreement: Agreement, settings: Settings) {
 
 		<div class="mou-field">
 			<div class="mou-field-label">Scope of Work / Deliverable</div>
-			<div class="mou-field-value">${esc(agreement.project_description) || "—"}${agreement.deliverable ? "\n\n" + esc(agreement.deliverable) : ""}</div>
+			<div class="mou-field-value">${formatParagraphs(agreement.project_description)}${agreement.deliverable ? formatParagraphs(agreement.deliverable) : ""}</div>
 		</div>
 
 		<div class="mou-field">
@@ -261,7 +266,13 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">13. </span><span class="doc-section-title">TITLE AND ASSIGNMENT.</span>
-			<span class="doc-section-body">Client Content remains sole property of Client. Final Art becomes property of Client upon full payment. Third Party Materials remain property of their respective owners. Preliminary Works remain property of Designer. All intellectual property rights to systems, hardware, and software remain exclusive property of Designer, with license granted to Client.</span>
+			<div class="doc-section-body">
+				<div class="doc-term-sub">- <strong>Client Content.</strong> All materials, information, photographs, data, and content provided by the Client for incorporation into the Project shall remain the sole property of Client.</div>
+				<div class="doc-term-sub">- <strong>Final Art.</strong> All original artwork, designs, and creative works produced by Designer specifically for this Project and selected by Client as Final Art shall be considered works made for hire and shall become the property of Client upon Client's full payment of all amounts due under this Agreement.</div>
+				<div class="doc-term-sub">- <strong>Third Party Materials.</strong> All third party materials incorporated into the Project are the exclusive property of their respective owners. Designer shall obtain appropriate licenses for third party materials.</div>
+				<div class="doc-term-sub">- <strong>Preliminary Works.</strong> All sketches, concepts, preliminary designs, and other creative works not selected as Final Art shall remain the exclusive property of Designer.</div>
+				<div class="doc-term-sub">- <strong>Designer IP.</strong> All intellectual property rights to systems, hardware, software, fabrication methods, and proprietary processes developed or used by Designer shall remain the exclusive property of Designer, with a license granted to Client for use in connection with the Project.</div>
+			</div>
 		</div>
 
 		<div class="doc-section">
@@ -311,7 +322,11 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">23. </span><span class="doc-section-title">NOTICE.</span>
-			<span class="doc-section-body">All notices shall be sent via email to:<br>Designer: ${esc(agreement.designer_email) || "joel@uplandexhibits.com"}<br>Client: ${esc(agreement.client_email) || "_______________"}</span>
+			<div class="doc-section-body">
+				<div>All notices shall be sent via email to:</div>
+				<div class="doc-term-sub">Designer: ${esc(agreement.designer_email) || "joel@uplandexhibits.com"}</div>
+				<div class="doc-term-sub">Client: ${esc(agreement.client_email) || "_______________"}</div>
+			</div>
 		</div>
 
 		<div class="doc-section">
