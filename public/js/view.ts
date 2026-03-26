@@ -100,7 +100,7 @@ function renderMou(agreement: Agreement, settings: Settings) {
 
 	document.getElementById("documentContent")!.innerHTML = `
 		<div class="doc-header">
-			<img src="https://assets.uplandexhibits.com/media/img/logos/Upland-Exhibits-logo-dark.svg" alt="Upland Exhibits">
+			<img src="/upland-logo.svg" alt="Upland Exhibits" class="doc-logo">
 			<div class="company-name">${esc(companyName)}</div>
 			<h1>Memo of Understanding</h1>
 			<div class="doc-subtitle">for Design Services</div>
@@ -173,7 +173,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 	document.getElementById("documentContent")!.innerHTML = `
 		<div class="doc-header">
-			<img src="https://assets.uplandexhibits.com/media/img/logos/Upland-Exhibits-logo-dark.svg" alt="Upland Exhibits">
+			<img src="/upland-logo.svg" alt="Upland Exhibits" class="doc-logo">
 			<div class="company-name">${esc(companyName)}</div>
 			<h1>General Agreement for Services</h1>
 		</div>
@@ -356,7 +356,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			<div class="signature-pair">
 				${clientSig ? `
 					<div class="signed-info">
-						<div class="signed-name">${esc(clientSig.name)}</div>
+						<div class="signed-name">${esc(clientSig.name)}${clientSig.title ? `, ${esc(clientSig.title)}` : ""}</div>
 						<div class="signed-meta">Signed ${formatDate(clientSig.timestamp, "long")}</div>
 					</div>
 				` : `
@@ -399,7 +399,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			<div class="signature-block-org">${esc(agreement.client_name) || "_______________"}</div>
 			${clientSig ? `
 				<div class="signed-info">
-					<div class="signed-name">${esc(clientSig.name)}</div>
+					<div class="signed-name">${esc(clientSig.name)}${clientSig.title ? `, ${esc(clientSig.title)}` : ""}</div>
 					<div class="signed-meta">Signed ${formatDate(clientSig.timestamp, "long")}</div>
 				</div>
 			` : `
@@ -448,9 +448,13 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 		<div class="sign-area" id="signArea">
 			<h3>Sign This Agreement</h3>
 			<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">By typing your name below and clicking "Sign Agreement", you acknowledge that you have read and agree to the terms above.</p>
-			<div class="form-group">
+			<div class="form-group" style="margin-bottom:12px">
 				<label>Your Full Name</label>
 				<input type="text" id="signName" placeholder="Type your full legal name" required>
+			</div>
+			<div class="form-group" style="margin-bottom:16px">
+				<label>Your Title</label>
+				<input type="text" id="signTitle" placeholder="e.g., Executive Director">
 			</div>
 			<button class="btn btn-primary btn-lg" id="signBtn">Sign Agreement</button>
 		</div>
@@ -462,7 +466,9 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 	if (signBtn) {
 		signBtn.addEventListener("click", async () => {
 			const nameInput = document.getElementById("signName") as HTMLInputElement;
+			const titleInput = document.getElementById("signTitle") as HTMLInputElement;
 			const name = nameInput.value.trim();
+			const title = titleInput?.value.trim() || "";
 			if (!name) {
 				nameInput.focus();
 				return;
@@ -472,7 +478,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			signBtn.textContent = "Signing...";
 
 			try {
-				const result = (await api.signAgreement(token!, name)) as { error?: string };
+				const result = (await api.signAgreement(token!, name, title)) as { error?: string };
 
 				if (result.error) {
 					alert(result.error);
@@ -506,9 +512,11 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 	btn.disabled = true;
 	btn.textContent = "Generating...";
 
+	element.classList.add("pdf-rendering");
+
 	html2pdf()
 		.set({
-			margin: [0.5, 0.6, 0.6, 0.6],
+			margin: [0.4, 0.5, 0.5, 0.5],
 			filename,
 			image: { type: "jpeg", quality: 0.98 },
 			html2canvas: { scale: 1.5, useCORS: true },
@@ -518,10 +526,12 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 		.from(element)
 		.save()
 		.then(() => {
+			element.classList.remove("pdf-rendering");
 			btn.disabled = false;
 			btn.textContent = "Download PDF";
 		})
 		.catch(() => {
+			element.classList.remove("pdf-rendering");
 			btn.disabled = false;
 			btn.textContent = "Download PDF";
 			alert("Failed to generate PDF. Try using the Print button instead.");

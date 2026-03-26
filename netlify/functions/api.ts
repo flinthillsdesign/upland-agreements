@@ -24,8 +24,10 @@ const EDITABLE_FIELDS = new Set([
 	"client_responsibilities", "custom_terms", "designer_email", "notes", "valid_until",
 ]);
 
-function buildSignature(name: string, ip: string): string {
-	return JSON.stringify({ name, timestamp: new Date().toISOString(), ip });
+function buildSignature(name: string, ip: string, title?: string): string {
+	const sig: Record<string, string> = { name, timestamp: new Date().toISOString(), ip };
+	if (title) sig.title = title;
+	return JSON.stringify(sig);
 }
 
 // === Router ===
@@ -291,10 +293,10 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	if (!agreement) return err("Not found", 404);
 	if (agreement.client_signature) return err("Already signed");
 
-	const { name } = await req.json() as { name?: string };
+	const { name, title } = await req.json() as { name?: string; title?: string };
 	if (!name) return err("Signature name required");
 
-	const signature = buildSignature(name, getClientIp(req));
+	const signature = buildSignature(name, getClientIp(req), title);
 
 	await updateAgreement(agreement.id, { client_signature: signature, status: "signed" });
 

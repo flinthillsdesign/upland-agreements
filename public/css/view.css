@@ -45,7 +45,14 @@
 	border-bottom: 2px solid #1a1a1a;
 }
 
-.doc-header img {
+/* Strip border/radius during PDF generation so html2canvas doesn't capture it */
+.document.pdf-rendering {
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.doc-header .doc-logo {
 	height: 36px;
 	width: auto;
 	margin-bottom: 16px;
@@ -364,9 +371,8 @@
 	.signed-name { font-size: 11pt; }
 	.signed-meta { font-size: 8pt; }
 
-	/* Page margins */
 	@page {
-		margin: 0.75in 1in;
+		margin: 0.6in 0.75in;
 	}
 
 	/* Page break before terms for full agreements */
