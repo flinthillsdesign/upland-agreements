@@ -12,6 +12,10 @@ function getClient(): postmark.ServerClient | null {
 
 const FROM = process.env.POSTMARK_FROM_EMAIL || "info@uplandexhibits.com";
 
+function escHtml(val: string): string {
+	return val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 function wrap(content: string): string {
 	return `<div style="font-family:'Instrument Sans',system-ui,-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 0">
 	<div style="margin-bottom:24px"><img src="https://assets.uplandexhibits.com/media/img/logos/Upland-Exhibits-logo-dark.svg" alt="Upland Exhibits" style="height:32px;width:auto"></div>
@@ -57,7 +61,7 @@ export async function sendAgreementSharedEmail(to: string, agreementTitle: strin
 		`Agreement from Upland Exhibits: ${agreementTitle}`,
 		wrap(`
 			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px">Upland Exhibits has prepared an agreement for your review:</p>
-			<p style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${agreementTitle}</p>
+			<p style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
 			<p style="margin-bottom:24px">${btn(viewUrl, "Review Agreement")}</p>
 			<p style="font-size:13px;color:#6b6560">If you have questions, reply to this email or contact us directly.</p>
 		`),
@@ -69,8 +73,8 @@ export async function sendAgreementViewedEmail(to: string, agreementTitle: strin
 	return send(to,
 		`Agreement viewed: ${agreementTitle}`,
 		wrap(`
-			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px"><strong>${clientName || "A client"}</strong> just opened your agreement:</p>
-			<p style="font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${agreementTitle}</p>
+			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px"><strong>${escHtml(clientName || "A client")}</strong> just opened your agreement:</p>
+			<p style="font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
 			<p style="margin-bottom:24px">${btn(editorUrl, "Open in Editor")}</p>
 		`),
 		`${clientName || "A client"} just opened your agreement: ${agreementTitle}\n\nOpen in editor: ${editorUrl}`,
@@ -84,8 +88,8 @@ export async function sendAgreementSignedEmail(to: string, agreementTitle: strin
 			<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin-bottom:20px">
 				<p style="font-size:14px;color:#15803d;font-weight:600;margin:0">Agreement Signed by Client</p>
 			</div>
-			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px"><strong>${clientName || "Your client"}</strong> signed the agreement:</p>
-			<p style="font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${agreementTitle}</p>
+			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px"><strong>${escHtml(clientName || "Your client")}</strong> signed the agreement:</p>
+			<p style="font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
 			<p style="margin-bottom:24px">${btn(editorUrl, "Review & Countersign")}</p>
 		`),
 		`${clientName || "Your client"} signed the agreement: ${agreementTitle}\n\nReview & countersign: ${editorUrl}`,
@@ -100,7 +104,7 @@ export async function sendAgreementCountersignedEmail(to: string, agreementTitle
 				<p style="font-size:14px;color:#15803d;font-weight:600;margin:0">Agreement Fully Executed</p>
 			</div>
 			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px">Both parties have signed the agreement:</p>
-			<p style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${agreementTitle}</p>
+			<p style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
 			<p style="margin-bottom:24px">${btn(viewUrl, "View Agreement")}</p>
 			<p style="font-size:13px;color:#6b6560">You can print or save as PDF from the agreement page.</p>
 		`),

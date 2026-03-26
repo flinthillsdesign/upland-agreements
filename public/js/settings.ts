@@ -1,14 +1,10 @@
-import { api, requireAuth, clearAuth, getUser } from "./api.js";
+import { api, requireAuth, getUser } from "./api.js";
+import { esc, setupLogout } from "./utils.js";
 
 requireAuth();
+setupLogout();
 
 const user = getUser();
-
-// Logout
-document.getElementById("logoutBtn")!.addEventListener("click", () => {
-	clearAuth();
-	window.location.href = "/";
-});
 
 // Load settings
 async function loadSettings() {
@@ -25,8 +21,9 @@ async function loadSettings() {
 		if (settings.fab_rate) (document.getElementById("fabRate") as HTMLInputElement).value = String(settings.fab_rate);
 		if (settings.materials_markup) (document.getElementById("materialsMarkup") as HTMLInputElement).value = String(settings.materials_markup);
 		if (settings.travel_rate) (document.getElementById("travelRate") as HTMLInputElement).value = String(settings.travel_rate);
-	} catch {
-		// Settings not available (non-admin)
+	} catch (err) {
+		// 403 expected for non-admins; log others
+		console.error("Failed to load settings:", err);
 	}
 }
 
@@ -102,9 +99,5 @@ document.getElementById("addUserBtn")!.addEventListener("click", async () => {
 	await api.createUser({ email, name, password, role: "user" });
 	loadUsers();
 });
-
-function esc(val: string): string {
-	return val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
 
 loadSettings();

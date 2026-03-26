@@ -86,13 +86,13 @@ export async function ensureSchema(): Promise<void> {
 		)
 	`);
 
-	// Ensure settings row exists
-	await db.execute("INSERT OR IGNORE INTO settings (id, data) VALUES (1, '{}')");
-
-	// Indexes
-	await db.execute("CREATE INDEX IF NOT EXISTS idx_agreements_status ON agreements(status)");
-	await db.execute("CREATE INDEX IF NOT EXISTS idx_agreements_share_token ON agreements(share_token)");
-	await db.execute("CREATE INDEX IF NOT EXISTS idx_conversations_agreement ON conversations(agreement_id)");
+	// Settings row + indexes (all independent, run in parallel)
+	await Promise.all([
+		db.execute("INSERT OR IGNORE INTO settings (id, data) VALUES (1, '{}')"),
+		db.execute("CREATE INDEX IF NOT EXISTS idx_agreements_status ON agreements(status)"),
+		db.execute("CREATE INDEX IF NOT EXISTS idx_agreements_share_token ON agreements(share_token)"),
+		db.execute("CREATE INDEX IF NOT EXISTS idx_conversations_agreement ON conversations(agreement_id)"),
+	]);
 }
 
 // === Agreements ===

@@ -1,3 +1,6 @@
+import { api } from "./api.js";
+import { esc, formatDate, formatCurrency, isMouType } from "./utils.js";
+
 interface Agreement {
 	id: string;
 	type: string;
@@ -41,6 +44,7 @@ if (!token) {
 }
 
 const STATUS_TEXT: Record<string, string> = {
+	// These are full-sentence descriptions for the client-facing status bar
 	draft: "This agreement is still being prepared.",
 	sent: "This agreement is ready for your review.",
 	viewed: "This agreement is ready for your review and signature.",
@@ -54,9 +58,9 @@ async function load() {
 	if (!token) return;
 
 	try {
-		const data = await fetch(`/api/agreements/view/${token}`).then((r) => r.json());
+		const data = (await api.viewAgreement(token)) as { error?: string; agreement: Agreement; settings: Settings };
 		if (data.error) {
-			document.getElementById("documentContent")!.innerHTML = `<p style="text-align:center;padding:40px;color:var(--text-muted)">${data.error}</p>`;
+			document.getElementById("documentContent")!.innerHTML = `<p style="text-align:center;padding:40px;color:var(--text-muted)">${esc(data.error)}</p>`;
 			return;
 		}
 
@@ -69,8 +73,7 @@ async function load() {
 		document.getElementById("statusText")!.textContent = STATUS_TEXT[agreement.status] || "";
 
 		// Render document
-		const isMou = agreement.type === "mou_concept" || agreement.type === "mou_small";
-		if (isMou) {
+		if (isMouType(agreement.type)) {
 			renderMou(agreement, settings);
 		} else {
 			renderFullAgreement(agreement, settings);
@@ -78,19 +81,10 @@ async function load() {
 
 		// Signature area
 		renderSignatures(agreement, settings);
-	} catch {
+	} catch (err) {
+		console.error("Failed to load agreement:", err);
 		document.getElementById("documentContent")!.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted)">Failed to load agreement.</p>';
 	}
-}
-
-function esc(val: string | null | undefined): string {
-	if (!val) return "";
-	return val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function formatDate(dateStr: string | null): string {
-	if (!dateStr) return "_______________";
-	return new Date(dateStr).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
 function renderMou(agreement: Agreement, settings: Settings) {
@@ -178,12 +172,12 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		</div>
 
 		<div class="doc-preamble">
-			This Agreement ("Agreement") is made effective as of ${formatDate(agreement.effective_date)} by and between <strong>${esc(companyName)}</strong>, of ${esc(companyAddress)}, ("Upland" or "Designer"), and <strong>${esc(agreement.client_name) || "_______________"}</strong>, ${esc(agreement.client_address) || "_______________"} ("Client").
+			This Agreement ("Agreement") is made effective as of ${formatDate(agreement.effective_date, "long")} by and between <strong>${esc(companyName)}</strong>, of ${esc(companyAddress)}, ("Upland" or "Designer"), and <strong>${esc(agreement.client_name) || "_______________"}</strong>, ${esc(agreement.client_address) || "_______________"} ("Client").
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">1. </span><span class="doc-section-title">TERM.</span>
-			<div class="doc-section-body">This Agreement shall begin on the Effective Date and shall end, unless earlier terminated, upon satisfactory completion of the Project as outlined in the Description of Services, but in any event, no later than ${formatDate(agreement.end_date)}.</div>
+			<div class="doc-section-body">This Agreement shall begin on the Effective Date and shall end, unless earlier terminated, upon satisfactory completion of the Project as outlined in the Description of Services, but in any event, no later than ${formatDate(agreement.end_date, "long")}.</div>
 		</div>
 
 		<div class="doc-section">
@@ -338,12 +332,12 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 	const area = document.getElementById("signatureArea")!;
 	const designerName = settings.designer_name || "Joel Gaeddert";
 	const designerTitle = settings.designer_title || "CEO";
-	const isMou = agreement.type === "mou_concept" || agreement.type === "mou_small";
+	const isMou = isMouType(agreement.type);
 
 	let clientSig = null;
 	let designerSig = null;
-	try { if (agreement.client_signature) clientSig = JSON.parse(agreement.client_signature); } catch {}
-	try { if (agreement.designer_signature) designerSig = JSON.parse(agreement.designer_signature); } catch {}
+	try { if (agreement.client_signature) clientSig = JSON.parse(agreement.client_signature); } catch (e) { console.warn("Malformed client_signature JSON:", e); }
+	try { if (agreement.designer_signature) designerSig = JSON.parse(agreement.designer_signature); } catch (e) { console.warn("Malformed designer_signature JSON:", e); }
 
 	area.innerHTML = `
 		<div style="margin-bottom:16px;font-weight:600;font-size:15px">Agreed and accepted:</div>
@@ -355,7 +349,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 				${clientSig ? `
 					<div class="signed-info">
 						<div class="signed-name">${esc(clientSig.name)}</div>
-						<div class="signed-meta">Signed ${new Date(clientSig.timestamp).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+						<div class="signed-meta">Signed ${formatDate(clientSig.timestamp, "long")}</div>
 					</div>
 				` : `
 					<div class="signature-line"></div>
@@ -372,7 +366,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 				${designerSig ? `
 					<div class="signed-info">
 						<div class="signed-name">${esc(designerSig.name)}</div>
-						<div class="signed-meta">Signed ${new Date(designerSig.timestamp).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+						<div class="signed-meta">Signed ${formatDate(designerSig.timestamp, "long")}</div>
 					</div>
 				` : `
 					<div class="signature-line">${designerName}, ${designerTitle}</div>
@@ -394,7 +388,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			${clientSig ? `
 				<div class="signed-info">
 					<div class="signed-name">${esc(clientSig.name)}</div>
-					<div class="signed-meta">Signed ${new Date(clientSig.timestamp).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+					<div class="signed-meta">Signed ${formatDate(clientSig.timestamp, "long")}</div>
 				</div>
 			` : `
 				<div class="signature-line-row">
@@ -420,7 +414,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			${designerSig ? `
 				<div class="signed-info">
 					<div class="signed-name">${esc(designerSig.name)}</div>
-					<div class="signed-meta">Signed ${new Date(designerSig.timestamp).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</div>
+					<div class="signed-meta">Signed ${formatDate(designerSig.timestamp, "long")}</div>
 				</div>
 			` : `
 				<div class="signature-line-row">
@@ -466,11 +460,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			signBtn.textContent = "Signing...";
 
 			try {
-				const result = await fetch(`/api/agreements/view/${token}/sign`, {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ name }),
-				}).then((r) => r.json());
+				const result = (await api.signAgreement(token!, name)) as { error?: string };
 
 				if (result.error) {
 					alert(result.error);

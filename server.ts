@@ -62,14 +62,9 @@ app.all("/api/*", async (req, res) => {
 	}
 });
 
-// SPA fallback
-app.get("*", (req, res) => {
-	const filePath = resolve("public", req.path.slice(1));
-	if (existsSync(filePath)) {
-		res.sendFile(filePath);
-	} else {
-		res.sendFile(resolve("public/index.html"));
-	}
+// SPA fallback — express.static already serves existing files, so just serve index.html
+app.get("*", (_req, res) => {
+	res.sendFile(resolve("public/index.html"));
 });
 
 app.listen(PORT, () => {

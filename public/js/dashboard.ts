@@ -1,6 +1,8 @@
-import { api, requireAuth, clearAuth, getUser } from "./api.js";
+import { api, requireAuth, getUser } from "./api.js";
+import { esc, TYPE_LABELS, STATUS_LABELS, formatCurrency, formatDate, setupLogout } from "./utils.js";
 
 requireAuth();
+setupLogout();
 
 interface Agreement {
 	id: string;
@@ -12,22 +14,6 @@ interface Agreement {
 	updated_at: string;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-	mou_concept: "MoU — Concept",
-	mou_small: "MoU — Small Design",
-	full_services: "Agreement for Services",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-	draft: "Draft",
-	sent: "Sent",
-	viewed: "Viewed",
-	signed: "Signed",
-	countersigned: "Countersigned",
-	declined: "Declined",
-	expired: "Expired",
-};
-
 let currentType = "";
 let currentStatus = "";
 
@@ -37,12 +23,6 @@ const settingsLink = document.getElementById("settingsLink");
 if (settingsLink && user?.role !== "superadmin") {
 	settingsLink.style.display = "none";
 }
-
-// Logout
-document.getElementById("logoutBtn")!.addEventListener("click", () => {
-	clearAuth();
-	window.location.href = "/";
-});
 
 // Filters
 function setupTabs(containerId: string, paramKey: "type" | "status") {
@@ -61,7 +41,7 @@ function setupTabs(containerId: string, paramKey: "type" | "status") {
 setupTabs("typeTabs", "type");
 setupTabs("statusTabs", "status");
 
-// Search
+// Search (debounced)
 let searchTimeout: ReturnType<typeof setTimeout>;
 document.getElementById("searchInput")!.addEventListener("input", () => {
 	clearTimeout(searchTimeout);
@@ -76,17 +56,12 @@ async function loadAgreements() {
 	if (currentStatus) params.status = currentStatus;
 	if (search) params.search = search;
 
-	const agreements = (await api.listAgreements(params)) as Agreement[];
-	renderAgreements(agreements);
-}
-
-function formatCurrency(amount: number | null): string {
-	if (amount === null || amount === undefined) return "";
-	return "$" + amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
-
-function formatDate(dateStr: string): string {
-	return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+	try {
+		const agreements = (await api.listAgreements(params)) as Agreement[];
+		renderAgreements(agreements);
+	} catch (err) {
+		console.error("Failed to load agreements:", err);
+	}
 }
 
 function renderAgreements(agreements: Agreement[]) {
@@ -102,14 +77,14 @@ function renderAgreements(agreements: Agreement[]) {
 			(a) => `
 		<div class="agreement-card" data-id="${a.id}">
 			<div class="agreement-card-left">
-				<div class="agreement-card-title">${a.title}</div>
+				<div class="agreement-card-title">${esc(a.title)}</div>
 				<div class="agreement-card-meta">
-					${a.client_name || "No client"} &middot; ${TYPE_LABELS[a.type] || a.type} &middot; ${formatDate(a.updated_at)}
+					${esc(a.client_name) || "No client"} &middot; ${TYPE_LABELS[a.type as keyof typeof TYPE_LABELS] || a.type} &middot; ${formatDate(a.updated_at)}
 				</div>
 			</div>
 			<div class="agreement-card-right">
 				<span class="agreement-card-total">${formatCurrency(a.total_cost)}</span>
-				<span class="status-badge status-${a.status}">${STATUS_LABELS[a.status] || a.status}</span>
+				<span class="status-badge status-${a.status}">${STATUS_LABELS[a.status as keyof typeof STATUS_LABELS] || a.status}</span>
 			</div>
 		</div>
 	`

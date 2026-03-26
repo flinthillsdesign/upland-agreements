@@ -1,4 +1,5 @@
-import { api, requireAuth, clearAuth } from "./api.js";
+import { api, requireAuth } from "./api.js";
+import { esc, escHtml, TYPE_LABELS, formatCurrency, isMouType } from "./utils.js";
 
 requireAuth();
 
@@ -32,40 +33,45 @@ interface Agreement {
 	valid_until: string | null;
 }
 
-const TYPE_LABELS: Record<string, string> = {
-	mou_concept: "MoU — Concept",
-	mou_small: "MoU — Small Design",
-	full_services: "Agreement for Services",
-};
-
 const params = new URLSearchParams(window.location.search);
 const agreementId = params.get("id");
 if (!agreementId) window.location.href = "/dashboard.html";
 
-let agreement: Agreement;
+let agreement: Agreement | null = null;
+let conversationStarted = false;
+
+// Batched auto-save: collect dirty fields and flush once
+let dirtyFields: Record<string, unknown> = {};
 let saveTimeout: ReturnType<typeof setTimeout>;
+
+function markDirty(field: string, value: unknown) {
+	dirtyFields[field] = value;
+	clearTimeout(saveTimeout);
+	saveTimeout = setTimeout(flushSave, 500);
+}
+
+async function flushSave() {
+	const fields = dirtyFields;
+	dirtyFields = {};
+	if (Object.keys(fields).length === 0) return;
+	await api.updateAgreement(agreementId!, fields);
+}
 
 async function load() {
 	agreement = (await api.getAgreement(agreementId!)) as Agreement;
 	document.getElementById("navTitle")!.textContent = agreement.title;
 	document.getElementById("statusBadge")!.textContent = agreement.status;
 	document.getElementById("statusBadge")!.className = `status-badge status-${agreement.status}`;
-	document.getElementById("typeBadge")!.textContent = TYPE_LABELS[agreement.type] || agreement.type;
+	document.getElementById("typeBadge")!.textContent = TYPE_LABELS[agreement.type as keyof typeof TYPE_LABELS] || agreement.type;
 	document.title = `${agreement.title} — Agreements`;
 	renderForm();
-	loadConversation();
-}
-
-function autoSave(field: string, value: unknown) {
-	clearTimeout(saveTimeout);
-	saveTimeout = setTimeout(async () => {
-		await api.updateAgreement(agreementId!, { [field]: value });
-	}, 500);
+	loadConversation().catch((err) => console.error("Failed to load conversation:", err));
 }
 
 function renderForm() {
+	if (!agreement) return;
 	const main = document.getElementById("editorMain")!;
-	const isMou = agreement.type === "mou_concept" || agreement.type === "mou_small";
+	const isMou = isMouType(agreement.type);
 
 	main.innerHTML = `
 		<div class="agreement-form">
@@ -200,31 +206,30 @@ function renderForm() {
 		</div>
 	`;
 
-	// Auto-save on input changes
+	// Auto-save on input changes (batched)
 	main.querySelectorAll("[data-field]").forEach((el) => {
 		const field = (el as HTMLElement).dataset.field!;
 		el.addEventListener("input", () => {
 			const value = el instanceof HTMLInputElement && el.type === "number" ? (el.value ? parseFloat(el.value) : null) : (el as HTMLInputElement | HTMLTextAreaElement).value;
 
 			// Update local state
-			(agreement as unknown as Record<string, unknown>)[field] = value;
+			(agreement as Record<string, unknown>)[field] = value;
 
 			// Auto-calculate for MoUs
 			if (isMou && (field === "hours" || field === "hourly_rate")) {
-				const hours = agreement.hours || 0;
-				const rate = agreement.hourly_rate || 0;
-				agreement.total_cost = hours * rate;
+				const hours = agreement!.hours || 0;
+				const rate = agreement!.hourly_rate || 0;
+				agreement!.total_cost = hours * rate;
 				const costEl = document.getElementById("totalCost");
-				if (costEl) costEl.textContent = agreement.total_cost ? "$" + agreement.total_cost.toLocaleString() : "—";
-				autoSave("total_cost", agreement.total_cost);
+				if (costEl) costEl.textContent = formatCurrency(agreement!.total_cost) || "—";
+				markDirty("total_cost", agreement!.total_cost);
 			}
 
-			// Update title in nav
 			if (field === "title") {
 				document.getElementById("navTitle")!.textContent = (el as HTMLInputElement).value;
 			}
 
-			autoSave(field, value);
+			markDirty(field, value);
 		});
 	});
 
@@ -235,13 +240,8 @@ function renderForm() {
 	});
 }
 
-function esc(val: string | null | undefined): string {
-	if (!val) return "";
-	return val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
 function getBoilerplateText(type: string): string {
-	if (type === "mou_concept" || type === "mou_small") {
+	if (isMouType(type)) {
 		let text = `TITLE AND ASSIGNMENT.
 - Client Content: All materials, information, and content provided by the Client shall remain the sole property of Client.
 - Final Art: All original works created by Designer specifically for this project shall be considered works made for hire, the property of Client upon full payment.
@@ -307,6 +307,7 @@ interface ChatMessage {
 async function loadConversation() {
 	const data = (await api.getConversation(agreementId!)) as { messages: ChatMessage[] };
 	if (data.messages && data.messages.length > 0) {
+		conversationStarted = true;
 		renderMessages(data.messages);
 	}
 }
@@ -319,10 +320,6 @@ function renderMessages(messages: ChatMessage[]) {
 		)
 		.join("");
 	container.scrollTop = container.scrollHeight;
-}
-
-function escHtml(text: string): string {
-	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
 }
 
 function addMessage(role: string, content: string) {
@@ -358,13 +355,8 @@ async function sendChat() {
 	sendBtn.disabled = true;
 
 	try {
-		// Determine if this is the first message (use generate) or follow-up (use chat)
-		const container = document.getElementById("chatMessages")!;
-		const existingMessages = container.querySelectorAll(".chat-message");
-		const isFirstMessage = existingMessages.length <= 1;
-
 		let result: { message: string; agreement?: Agreement; references?: string[] };
-		if (isFirstMessage && !agreement.project_description) {
+		if (!conversationStarted && !agreement?.project_description) {
 			result = (await api.generateAgreement(agreementId!, message)) as typeof result;
 		} else {
 			result = (await api.chatAgreement(agreementId!, message)) as typeof result;
@@ -375,8 +367,9 @@ async function sendChat() {
 			responseText += "\n\nReferenced: " + result.references.join(", ");
 		}
 		addMessage("assistant", responseText);
+		conversationStarted = true;
 
-		// Reload form with updated data
+		// Update form with new data
 		if (result.agreement) {
 			agreement = result.agreement;
 			renderForm();

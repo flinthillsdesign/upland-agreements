@@ -7,13 +7,25 @@ import { generateShareToken } from "../../lib/share-tokens.js";
 import { sendResetEmail, sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
 
 const APP_NAME = "agreements";
-let schemaReady = false;
+let initPromise: Promise<void> | null = null;
 
 async function init() {
-	if (!schemaReady) {
-		await Promise.all([ensureAuthSchema(), ensureSchema()]);
-		schemaReady = true;
+	if (!initPromise) {
+		initPromise = Promise.all([ensureAuthSchema(), ensureSchema()]).then(() => {});
 	}
+	return initPromise;
+}
+
+// Allowed fields for the generic PUT /api/agreements/:id endpoint
+const EDITABLE_FIELDS = new Set([
+	"title", "client_name", "client_address", "client_contact", "client_title", "client_email",
+	"effective_date", "end_date", "project_description", "deliverable", "timeframe",
+	"hours", "hourly_rate", "total_cost", "payment_structure", "service_rates",
+	"client_responsibilities", "custom_terms", "designer_email", "notes", "valid_until",
+]);
+
+function buildSignature(name: string, ip: string): string {
+	return JSON.stringify({ name, timestamp: new Date().toISOString(), ip });
 }
 
 // === Router ===
@@ -139,7 +151,12 @@ route("GET", "/api/agreements/:id", "user", async (_req, params) => {
 
 route("PUT", "/api/agreements/:id", "user", async (req, params) => {
 	const body = await req.json() as Record<string, unknown>;
-	const agreement = await updateAgreement(params.id, body);
+	// Only allow editable fields through the generic update endpoint
+	const filtered: Record<string, unknown> = {};
+	for (const [key, val] of Object.entries(body)) {
+		if (EDITABLE_FIELDS.has(key)) filtered[key] = val;
+	}
+	const agreement = await updateAgreement(params.id, filtered);
 	if (!agreement) return err("Not found", 404);
 	return json(agreement);
 });
@@ -158,56 +175,53 @@ route("POST", "/api/agreements/:id/duplicate", "user", async (_req, params, user
 // === AI Routes ===
 
 route("POST", "/api/agreements/:id/generate", "user", async (req, params) => {
-	const agreement = await getAgreement(params.id);
-	if (!agreement) return err("Not found", 404);
-
 	const { prompt } = await req.json() as { prompt?: string };
 	if (!prompt) return err("prompt required");
 
-	const knowledge = await listKnowledge();
+	const [agreement, knowledge] = await Promise.all([getAgreement(params.id), listKnowledge()]);
+	if (!agreement) return err("Not found", 404);
+
 	const result = await generateAgreement(prompt, agreement, knowledge);
 
-	// Apply fields if present
-	if (result.fields) {
-		await updateAgreement(params.id, { ...result.fields, prompt });
-	}
-
-	// Save conversation
+	// Apply fields and save conversation in parallel
 	const messages: ChatMessage[] = [
 		{ role: "user", content: prompt, timestamp: new Date().toISOString() },
 		{ role: "assistant", content: result.message, timestamp: new Date().toISOString() },
 	];
-	await saveConversation(params.id, messages);
+	await Promise.all([
+		result.fields ? updateAgreement(params.id, { ...result.fields, prompt }) : Promise.resolve(null),
+		saveConversation(params.id, messages),
+	]);
 
-	const updated = await getAgreement(params.id);
+	const updated = result.fields ? await getAgreement(params.id) : agreement;
 	return json({ agreement: updated, message: result.message, references: result.references });
 });
 
 route("POST", "/api/agreements/:id/chat", "user", async (req, params) => {
-	const agreement = await getAgreement(params.id);
-	if (!agreement) return err("Not found", 404);
-
 	const { message } = await req.json() as { message?: string };
 	if (!message) return err("message required");
 
-	const knowledge = await listKnowledge();
+	const [agreement, knowledge, existing] = await Promise.all([
+		getAgreement(params.id),
+		listKnowledge(),
+		getConversation(params.id),
+	]);
+	if (!agreement) return err("Not found", 404);
 
-	// Load existing conversation
-	const existing = await getConversation(params.id);
 	const messages: ChatMessage[] = existing?.messages || [];
 	messages.push({ role: "user", content: message, timestamp: new Date().toISOString() });
 
 	const result = await aiChat(messages, agreement, knowledge);
 
 	messages.push({ role: "assistant", content: result.message, timestamp: new Date().toISOString() });
-	await saveConversation(params.id, messages);
 
-	// Apply fields if present
-	if (result.fields) {
-		await updateAgreement(params.id, result.fields);
-	}
+	// Save conversation and apply fields in parallel
+	await Promise.all([
+		saveConversation(params.id, messages),
+		result.fields ? updateAgreement(params.id, result.fields) : Promise.resolve(null),
+	]);
 
-	const updated = await getAgreement(params.id);
+	const updated = result.fields ? await getAgreement(params.id) : agreement;
 	return json({ agreement: updated, message: result.message, references: result.references });
 });
 
@@ -239,7 +253,7 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 });
 
 route("DELETE", "/api/agreements/:id/share", "user", async (_req, params) => {
-	await updateAgreement(params.id, { share_token: null } as unknown as Record<string, unknown>);
+	await updateAgreement(params.id, { share_token: null });
 	return json({ ok: true });
 });
 
@@ -271,11 +285,7 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	const { name } = await req.json() as { name?: string };
 	if (!name) return err("Signature name required");
 
-	const signature = JSON.stringify({
-		name,
-		timestamp: new Date().toISOString(),
-		ip: getClientIp(req),
-	});
+	const signature = buildSignature(name, getClientIp(req));
 
 	await updateAgreement(agreement.id, { client_signature: signature, status: "signed" });
 
@@ -298,11 +308,7 @@ route("POST", "/api/agreements/:id/countersign", "user", async (req, params, use
 
 	const { name } = await req.json() as { name?: string };
 
-	const signature = JSON.stringify({
-		name: name || user!.email,
-		timestamp: new Date().toISOString(),
-		ip: getClientIp(req),
-	});
+	const signature = buildSignature(name || user!.email, getClientIp(req));
 
 	await updateAgreement(agreement.id, { designer_signature: signature, status: "countersigned" });
 

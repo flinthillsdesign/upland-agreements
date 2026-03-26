@@ -1,6 +1,8 @@
-import { api, requireAuth, clearAuth } from "./api.js";
+import { api, requireAuth } from "./api.js";
+import { esc, setupLogout } from "./utils.js";
 
 requireAuth();
+setupLogout();
 
 interface KnowledgeEntry {
 	id: string;
@@ -24,11 +26,7 @@ let entries: KnowledgeEntry[] = [];
 let currentFilter = "";
 let editingId: string | null = null;
 
-// Logout
-document.getElementById("logoutBtn")!.addEventListener("click", () => {
-	clearAuth();
-	window.location.href = "/";
-});
+// Logout handled by setupLogout()
 
 // Type filters
 document.getElementById("typeFilters")!.addEventListener("click", (e) => {
@@ -72,11 +70,6 @@ function render() {
 	container.querySelectorAll(".knowledge-card").forEach((card) => {
 		card.addEventListener("click", () => openEditor((card as HTMLElement).dataset.id!));
 	});
-}
-
-function esc(val: string | null): string {
-	if (!val) return "";
-	return val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 // Editor modal
