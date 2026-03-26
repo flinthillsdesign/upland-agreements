@@ -179,25 +179,19 @@ function renderForm() {
 						</div>
 					</div>
 					<div style="margin-bottom:12px">
-						<label style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:6px;display:block">Payment Structure</label>
+						<label style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:6px;display:block">Payment Schedule</label>
 						<div class="form-row">
 							<div class="form-group">
 								<label>Initial Payment %</label>
 								<input type="number" id="ps_initial_pct" value="${ps.initial_pct}" step="1" min="0" max="100">
 							</div>
 							<div class="form-group">
-								<label>Initial Payment $</label>
-								<input type="number" id="ps_initial_amount" value="${ps.initial_amount}" step="100">
-							</div>
-						</div>
-						<div class="form-row">
-							<div class="form-group">
 								<label>Final Payment %</label>
 								<input type="number" id="ps_final_pct" value="${ps.final_pct}" step="1" min="0" max="100">
 							</div>
 							<div class="form-group">
-								<label>Final Payment $</label>
-								<input type="number" id="ps_final_amount" value="${ps.final_amount}" step="100">
+								<label>Calculated</label>
+								<div class="calculated-field" id="paymentCalc" style="font-size:0.8rem"></div>
 							</div>
 						</div>
 					</div>
@@ -290,20 +284,34 @@ function renderForm() {
 
 	// Payment structure + service rates (full agreements) — sync individual fields to JSON
 	if (!isMou) {
-		const psFields = ["ps_initial_pct", "ps_initial_amount", "ps_final_pct", "ps_final_amount"];
+		const psFields = ["ps_initial_pct", "ps_final_pct"];
 		const srFields = ["sr_head", "sr_design", "sr_fab", "sr_travel", "sr_materials"];
 
 		function savePaymentStructure() {
+			const nte = agreement!.total_cost || 0;
+			const iPct = parseFloat((document.getElementById("ps_initial_pct") as HTMLInputElement)?.value) || 0;
+			const fPct = parseFloat((document.getElementById("ps_final_pct") as HTMLInputElement)?.value) || 0;
+			const iAmt = Math.round(nte * iPct / 100);
+			const fAmt = Math.round(nte * fPct / 100);
 			const data = {
-				initial_pct: parseFloat((document.getElementById("ps_initial_pct") as HTMLInputElement)?.value) || 0,
-				initial_amount: parseFloat((document.getElementById("ps_initial_amount") as HTMLInputElement)?.value) || 0,
+				initial_pct: iPct,
+				initial_amount: iAmt,
 				progress_note: "Progress billings will be invoiced on a percentage of completion basis, not to exceed 90% of the NTE Amount.",
-				final_pct: parseFloat((document.getElementById("ps_final_pct") as HTMLInputElement)?.value) || 0,
-				final_amount: parseFloat((document.getElementById("ps_final_amount") as HTMLInputElement)?.value) || 0,
+				final_pct: fPct,
+				final_amount: fAmt,
 			};
 			(agreement as Record<string, unknown>).payment_structure = JSON.stringify(data);
 			markDirty("payment_structure", JSON.stringify(data));
+			// Update calculated display
+			const calcEl = document.getElementById("paymentCalc");
+			if (calcEl && nte) {
+				calcEl.textContent = `${formatCurrency(iAmt)} initial / progress to 90% / ${formatCurrency(fAmt)} final`;
+			}
 		}
+
+		// Recalculate payment when NTE changes
+		const nteInput = main.querySelector("[data-field='total_cost']") as HTMLInputElement;
+		nteInput?.addEventListener("input", savePaymentStructure);
 
 		function saveServiceRates() {
 			const data = {
@@ -318,6 +326,7 @@ function renderForm() {
 		}
 
 		psFields.forEach((id) => document.getElementById(id)?.addEventListener("input", savePaymentStructure));
+		savePaymentStructure(); // initial calculation
 		srFields.forEach((id) => document.getElementById(id)?.addEventListener("input", saveServiceRates));
 
 		document.getElementById("toggleRates")?.addEventListener("click", () => {
