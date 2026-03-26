@@ -61,8 +61,13 @@
    - Never break inside a single sub-item, paragraph, or small block
    - OK to break between sub-items within the same section
    - Signature area stays together */
+/* Individual paragraphs, sub-items, and small blocks stay whole.
+   Sections can split between paragraphs. */
 .document.pdf-rendering .doc-term-sub,
 .document.pdf-rendering .doc-term-body,
+.document.pdf-rendering .doc-section-body > div,
+.document.pdf-rendering .doc-section-body > span,
+.document.pdf-rendering .doc-section > span,
 .document.pdf-rendering .mou-field,
 .document.pdf-rendering .rate-table,
 .document.pdf-rendering .signature-line-row,
