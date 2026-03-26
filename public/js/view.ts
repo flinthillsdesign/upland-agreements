@@ -398,7 +398,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 				${clientSig ? `
 					<div class="signed-info">
 						<div class="signed-name">${esc(clientSig.name)}${clientSig.title ? `, ${esc(clientSig.title)}` : ""}</div>
-						<div class="signed-meta">Signed ${formatDate(clientSig.timestamp, "long")}</div>
+						<div class="signed-meta">Signed ${formatDate(clientSig.timestamp, "long")}${clientSig.ip ? ` — IP: ${esc(clientSig.ip)}` : ""}</div>
 					</div>
 				` : `
 					<div class="signature-line-row">
@@ -417,7 +417,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 				${designerSig ? `
 					<div class="signed-info">
 						<div class="signed-name">${esc(designerSig.name)}</div>
-						<div class="signed-meta">Signed ${formatDate(designerSig.timestamp, "long")}</div>
+						<div class="signed-meta">Signed ${formatDate(designerSig.timestamp, "long")}${designerSig.ip ? ` — IP: ${esc(designerSig.ip)}` : ""}</div>
 					</div>
 				` : `
 					<div class="signature-line-row">
@@ -538,12 +538,13 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			const title = titleInput?.value.trim() || "";
 			const client_name = orgNameInput?.value.trim() || "";
 			const client_address = orgAddressInput?.value.trim() || "";
+			const consent_text = consentBox.parentElement?.querySelector("span")?.textContent || "";
 
 			(signBtn as HTMLButtonElement).disabled = true;
 			signBtn.textContent = "Signing...";
 
 			try {
-				const result = (await api.signAgreement(token!, name, title, client_name, client_address)) as { error?: string };
+				const result = (await api.signAgreement(token!, { name, title, client_name, client_address, consent_text })) as { error?: string };
 
 				if (result.error) {
 					alert(result.error);

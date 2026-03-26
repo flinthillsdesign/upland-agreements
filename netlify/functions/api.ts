@@ -24,9 +24,10 @@ const EDITABLE_FIELDS = new Set([
 	"client_responsibilities", "custom_terms", "designer_email", "notes", "valid_until",
 ]);
 
-function buildSignature(name: string, ip: string, title?: string): string {
-	const sig: Record<string, string> = { name, timestamp: new Date().toISOString(), ip };
+function buildSignature(name: string, ip: string, title?: string, consent?: { text: string; timestamp: string }): string {
+	const sig: Record<string, unknown> = { name, timestamp: new Date().toISOString(), ip };
 	if (title) sig.title = title;
+	if (consent) sig.consent = consent;
 	return JSON.stringify(sig);
 }
 
@@ -293,10 +294,11 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	if (!agreement) return err("Not found", 404);
 	if (agreement.client_signature) return err("Already signed");
 
-	const { name, title, client_name, client_address } = await req.json() as { name?: string; title?: string; client_name?: string; client_address?: string };
+	const { name, title, client_name, client_address, consent_text } = await req.json() as { name?: string; title?: string; client_name?: string; client_address?: string; consent_text?: string };
 	if (!name) return err("Signature name required");
 
-	const signature = buildSignature(name, getClientIp(req), title);
+	const consent = consent_text ? { text: consent_text, timestamp: new Date().toISOString() } : undefined;
+	const signature = buildSignature(name, getClientIp(req), title, consent);
 
 	// Update agreement: signature + client-confirmed org info + effective date if blank
 	const updates: Record<string, unknown> = { client_signature: signature, status: "signed" };
