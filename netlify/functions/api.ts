@@ -248,7 +248,10 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 	const agreement = await getAgreement(params.id);
 	if (!agreement) return err("Not found", 404);
 
+	const { send_email } = await req.json().catch(() => ({ send_email: undefined })) as { send_email?: boolean };
+
 	let token = agreement.share_token;
+	const isNew = !token;
 	if (!token) {
 		token = generateShareToken();
 		await updateAgreement(params.id, { share_token: token, status: "sent" });
@@ -256,12 +259,14 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 
 	const viewUrl = `${getBaseUrl(req)}/view.html?token=${token}`;
 
-	// Send email if client has email
-	if (agreement.client_email) {
+	// Only send email on first share, or if explicitly requested
+	let emailSent = false;
+	if (agreement.client_email && (isNew || send_email)) {
 		await sendAgreementSharedEmail(agreement.client_email, agreement.title, viewUrl);
+		emailSent = true;
 	}
 
-	return json({ token, url: viewUrl });
+	return json({ token, url: viewUrl, emailSent });
 });
 
 route("DELETE", "/api/agreements/:id/share", "user", async (_req, params) => {

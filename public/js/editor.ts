@@ -638,11 +638,27 @@ document.getElementById("closeShare")!.addEventListener("click", () => { shareMo
 shareModal.querySelector(".modal-backdrop")!.addEventListener("click", () => { shareModal.hidden = true; });
 
 document.getElementById("generateShareLink")!.addEventListener("click", async () => {
-	const data = (await api.shareAgreement(agreementId!)) as { token: string; url: string };
-	agreement.share_token = data.token;
+	const data = (await api.shareAgreement(agreementId!)) as { token: string; url: string; emailSent: boolean };
+	agreement!.share_token = data.token;
 	(document.getElementById("shareLinkInput") as HTMLInputElement).value = data.url;
 	document.getElementById("shareLinkField")!.hidden = false;
 	document.getElementById("revokeShareLink")!.hidden = false;
+	document.getElementById("resendEmail")!.hidden = false;
+	if (data.emailSent) {
+		document.getElementById("generateShareLink")!.textContent = "Link Generated — Email Sent";
+	} else {
+		document.getElementById("generateShareLink")!.textContent = "Link Generated";
+	}
+});
+
+document.getElementById("resendEmail")!.addEventListener("click", async () => {
+	const data = (await api.shareAgreement(agreementId!, true)) as { emailSent: boolean };
+	if (data.emailSent) {
+		const btn = document.getElementById("resendEmail") as HTMLButtonElement;
+		btn.textContent = "Email Sent";
+		btn.disabled = true;
+		setTimeout(() => { btn.textContent = "Resend Email"; btn.disabled = false; }, 3000);
+	}
 });
 
 document.getElementById("copyShareLink")!.addEventListener("click", () => {

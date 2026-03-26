@@ -90,7 +90,7 @@ export const api = {
 	getConversation: (id: string) => request("GET", `/api/agreements/${id}/conversation`),
 
 	// Sharing
-	shareAgreement: (id: string) => request("POST", `/api/agreements/${id}/share`),
+	shareAgreement: (id: string, sendEmail?: boolean) => request("POST", `/api/agreements/${id}/share`, sendEmail ? { send_email: true } : undefined),
 	revokeShare: (id: string) => request("DELETE", `/api/agreements/${id}/share`),
 
 	// Signatures
