@@ -256,39 +256,52 @@ ACCREDITATION/PROMOTIONS. Either party may reproduce, publish and display photog
 		return text;
 	}
 
-	return `7. PAYMENT TERMS. All invoices are due and payable within 30 days (NET30). Past due amounts accrue interest at 18% per annum. Client responsible for collection costs including reasonable attorney fees.
+	return `7. PAYMENT TERMS. Invoices submitted via email, NET30. Interest at 18% per year or max allowed by law, whichever is less. Client pays all collection costs including reasonable attorney fees.
 
-8. REMEDIES FOR NON-PAYMENT. Non-payment constitutes material breach. Designer may cancel agreement, suspend work, and recover all amounts due plus damages.
+8. REMEDIES FOR NON-PAYMENT. In addition to any other legal remedy, Upland may treat non-payment as material breach, cancel agreement, suspend services, and/or seek legal remedies.
 
-9. BEST EFFORTS BASIS. Designer will use best professional efforts. Non-acceptance of a design does not justify non-payment for services rendered.
+9. BEST EFFORTS BASIS. Services provided on "best effort" basis — designs based on training, experience, and professional judgment. Non-acceptance of designs shall not constitute reason for non-payment.
 
-10. CHANGES. Additional charges apply for out-of-scope changes. All changes require written agreement.
+10. CHANGES. Additional charges for out-of-scope changes on T&M basis at Service Rates, despite any maximum Project Cost. Designer may extend delivery schedule. All changes in writing.
 
-13. TITLE AND ASSIGNMENT. Standard IP terms (same as MoU).
+12. CLIENT RESPONSIBILITIES. Client shall:
+(a) Coordinate decision-making with parties other than Upland
+(b) Provide all needed Client Content (specs, photographs, exhibit text, creative content)
+(c) Provide site plans, building plans, utility locations, codes/regulations
+(d) Secure naming nomenclature approvals
+(e) Arrange/pay for electrical, structural, mechanical work
+(f) If applicable, remove existing casework/displays
+(g) If applicable, prepare space (walls, floors, ceiling lights)
+(h) Final proofreading and approval — client-approved errors are at client's cost
+(i) ADA and public accommodation law compliance
 
-14. ACCREDITATION/PROMOTIONS. Standard promotional rights.
+13. TITLE AND ASSIGNMENT. Client Content remains Client's property. Final Art is work-for-hire, becomes Client's upon full payment. Third Party Materials belong to their owners — Client indemnifies Designer for licensing failures. Preliminary Works remain Designer's property. Designer IP (hardware, systems, software) remains Designer's with license to Client.
 
-15. WARRANTIES AND REPRESENTATIONS. Designer: timely service, 2-year defect warranty, no infringement. Client: owns provided content, no infringement.
+14. ACCREDITATION/PROMOTIONS. Either party may use project photographs in promotional materials.
 
-16. CONFIDENTIAL INFORMATION. Mutual NDA on proprietary information.
+15. WARRANTIES AND REPRESENTATIONS. Designer represents, warrants, and covenants: timely professional service, 2-year defect warranty, no infringement. Client represents, warrants, and covenants: owns provided content, no third-party infringement.
 
-17. RELATIONSHIP OF THE PARTIES. Independent contractor, not employee.
+16. CONFIDENTIAL INFORMATION. Mutual obligation of strict confidence on proprietary information including Preliminary Works. Excludes public domain info and info received from third parties.
+
+17. RELATIONSHIP OF THE PARTIES. Independent contractor. No partnership or agency. Subcontractor paragraph: Designer pays subs, indemnifies Client for sub non-payment.
 
 18. NO EXCLUSIVITY. Both parties free to work with others.
 
-19. INDEMNIFICATION; HOLD HARMLESS. Mutual indemnification for negligence, breach, and unlawful content.
+19. INDEMNIFICATION; HOLD HARMLESS. Separate asymmetric indemnification for each party. Threshold: gross negligence, recklessness, or intentionally wrongful conduct. Covers infringing/libelous content.
 
-20. LIMITATION OF LIABILITY. Designer's max liability = 50% of total compensation. No consequential damages.
+20. LIMITATION OF LIABILITY. Designer's max liability = 50% of compensation paid. No consequential, indirect, special, or punitive damages.
 
-21. DEFAULT. 30-day cure period (5 business days for non-payment).
+21. DEFAULT. Either party may defer performance until default is remedied. 30 calendar days to cure (5 working days for non-payment). Automatic termination if not cured.
 
-22. FORCE MAJEURE. Standard force majeure clause.
+22. FORCE MAJEURE. Written notice required. Obligations suspended to extent necessary. Duty to mitigate and resume with reasonable dispatch.
 
-24. ENTIRE AGREEMENT. This is the whole deal, supersedes prior agreements.
+23. NOTICE. Via email with deemed-receipt rule.
+
+24. ENTIRE AGREEMENT. Supersedes all prior agreements.
 
 25. AMENDMENT. Written and signed by both parties.
 
-26. SEVERABILITY. Invalid provisions don't void the rest.
+26. SEVERABILITY. Invalid provisions don't void the rest. Court may narrow overbroad provisions.
 
 27. WAIVER OF CONTRACTUAL RIGHT. Non-enforcement isn't waiver.
 
