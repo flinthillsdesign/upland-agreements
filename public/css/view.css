@@ -62,7 +62,6 @@
    - OK to break between paragraphs within the same section
    - Signature area stays together */
 .document.pdf-rendering .doc-term-sub,
-.document.pdf-rendering .doc-section-body > div,
 .document.pdf-rendering .doc-section-body > span,
 .document.pdf-rendering .doc-term-body,
 .document.pdf-rendering .mou-field,

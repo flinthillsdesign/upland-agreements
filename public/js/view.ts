@@ -240,10 +240,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">9. </span><span class="doc-section-title">CHANGES.</span>
-			<div class="doc-section-body">
-				<div>Client shall pay additional charges for substantial changes requested by Client which are outside the scope of the Services on a time and materials basis, at Designer's Service Rates. Such charges shall be in addition to all other amounts payable, despite any maximum Project Cost. Designer may extend or modify any delivery schedule or deadlines as may be required by such changes, provided, however, that the delivery schedule does not exceed the contract termination date. All changes shall be documented in writing and may be approved by signed instrument or by email confirmation from Client.</div>
-				<div style="margin-top:8px">Revisions, modifications, or rework resulting from changes to previously approved work, including approved designs, drawings, text, graphic layouts, material selections, fabrication details, or installation conditions, shall be treated as Additional Services and billed accordingly.</div>
-			</div>
+			<span class="doc-section-body">Out-of-scope changes shall be billed on a time and materials basis at Designer's Service Rates, in addition to all other amounts payable, despite any maximum Project Cost. Designer may extend the delivery schedule as required by such changes. Changes shall be documented in writing and may be approved by signed instrument or email. Rework of previously approved work shall be treated as Additional Services and billed accordingly.</span>
 		</div>
 
 		<div class="doc-section">
@@ -307,13 +304,13 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 		<div class="doc-section">
 			<span class="doc-section-number">16. </span><span class="doc-section-title">WARRANTIES AND REPRESENTATIONS.</span>
 			<div class="doc-section-body">
-				<div style="margin-bottom:8px">Designer represents, warrants, and covenants to Client that:</div>
-				<div class="doc-term-sub">(a) Designer shall provide its Services and meet its obligations under this Agreement in a timely manner consistent with the terms of this Agreement, using knowledge, methods, and recommendations for performing the Services which meet commercially acceptable standards.</div>
-				<div class="doc-term-sub">(b) The Project exhibits shall be free from design, manufacture, or production defect for a period of two years from the Agreement completion date, normal wear and tear excepted.</div>
-				<div class="doc-term-sub">(c) To the best of Designer's knowledge, the Works do not infringe any copyright, violate any property or other rights of any third party or contain any scandalous, libelous or unlawful matter.</div>
-				<div style="margin-top:12px;margin-bottom:8px">Client represents, warrants and covenants to Designer that:</div>
-				<div class="doc-term-sub">(a) Client owns all right, title, and interest in, or otherwise has full right and authority to permit the use of all materials, information, photography, writings and other Client Content provided by Client for use in the Project.</div>
-				<div class="doc-term-sub">(b) To the best of Client's knowledge, the Client Content does not infringe the rights of any third party, and use of the Client Content as well as any Trademarks in connection with the Project does not and will not violate the rights of any third parties.</div>
+				<div style="margin-bottom:8px">Designer represents and warrants that:</div>
+				<div class="doc-term-sub">(a) Services will be performed in a timely, professional manner meeting commercially acceptable standards.</div>
+				<div class="doc-term-sub">(b) Project exhibits shall be free from design, manufacture, or production defects for two years from completion, normal wear and tear excepted.</div>
+				<div class="doc-term-sub">(c) To the best of Designer's knowledge, the Works do not infringe any third-party rights or contain unlawful matter.</div>
+				<div style="margin-top:12px;margin-bottom:8px">Client represents and warrants that:</div>
+				<div class="doc-term-sub">(a) Client has full right and authority to provide the Client Content for use in the Project.</div>
+				<div class="doc-term-sub">(b) The Client Content does not infringe the rights of any third party.</div>
 			</div>
 		</div>
 
@@ -342,10 +339,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">21. </span><span class="doc-section-title">LIMITATION OF LIABILITY.</span>
-			<div class="doc-section-body">
-				<div>In all circumstances, Designer's maximum liability to Client for damages for any and all causes whatsoever, and Client's maximum remedy, regardless of the form of action, shall be limited to 50% of the total compensation paid to Designer for the Services rendered.</div>
-				<div style="margin-top:8px">In no event shall Designer be liable for any lost data or content, lost profits, business interruption or for any indirect, incidental, special, consequential, exemplary or punitive damages arising out of or relating to the materials or the services provided by Designer or its agents, even if Designer has been advised of the possibility of such damages.</div>
-			</div>
+			<span class="doc-section-body">Designer's maximum liability under this Agreement shall not exceed 50% of the total compensation paid to Designer. In no event shall Designer be liable for lost profits, business interruption, or any indirect, incidental, special, consequential, or punitive damages, even if advised of the possibility of such damages.</span>
 		</div>
 
 		<div class="doc-section">
