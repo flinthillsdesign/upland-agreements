@@ -176,8 +176,8 @@ function renderForm() {
 						<textarea data-field="service_rates" rows="4">${esc(agreement.service_rates)}</textarea>
 					</div>
 					<div class="form-group">
-						<label>Client Responsibilities</label>
-						<textarea data-field="client_responsibilities" rows="6">${esc(agreement.client_responsibilities)}</textarea>
+						<label>Additional Client Responsibilities (optional — standard list is included automatically)</label>
+						<textarea data-field="client_responsibilities" rows="3" placeholder="Any project-specific responsibilities beyond the standard list...">${esc(agreement.client_responsibilities)}</textarea>
 					</div>`}
 				</div>
 			</div>
