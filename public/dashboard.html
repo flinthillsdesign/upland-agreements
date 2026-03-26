@@ -28,11 +28,14 @@
 		</div>
 
 		<div class="dashboard-filters">
-			<div class="status-tabs" id="typeTabs">
-				<button class="tab active" data-type="">All</button>
-				<button class="tab" data-type="mou_concept">MoU — Concept</button>
-				<button class="tab" data-type="mou_small">MoU — Small Design</button>
-				<button class="tab" data-type="full_services">Agreement for Services</button>
+			<div class="filter-row">
+				<div class="status-tabs" id="typeTabs">
+					<button class="tab active" data-type="">All</button>
+					<button class="tab" data-type="mou_concept">MoU — Concept</button>
+					<button class="tab" data-type="mou_small">MoU — Small</button>
+					<button class="tab" data-type="full_services">Full Agreement</button>
+				</div>
+				<input type="text" placeholder="Search..." id="searchInput" class="filter-search">
 			</div>
 			<div class="status-tabs" id="statusTabs">
 				<button class="tab active" data-status="">All</button>
@@ -41,9 +44,6 @@
 				<button class="tab" data-status="viewed">Viewed</button>
 				<button class="tab" data-status="signed">Signed</button>
 				<button class="tab" data-status="countersigned">Countersigned</button>
-			</div>
-			<div class="search-sort-row">
-				<input type="text" placeholder="Search by client or title..." id="searchInput">
 			</div>
 		</div>
 

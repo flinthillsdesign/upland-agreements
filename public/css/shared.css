@@ -184,12 +184,26 @@ textarea { resize: vertical; }
 	margin-bottom: 24px;
 }
 .dashboard-header h1 { font-size: 1.5rem; }
-.dashboard-filters { margin-bottom: 24px; }
+.dashboard-filters { margin-bottom: 20px; }
+
+.filter-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+.filter-row .status-tabs { margin-bottom: 0; flex: 1; }
+.filter-search {
+	width: 180px;
+	flex-shrink: 0;
+	padding: 6px 10px;
+	font-size: 0.85rem;
+}
 
 .status-tabs {
 	display: flex;
 	gap: 4px;
-	margin-bottom: 16px;
+	margin-bottom: 8px;
 	flex-wrap: wrap;
 }
 .tab {
@@ -206,13 +220,6 @@ textarea { resize: vertical; }
 .tab:hover { background: var(--bg); color: var(--text); }
 .tab.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
 
-.search-sort-row {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-}
-.search-sort-row input { flex: 1; max-width: 320px; }
-.search-sort-row select { flex-shrink: 0; }
 
 .agreements-grid {
 	display: flex;
