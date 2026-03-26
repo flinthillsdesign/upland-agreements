@@ -492,16 +492,40 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 	}
 }
 
-// PDF download — sets a clean filename via document.title then triggers print
+// PDF download via html2pdf.js
+declare const html2pdf: any;
+
 document.getElementById("pdfBtn")?.addEventListener("click", () => {
-	const originalTitle = document.title;
+	const element = document.getElementById("documentContent")!;
 	const titleEl = document.querySelector(".doc-header h1");
 	const docType = titleEl?.textContent?.trim() || "Agreement";
-	// Use the page title which was already set to "Title — Upland Exhibits"
-	const parts = originalTitle.split(" — ");
-	document.title = parts[0] || docType;
-	window.print();
-	document.title = originalTitle;
+	const parts = document.title.split(" — ");
+	const filename = `${(parts[0] || docType).replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "_")}.pdf`;
+
+	const btn = document.getElementById("pdfBtn") as HTMLButtonElement;
+	btn.disabled = true;
+	btn.textContent = "Generating...";
+
+	html2pdf()
+		.set({
+			margin: [0.5, 0.6, 0.6, 0.6],
+			filename,
+			image: { type: "jpeg", quality: 0.98 },
+			html2canvas: { scale: 2, useCORS: true },
+			jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+			pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+		})
+		.from(element)
+		.save()
+		.then(() => {
+			btn.disabled = false;
+			btn.textContent = "Download PDF";
+		})
+		.catch(() => {
+			btn.disabled = false;
+			btn.textContent = "Download PDF";
+			alert("Failed to generate PDF. Try using the Print button instead.");
+		});
 });
 
 load();
