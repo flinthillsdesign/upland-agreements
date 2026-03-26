@@ -22,29 +22,29 @@
 	</nav>
 
 	<div class="dashboard">
-		<div class="dashboard-header">
+		<div class="dashboard-bar">
 			<h1>Agreements</h1>
-			<button class="btn btn-primary" id="createBtn">New Agreement</button>
+			<div class="dashboard-bar-right">
+				<div class="search-wrapper">
+					<input type="text" placeholder="Search agreements..." id="searchInput">
+				</div>
+				<select id="typeFilter" class="filter-select">
+					<option value="">All types</option>
+					<option value="mou_concept">MoU — Concept</option>
+					<option value="mou_small">MoU — Small</option>
+					<option value="full_services">Full Agreement</option>
+				</select>
+				<button class="btn btn-primary" id="createBtn">New Agreement</button>
+			</div>
 		</div>
 
-		<div class="dashboard-filters">
-			<div class="filter-row">
-				<div class="status-tabs" id="typeTabs">
-					<button class="tab active" data-type="">All</button>
-					<button class="tab" data-type="mou_concept">MoU — Concept</button>
-					<button class="tab" data-type="mou_small">MoU — Small</button>
-					<button class="tab" data-type="full_services">Full Agreement</button>
-				</div>
-				<input type="text" placeholder="Search..." id="searchInput" class="filter-search">
-			</div>
-			<div class="status-tabs" id="statusTabs">
-				<button class="tab active" data-status="">All</button>
-				<button class="tab" data-status="draft">Draft</button>
-				<button class="tab" data-status="sent">Sent</button>
-				<button class="tab" data-status="viewed">Viewed</button>
-				<button class="tab" data-status="signed">Signed</button>
-				<button class="tab" data-status="countersigned">Countersigned</button>
-			</div>
+		<div class="status-chips" id="statusTabs">
+			<button class="chip active" data-status="">All</button>
+			<button class="chip" data-status="draft">Draft</button>
+			<button class="chip" data-status="sent">Sent</button>
+			<button class="chip" data-status="viewed">Viewed</button>
+			<button class="chip" data-status="signed">Signed</button>
+			<button class="chip" data-status="countersigned">Countersigned</button>
 		</div>
 
 		<div class="agreements-grid" id="agreementsList"></div>

@@ -24,22 +24,21 @@ if (settingsLink && user?.role !== "superadmin") {
 	settingsLink.style.display = "none";
 }
 
-// Filters
-function setupTabs(containerId: string, paramKey: "type" | "status") {
-	const container = document.getElementById(containerId)!;
-	container.addEventListener("click", (e) => {
-		const btn = (e.target as HTMLElement).closest(".tab") as HTMLElement;
-		if (!btn) return;
-		container.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-		btn.classList.add("active");
-		if (paramKey === "type") currentType = btn.dataset.type || "";
-		else currentStatus = btn.dataset.status || "";
-		loadAgreements();
-	});
-}
+// Type filter (dropdown)
+document.getElementById("typeFilter")!.addEventListener("change", (e) => {
+	currentType = (e.target as HTMLSelectElement).value;
+	loadAgreements();
+});
 
-setupTabs("typeTabs", "type");
-setupTabs("statusTabs", "status");
+// Status filter (chips)
+document.getElementById("statusTabs")!.addEventListener("click", (e) => {
+	const btn = (e.target as HTMLElement).closest(".chip") as HTMLElement;
+	if (!btn) return;
+	document.querySelectorAll("#statusTabs .chip").forEach((t) => t.classList.remove("active"));
+	btn.classList.add("active");
+	currentStatus = btn.dataset.status || "";
+	loadAgreements();
+});
 
 // Search (debounced)
 let searchTimeout: ReturnType<typeof setTimeout>;

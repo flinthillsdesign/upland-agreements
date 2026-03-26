@@ -177,48 +177,58 @@ textarea { resize: vertical; }
 
 /* === Dashboard === */
 .dashboard { max-width: 960px; margin: 0 auto; padding: 32px 24px; }
-.dashboard-header {
+
+.dashboard-bar {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-bottom: 24px;
+	margin-bottom: 16px;
+	gap: 16px;
 }
-.dashboard-header h1 { font-size: 1.5rem; }
-.dashboard-filters { margin-bottom: 20px; }
-
-.filter-row {
+.dashboard-bar h1 { font-size: 1.5rem; white-space: nowrap; }
+.dashboard-bar-right {
 	display: flex;
 	align-items: center;
-	gap: 12px;
-	margin-bottom: 8px;
+	gap: 8px;
 }
-.filter-row .status-tabs { margin-bottom: 0; flex: 1; }
-.filter-search {
-	width: 180px;
-	flex-shrink: 0;
-	padding: 6px 10px;
+
+.search-wrapper input {
+	width: 200px;
+	padding: 7px 12px;
 	font-size: 0.85rem;
 }
 
-.status-tabs {
+.filter-select {
+	padding: 7px 10px;
+	font-size: 0.8rem;
+	color: var(--text-muted);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	background: var(--surface);
+	cursor: pointer;
+}
+.filter-select:focus { border-color: var(--primary); outline: none; }
+
+.status-chips {
 	display: flex;
-	gap: 4px;
-	margin-bottom: 8px;
+	gap: 6px;
+	margin-bottom: 20px;
 	flex-wrap: wrap;
 }
-.tab {
-	padding: 6px 14px;
-	border: none;
-	border-radius: var(--radius);
+
+.chip {
+	padding: 4px 12px;
+	border: 1px solid transparent;
+	border-radius: 20px;
 	background: transparent;
 	color: var(--text-muted);
 	font: inherit;
-	font-size: 0.85rem;
+	font-size: 0.78rem;
 	cursor: pointer;
 	transition: all var(--transition);
 }
-.tab:hover { background: var(--bg); color: var(--text); }
-.tab.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+.chip:hover { background: var(--bg); color: var(--text); }
+.chip.active { background: var(--primary-light); color: var(--primary); font-weight: 500; border-color: rgba(44,85,48,0.15); }
 
 
 .agreements-grid {
@@ -431,13 +441,16 @@ textarea { resize: vertical; }
 	.modal-content { width: 95%; padding: 20px; }
 	.dashboard { padding: 24px 16px; }
 	.settings-page { padding: 24px 16px; }
-	.status-tabs {
+	.dashboard-bar { flex-wrap: wrap; }
+	.dashboard-bar-right { width: 100%; }
+	.search-wrapper input { flex: 1; width: auto; }
+	.status-chips {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
 		flex-wrap: nowrap;
 		scrollbar-width: none;
 	}
-	.status-tabs::-webkit-scrollbar { display: none; }
+	.status-chips::-webkit-scrollbar { display: none; }
 	.nav-actions { right: 16px; top: 48px; }
 }
 
@@ -447,8 +460,8 @@ textarea { resize: vertical; }
 	.form-row .form-group { flex: 1 1 100%; min-width: 100%; }
 	.agreement-card { padding: 12px 16px; flex-direction: column; align-items: flex-start; gap: 8px; }
 	.agreement-card-right { align-self: flex-end; }
-	.dashboard-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-	.dashboard-header .btn { width: 100%; justify-content: center; }
+	.dashboard-bar-right { flex-wrap: wrap; }
+	.filter-select { flex: 1; }
 	.modal-content { padding: 16px; }
 	.modal-header h2 { font-size: 1rem; }
 	.settings-section { padding: 16px; }
