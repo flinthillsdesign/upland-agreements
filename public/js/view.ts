@@ -326,7 +326,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 			<span class="doc-section-number">18. </span><span class="doc-section-title">RELATIONSHIP OF THE PARTIES.</span>
 			<div class="doc-section-body">
 				<div>Designer is an independent contractor, not an employee of Client. Designer determines the manner and means by which Services are accomplished. This Agreement does not create a partnership, joint venture, or agency, and neither party may bind the other except as expressly stated herein.</div>
-				<div style="margin-top:8px">Designer shall contract with and pay all subcontractors. Client has no liability to Designer's subcontractors, and Designer shall indemnify Client for any costs related to subcontractor non-payment.</div>
+				<div style="margin-top:8px">Designer is responsible for all subcontractors and shall indemnify Client against any claims related to subcontractor non-payment.</div>
 			</div>
 		</div>
 
@@ -350,11 +350,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">22. </span><span class="doc-section-title">DEFAULT, SUSPENSION, AND TERMINATION.</span>
-			<div class="doc-section-body">
-				<div>If either party is in default with respect to any of the terms or conditions of this Agreement, including, without limitation, Client's failure to pay any invoice in accordance with the terms of this Agreement, the other party may, at its option, defer further performance until the default is remedied, and, without prejudice to any other legal remedy, may terminate this Agreement if the default is not remedied within thirty (30) calendar days (five (5) working days for nonpayment) after written notice is provided to the party in default, specifying the thing or matter in default. Unless waived by the party providing notice, the failure to cure the default(s) within such time period shall result in the automatic termination of this Agreement.</div>
-				<div style="margin-top:8px">If the Project is paused, delayed, or suspended for more than thirty (30) days for reasons not caused by Designer, Designer may invoice Client for all Services performed and costs incurred to date, whether or not previously invoiced, and may require a reasonable restart fee before resuming Services. Designer may also revise the Project schedule and pricing to reflect then-current conditions.</div>
-				<div style="margin-top:8px">Upon termination of this Agreement for any reason, Client shall pay Designer for all Services performed, materials ordered, commitments made, non-cancelable costs incurred, and reimbursable expenses through the effective date of termination. If termination occurs after Designer has allocated scheduling, staffing, fabrication capacity, or subcontractor commitments to the Project, Client shall also pay any reasonable demobilization, cancellation, restocking, or administrative close-out costs.</div>
-			</div>
+			<span class="doc-section-body">If either party defaults, the other may suspend performance and, if the default is not cured within thirty (30) days of written notice (five (5) working days for non-payment), may terminate this Agreement. If the Project is suspended for more than thirty (30) days for reasons not caused by Designer, Designer may invoice all work to date and require a restart fee. Upon termination for any reason, Client shall pay for all Services performed, materials ordered, and non-cancelable commitments through the date of termination.</span>
 		</div>
 
 		<div class="doc-section">
@@ -376,7 +372,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 			<div class="doc-section-body">
 				<div class="doc-term-sub">(a) <strong>Entire Agreement.</strong> This Agreement constitutes the entire agreement between the parties and supersedes all prior agreements, understandings, and communications, whether written or oral.</div>
 				<div class="doc-term-sub">(b) <strong>Amendment.</strong> This Agreement may only be amended by a written instrument signed by both parties.</div>
-				<div class="doc-term-sub">(c) <strong>Severability.</strong> If any provision of this Agreement shall be held to be invalid or unenforceable for any reason, the remaining provisions shall continue to be valid and enforceable. If a court finds that any provision of this Agreement is invalid or unenforceable, but that by limiting such provision it would become valid and enforceable, then such provision shall be deemed to be written, construed, and enforced as so limited.</div>
+				<div class="doc-term-sub">(c) <strong>Severability.</strong> If any provision is held invalid or unenforceable, the remaining provisions remain in effect, and any invalid provision shall be modified to the minimum extent necessary to make it enforceable.</div>
 				<div class="doc-term-sub">(d) <strong>Waiver.</strong> The failure of either party to enforce any provision of this Agreement shall not constitute a waiver of such provision or the right to enforce it at a later time.</div>
 				<div class="doc-term-sub">(e) <strong>Applicable Law.</strong> This Agreement shall be governed by and construed in accordance with the laws of the State of Kansas.</div>
 			</div>
