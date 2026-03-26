@@ -160,7 +160,12 @@ function renderForm() {
 							<label>Total Cost</label>
 							<div class="calculated-field" id="totalCost">${agreement.total_cost ? "$" + agreement.total_cost.toLocaleString() : "—"}</div>
 						</div>
-					</div>` : `
+					</div>` : (() => {
+					let ps = { initial_pct: 10, initial_amount: 0, final_pct: 10, final_amount: 0 };
+					let sr = { head_rate: 95, design_rate: 75, fab_rate: 65, materials_markup: 15, travel_rate: 55 };
+					try { if (agreement.payment_structure) ps = typeof agreement.payment_structure === "string" ? JSON.parse(agreement.payment_structure) : agreement.payment_structure; } catch {}
+					try { if (agreement.service_rates) sr = typeof agreement.service_rates === "string" ? JSON.parse(agreement.service_rates) : agreement.service_rates; } catch {}
+					return `
 					<div class="form-row">
 						<div class="form-group">
 							<label>NTE (Not-to-Exceed) Amount ($)</label>
@@ -173,18 +178,61 @@ function renderForm() {
 							<input type="date" data-field="effective_date" value="${agreement.effective_date || ""}">
 						</div>
 					</div>
-					<div class="form-group" style="margin-bottom:8px">
-						<label>Payment Structure (JSON)</label>
-						<textarea data-field="payment_structure" rows="4">${esc(agreement.payment_structure)}</textarea>
+					<div style="margin-bottom:12px">
+						<label style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:6px;display:block">Payment Structure</label>
+						<div class="form-row">
+							<div class="form-group">
+								<label>Initial Payment %</label>
+								<input type="number" id="ps_initial_pct" value="${ps.initial_pct}" step="1" min="0" max="100">
+							</div>
+							<div class="form-group">
+								<label>Initial Payment $</label>
+								<input type="number" id="ps_initial_amount" value="${ps.initial_amount}" step="100">
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-group">
+								<label>Final Payment %</label>
+								<input type="number" id="ps_final_pct" value="${ps.final_pct}" step="1" min="0" max="100">
+							</div>
+							<div class="form-group">
+								<label>Final Payment $</label>
+								<input type="number" id="ps_final_amount" value="${ps.final_amount}" step="100">
+							</div>
+						</div>
 					</div>
-					<div class="form-group" style="margin-bottom:8px">
-						<label>Service Rates (JSON)</label>
-						<textarea data-field="service_rates" rows="4">${esc(agreement.service_rates)}</textarea>
+					<div style="margin-bottom:12px">
+						<label style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:6px;display:block">Service Rates</label>
+						<div class="form-row">
+							<div class="form-group">
+								<label>Head of Design/Fab ($/hr)</label>
+								<input type="number" id="sr_head" value="${sr.head_rate}" step="5">
+							</div>
+							<div class="form-group">
+								<label>Design Staff ($/hr)</label>
+								<input type="number" id="sr_design" value="${sr.design_rate}" step="5">
+							</div>
+							<div class="form-group">
+								<label>Fab Staff ($/hr)</label>
+								<input type="number" id="sr_fab" value="${sr.fab_rate}" step="5">
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-group">
+								<label>Travel ($/hr)</label>
+								<input type="number" id="sr_travel" value="${sr.travel_rate}" step="5">
+							</div>
+							<div class="form-group">
+								<label>Materials Markup %</label>
+								<input type="number" id="sr_materials" value="${sr.materials_markup}" step="1">
+							</div>
+						</div>
 					</div>
 					<div class="form-group">
 						<label>Additional Client Responsibilities (optional — standard list is included automatically)</label>
 						<textarea data-field="client_responsibilities" rows="3" placeholder="Any project-specific responsibilities beyond the standard list...">${esc(agreement.client_responsibilities)}</textarea>
-					</div>`}
+					</div>`;
+				})()}
 				</div>
 			</div>
 
@@ -237,6 +285,39 @@ function renderForm() {
 			markDirty(field, value);
 		});
 	});
+
+	// Payment structure + service rates (full agreements) — sync individual fields to JSON
+	if (!isMou) {
+		const psFields = ["ps_initial_pct", "ps_initial_amount", "ps_final_pct", "ps_final_amount"];
+		const srFields = ["sr_head", "sr_design", "sr_fab", "sr_travel", "sr_materials"];
+
+		function savePaymentStructure() {
+			const data = {
+				initial_pct: parseFloat((document.getElementById("ps_initial_pct") as HTMLInputElement)?.value) || 0,
+				initial_amount: parseFloat((document.getElementById("ps_initial_amount") as HTMLInputElement)?.value) || 0,
+				progress_note: "Progress billings will be invoiced on a percentage of completion basis, not to exceed 90% of the NTE Amount.",
+				final_pct: parseFloat((document.getElementById("ps_final_pct") as HTMLInputElement)?.value) || 0,
+				final_amount: parseFloat((document.getElementById("ps_final_amount") as HTMLInputElement)?.value) || 0,
+			};
+			(agreement as Record<string, unknown>).payment_structure = JSON.stringify(data);
+			markDirty("payment_structure", JSON.stringify(data));
+		}
+
+		function saveServiceRates() {
+			const data = {
+				head_rate: parseFloat((document.getElementById("sr_head") as HTMLInputElement)?.value) || 0,
+				design_rate: parseFloat((document.getElementById("sr_design") as HTMLInputElement)?.value) || 0,
+				fab_rate: parseFloat((document.getElementById("sr_fab") as HTMLInputElement)?.value) || 0,
+				materials_markup: parseFloat((document.getElementById("sr_materials") as HTMLInputElement)?.value) || 0,
+				travel_rate: parseFloat((document.getElementById("sr_travel") as HTMLInputElement)?.value) || 0,
+			};
+			(agreement as Record<string, unknown>).service_rates = JSON.stringify(data);
+			markDirty("service_rates", JSON.stringify(data));
+		}
+
+		psFields.forEach((id) => document.getElementById(id)?.addEventListener("input", savePaymentStructure));
+		srFields.forEach((id) => document.getElementById(id)?.addEventListener("input", saveServiceRates));
+	}
 
 	// Duration months -> date picker sync
 	const durationInput = document.getElementById("durationMonths") as HTMLInputElement;
