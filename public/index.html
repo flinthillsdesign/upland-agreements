@@ -3,33 +3,74 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Agreements — Upland Exhibits</title>
+	<title>Agreements — Login</title>
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+	<meta name="theme-color" content="#161A22">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="/css/shared.css">
+	<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+	<style>
+		*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+		body{font-family:"DM Sans",system-ui,sans-serif;background:linear-gradient(160deg,#161a22 0%,#0a0d12 100%);color:#c8c5cc;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+		body::before{content:"";position:fixed;inset:0;opacity:0.02;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none}
+		.login-container{display:flex;flex-direction:column;align-items:center;width:100%;max-width:320px;padding:2rem}
+		.login-icon{margin-bottom:1.2rem;filter:drop-shadow(0 0 24px rgba(165,188,57,0.08)) drop-shadow(0 0 60px rgba(165,188,57,0.04))}
+		.login-suite{font-size:0.6rem;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:#a5bc39;opacity:0.5;margin-bottom:0.3rem}
+		h1{font-size:1.3rem;font-weight:600;color:#eae8ed;letter-spacing:-0.01em;margin-bottom:0.3rem;text-align:center}
+		.subtitle{font-size:0.7rem;color:#605c66;margin-bottom:2rem;text-align:center}
+		form{width:100%}
+		.form-group{margin-bottom:1rem}
+		label{display:block;font-size:0.65rem;font-weight:600;letter-spacing:0.06em;color:#605c66;margin-bottom:0.35rem}
+		input[type="text"],input[type="email"],input[type="password"]{width:100%;padding:0.6rem 0.8rem;border-radius:6px;font-size:0.85rem;font-family:"DM Sans",system-ui,sans-serif;outline:none;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#ddd;transition:border-color 0.15s,box-shadow 0.15s}
+		input:focus{border-color:#a5bc39;box-shadow:0 0 0 2px rgba(165,188,57,0.15)}
+		.btn-primary{width:100%;padding:0.65rem;border:none;border-radius:6px;font-size:0.85rem;font-weight:600;font-family:"DM Sans",system-ui,sans-serif;cursor:pointer;margin-top:0.5rem;background:#a5bc39;color:#0c0d10;transition:background 0.15s}
+		.btn-primary:hover{background:#b5cc48}
+		.btn-primary:disabled{opacity:0.5;cursor:not-allowed}
+		.error{color:#ef4444;font-size:0.75rem;text-align:center;margin-top:0.75rem;min-height:1.2rem}
+		.forgot-link{display:block;text-align:center;margin-top:1rem;font-size:0.7rem;color:#605c66;text-decoration:none}
+		.forgot-link:hover{color:#a5bc39}
+		.tagline{position:fixed;bottom:1.5rem;left:0;right:0;text-align:center;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:#605c66;opacity:0.4}
+		@media(max-width:480px){.login-container{padding:1.5rem 1.25rem}.tagline{bottom:1rem}}
+	</style>
 </head>
 <body>
-	<div class="login-page">
-		<div class="login-container">
-			<div class="login-brand">
-				<h1>Agreements</h1>
-				<p>Upland Exhibits</p>
-			</div>
-			<form class="login-form" id="loginForm">
-				<div id="loginError" class="form-error" hidden></div>
-				<div class="form-group">
-					<label for="email">Email</label>
-					<input type="email" id="email" required autocomplete="username">
-				</div>
-				<div class="form-group">
-					<label for="password">Password</label>
-					<input type="password" id="password" required autocomplete="current-password">
-				</div>
-				<button type="submit" class="btn btn-primary btn-full btn-lg">Sign In</button>
-			</form>
-			<p class="forgot-link"><a href="/forgot.html">Forgot password?</a></p>
+	<div class="login-container">
+		<div class="login-icon">
+			<svg width="72" height="72" viewBox="0 0 256 256">
+				<defs>
+					<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+						<stop offset="0%" stop-color="#161A22"/>
+						<stop offset="100%" stop-color="#0A0D12"/>
+					</linearGradient>
+				</defs>
+				<rect width="256" height="256" rx="44" fill="url(#bg)"/>
+				<rect width="256" height="256" rx="44" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+				<path d="M140 72 L150 114 L192 124 L150 134 L140 176 L130 134 L88 124 L130 114 Z" fill="#A5BC39"/>
+				<path d="M76 56 L82 78 L104 84 L82 90 L76 112 L70 90 L48 84 L70 78 Z" fill="#fff" opacity="0.85"/>
+				<path d="M88 152 L93 170 L111 175 L93 180 L88 198 L83 180 L65 175 L83 170 Z" fill="#fff" opacity="0.6"/>
+				<path d="M188 60 L191 70 L201 73 L191 76 L188 86 L185 76 L175 73 L185 70 Z" fill="#fff" opacity="0.45"/>
+			</svg>
 		</div>
+		<div class="login-suite">Upland Workshop</div>
+		<h1>Agreements</h1>
+		<p class="subtitle">Contract generation & digital signing</p>
+		<form id="loginForm">
+			<div class="form-group">
+				<label for="email">Email</label>
+				<input type="email" id="email" name="email" required autocomplete="username" autofocus>
+			</div>
+			<div class="form-group">
+				<label for="password">Password</label>
+				<input type="password" id="password" name="password" required autocomplete="current-password">
+			</div>
+			<p id="loginError" class="error"></p>
+			<button type="submit" class="btn-primary">Sign In</button>
+			<a href="/forgot.html" class="forgot-link">Forgot password?</a>
+		</form>
 	</div>
-	<script src="/js/login.bundle.js" type="module"></script>
+	<div class="tagline">A workshop for the connected world&#8482;</div>
+	<script type="module" src="/js/login.bundle.js"></script>
 </body>
 </html>

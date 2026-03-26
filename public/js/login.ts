@@ -4,11 +4,11 @@ import { api, setAuth, getToken } from "./api.js";
 if (getToken()) window.location.href = "/dashboard.html";
 
 const form = document.getElementById("loginForm") as HTMLFormElement;
-const errorEl = document.getElementById("loginError") as HTMLDivElement;
+const errorEl = document.getElementById("loginError") as HTMLParagraphElement;
 
 form.addEventListener("submit", async (e) => {
 	e.preventDefault();
-	errorEl.hidden = true;
+	errorEl.textContent = "";
 
 	const email = (document.getElementById("email") as HTMLInputElement).value;
 	const password = (document.getElementById("password") as HTMLInputElement).value;
@@ -19,6 +19,5 @@ form.addEventListener("submit", async (e) => {
 		window.location.href = "/dashboard.html";
 	} catch (err) {
 		errorEl.textContent = (err as Error).message;
-		errorEl.hidden = false;
 	}
 });

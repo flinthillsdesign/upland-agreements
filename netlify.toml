@@ -5,6 +5,8 @@
 
 [functions]
   directory = "netlify/functions"
+  node_bundler = "esbuild"
+  included_files = ["node_modules/@libsql/**"]
 
 [functions."api"]
   timeout = 60
