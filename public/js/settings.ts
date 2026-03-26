@@ -54,7 +54,7 @@ document.getElementById("ratesForm")!.addEventListener("submit", async (e) => {
 	alert("Rates saved.");
 });
 
-// Users section
+// Users section (read-only — managed via ODIN)
 const usersSection = document.getElementById("usersSection")!;
 if (user?.role !== "superadmin") {
 	usersSection.style.display = "none";
@@ -63,41 +63,24 @@ if (user?.role !== "superadmin") {
 }
 
 async function loadUsers() {
-	const users = (await api.listUsers()) as { id: string; email: string; name: string; role: string }[];
-	const container = document.getElementById("usersList")!;
-	container.innerHTML = users
-		.map(
-			(u) => `
-		<div class="user-row">
-			<div class="user-info">
-				<strong>${esc(u.name)}</strong>
-				<span>${esc(u.email)} &middot; ${u.role}</span>
+	try {
+		const users = (await api.listUsers()) as { id: string; email: string; name: string; role: string }[];
+		const container = document.getElementById("usersList")!;
+		container.innerHTML = users
+			.map(
+				(u) => `
+			<div class="user-row">
+				<div class="user-info">
+					<strong>${esc(u.name)}</strong>
+					<span>${esc(u.email)} &middot; ${u.role}</span>
+				</div>
 			</div>
-			<button class="btn btn-sm btn-danger" data-delete="${u.id}">Delete</button>
-		</div>
-	`
-		)
-		.join("");
-
-	container.querySelectorAll("[data-delete]").forEach((btn) => {
-		btn.addEventListener("click", async () => {
-			const id = (btn as HTMLElement).dataset.delete!;
-			if (!confirm("Delete this user?")) return;
-			await api.deleteUser(id);
-			loadUsers();
-		});
-	});
+		`
+			)
+			.join("");
+	} catch {
+		// Non-admin or no access
+	}
 }
-
-document.getElementById("addUserBtn")!.addEventListener("click", async () => {
-	const email = prompt("Email:");
-	if (!email) return;
-	const name = prompt("Name:");
-	if (!name) return;
-	const password = prompt("Password:");
-	if (!password) return;
-	await api.createUser({ email, name, password, role: "user" });
-	loadUsers();
-});
 
 loadSettings();
