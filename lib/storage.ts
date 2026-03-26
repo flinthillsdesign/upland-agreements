@@ -5,11 +5,9 @@ let client: Client;
 
 function getClient(): Client {
 	if (!client) {
-		const url = process.env.TURSO_URL || "file:./data/local.db";
-		const isRemote = url.startsWith("libsql://") || url.startsWith("https://");
-		const { createClient } = isRemote ? require("@libsql/client/http") : require("@libsql/client");
+		const { createClient } = require("@libsql/client");
 		client = createClient({
-			url,
+			url: process.env.TURSO_URL || "file:./data/local.db",
 			authToken: process.env.TURSO_TOKEN || undefined,
 		});
 	}
