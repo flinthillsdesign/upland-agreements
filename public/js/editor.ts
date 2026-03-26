@@ -131,7 +131,7 @@ function renderForm() {
 					<div class="form-row">
 						<div class="form-group">
 							<label>Duration (months)</label>
-							<input type="number" id="durationMonths" min="1" step="1" placeholder="e.g., 3" value="${getDurationMonths(agreement)}">
+							<input type="number" id="durationMonths" min="0.5" step="0.5" placeholder="e.g., 3" value="${getDurationMonths(agreement)}">
 						</div>
 						<div class="form-group flex-2">
 							<label>${isMou ? "Target Delivery Date" : "End Date"}</label>
@@ -347,15 +347,23 @@ function renderForm() {
 	const dateInput = document.getElementById("targetDate") as HTMLInputElement;
 	if (durationInput && dateInput) {
 		durationInput.addEventListener("input", () => {
-			const months = parseInt(durationInput.value);
-			if (!months || months < 1) return;
+			const months = parseFloat(durationInput.value);
+			if (!months || months <= 0) return;
 			const target = new Date();
-			target.setMonth(target.getMonth() + months);
+			target.setTime(target.getTime() + months * 30.44 * 24 * 60 * 60 * 1000);
 			dateInput.value = target.toISOString().split("T")[0];
 			dateInput.dispatchEvent(new Event("input", { bubbles: true }));
 			updateTimeframeText();
 		});
 		dateInput.addEventListener("input", () => {
+			// Update months display from date
+			if (dateInput.value) {
+				const target = new Date(dateInput.value + "T00:00:00");
+				const now = new Date();
+				const diffMs = target.getTime() - now.getTime();
+				const diffMonths = diffMs / (1000 * 60 * 60 * 24 * 30.44);
+				durationInput.value = diffMonths > 0 ? diffMonths.toFixed(1) : "";
+			}
 			updateTimeframeText();
 		});
 	}
