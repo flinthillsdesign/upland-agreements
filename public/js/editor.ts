@@ -202,29 +202,31 @@ function renderForm() {
 						</div>
 					</div>
 					<div style="margin-bottom:12px">
-						<label style="font-size:0.78rem;font-weight:500;color:var(--text-muted);margin-bottom:6px;display:block">Service Rates</label>
-						<div class="form-row">
-							<div class="form-group">
-								<label>Head of Design/Fab ($/hr)</label>
-								<input type="number" id="sr_head" value="${sr.head_rate}" step="5">
+						<button type="button" class="btn btn-ghost btn-sm" id="toggleRates" style="font-size:0.78rem;color:var(--text-muted);padding:4px 0">Service Rates (using standard rates) &#9656;</button>
+						<div id="ratesFields" hidden>
+							<div class="form-row" style="margin-top:8px">
+								<div class="form-group">
+									<label>Head of Design/Fab ($/hr)</label>
+									<input type="number" id="sr_head" value="${sr.head_rate}" step="5">
+								</div>
+								<div class="form-group">
+									<label>Design Staff ($/hr)</label>
+									<input type="number" id="sr_design" value="${sr.design_rate}" step="5">
+								</div>
+								<div class="form-group">
+									<label>Fab Staff ($/hr)</label>
+									<input type="number" id="sr_fab" value="${sr.fab_rate}" step="5">
+								</div>
 							</div>
-							<div class="form-group">
-								<label>Design Staff ($/hr)</label>
-								<input type="number" id="sr_design" value="${sr.design_rate}" step="5">
-							</div>
-							<div class="form-group">
-								<label>Fab Staff ($/hr)</label>
-								<input type="number" id="sr_fab" value="${sr.fab_rate}" step="5">
-							</div>
-						</div>
-						<div class="form-row">
-							<div class="form-group">
-								<label>Travel ($/hr)</label>
-								<input type="number" id="sr_travel" value="${sr.travel_rate}" step="5">
-							</div>
-							<div class="form-group">
-								<label>Materials Markup %</label>
-								<input type="number" id="sr_materials" value="${sr.materials_markup}" step="1">
+							<div class="form-row">
+								<div class="form-group">
+									<label>Travel ($/hr)</label>
+									<input type="number" id="sr_travel" value="${sr.travel_rate}" step="5">
+								</div>
+								<div class="form-group">
+									<label>Materials Markup %</label>
+									<input type="number" id="sr_materials" value="${sr.materials_markup}" step="1">
+								</div>
 							</div>
 						</div>
 					</div>
@@ -317,6 +319,18 @@ function renderForm() {
 
 		psFields.forEach((id) => document.getElementById(id)?.addEventListener("input", savePaymentStructure));
 		srFields.forEach((id) => document.getElementById(id)?.addEventListener("input", saveServiceRates));
+
+		document.getElementById("toggleRates")?.addEventListener("click", () => {
+			const fields = document.getElementById("ratesFields")!;
+			const btn = document.getElementById("toggleRates")!;
+			if (fields.hidden) {
+				fields.hidden = false;
+				btn.innerHTML = "Service Rates &#9662;";
+			} else {
+				fields.hidden = true;
+				btn.innerHTML = "Service Rates (using standard rates) &#9656;";
+			}
+		});
 	}
 
 	// Duration months -> date picker sync
