@@ -172,6 +172,25 @@
 	color: var(--text);
 }
 
+/* === AI Thinking Animation === */
+.chat-thinking {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.chat-thinking-text {
+	font-size: 0.8rem;
+	color: var(--text-muted);
+	font-style: italic;
+	animation: thinkingFade 2.2s ease-in-out infinite;
+}
+
+@keyframes thinkingFade {
+	0%, 100% { opacity: 0.5; }
+	50% { opacity: 1; }
+}
+
 .chat-message.assistant .references {
 	margin-top: 8px;
 	padding-top: 8px;

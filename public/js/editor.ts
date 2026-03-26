@@ -1,5 +1,5 @@
 import { api, requireAuth } from "./api.js";
-import { esc, escHtml, TYPE_LABELS, formatCurrency, isMouType } from "./utils.js";
+import { esc, escHtml, TYPE_LABELS, formatCurrency, isMouType, startThinkingAnimation, stopThinkingAnimation } from "./utils.js";
 
 requireAuth();
 
@@ -351,6 +351,14 @@ async function sendChat() {
 	input.value = "";
 	addMessage("user", message);
 
+	// Show thinking animation
+	const container = document.getElementById("chatMessages")!;
+	const thinkingEl = document.createElement("div");
+	thinkingEl.className = "chat-message assistant";
+	container.appendChild(thinkingEl);
+	container.scrollTop = container.scrollHeight;
+	startThinkingAnimation(thinkingEl);
+
 	const sendBtn = document.getElementById("chatSend") as HTMLButtonElement;
 	sendBtn.disabled = true;
 
@@ -361,6 +369,9 @@ async function sendChat() {
 		} else {
 			result = (await api.chatAgreement(agreementId!, message)) as typeof result;
 		}
+
+		stopThinkingAnimation();
+		thinkingEl.remove();
 
 		let responseText = result.message;
 		if (result.references && result.references.length > 0) {
@@ -375,6 +386,8 @@ async function sendChat() {
 			renderForm();
 		}
 	} catch (err) {
+		stopThinkingAnimation();
+		thinkingEl.remove();
 		addMessage("assistant", `Error: ${(err as Error).message}`);
 	}
 
@@ -397,11 +410,7 @@ document.addEventListener("click", () => {
 
 // === Actions ===
 document.getElementById("previewBtn")!.addEventListener("click", () => {
-	if (agreement.share_token) {
-		window.open(`/view.html?token=${agreement.share_token}`, "_blank");
-	} else {
-		alert("Share the agreement first to generate a preview link.");
-	}
+	window.open(`/view.html?id=${agreementId}`, "_blank");
 });
 
 document.getElementById("duplicateBtn")!.addEventListener("click", async () => {

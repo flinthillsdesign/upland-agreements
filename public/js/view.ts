@@ -38,8 +38,10 @@ interface Settings {
 
 const params = new URLSearchParams(window.location.search);
 const token = params.get("token");
+const previewId = params.get("id");
+const isPreview = !!previewId;
 
-if (!token) {
+if (!token && !previewId) {
 	document.getElementById("documentContent")!.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted)">Invalid link.</p>';
 }
 
@@ -55,10 +57,12 @@ const STATUS_TEXT: Record<string, string> = {
 };
 
 async function load() {
-	if (!token) return;
+	if (!token && !previewId) return;
 
 	try {
-		const data = (await api.viewAgreement(token)) as { error?: string; agreement: Agreement; settings: Settings };
+		const data = isPreview
+			? (await api.previewAgreement(previewId!)) as { error?: string; agreement: Agreement; settings: Settings }
+			: (await api.viewAgreement(token!)) as { error?: string; agreement: Agreement; settings: Settings };
 		if (data.error) {
 			document.getElementById("documentContent")!.innerHTML = `<p style="text-align:center;padding:40px;color:var(--text-muted)">${esc(data.error)}</p>`;
 			return;
@@ -70,7 +74,11 @@ async function load() {
 		document.title = `${agreement.title} — Upland Exhibits`;
 
 		// Status bar
-		document.getElementById("statusText")!.textContent = STATUS_TEXT[agreement.status] || "";
+		if (isPreview) {
+			document.getElementById("statusText")!.textContent = "Preview — this is how the client will see it.";
+		} else {
+			document.getElementById("statusText")!.textContent = STATUS_TEXT[agreement.status] || "";
+		}
 
 		// Render document
 		if (isMouType(agreement.type)) {
@@ -432,7 +440,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 		</div>
 		`}
 
-		${!clientSig && (agreement.status === "sent" || agreement.status === "viewed") ? `
+		${!isPreview && !clientSig && (agreement.status === "sent" || agreement.status === "viewed") ? `
 		<div class="sign-area" id="signArea">
 			<h3>Sign This Agreement</h3>
 			<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px">By typing your name below and clicking "Sign Agreement", you acknowledge that you have read and agree to the terms above.</p>

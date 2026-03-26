@@ -82,6 +82,8 @@ export const api = {
 	deleteAgreement: (id: string) => request("DELETE", `/api/agreements/${id}`),
 	duplicateAgreement: (id: string) => request("POST", `/api/agreements/${id}/duplicate`),
 
+	previewAgreement: (id: string) => request("GET", `/api/agreements/${id}/preview`),
+
 	// AI
 	generateAgreement: (id: string, prompt: string) => request("POST", `/api/agreements/${id}/generate`, { prompt }),
 	chatAgreement: (id: string, message: string) => request("POST", `/api/agreements/${id}/chat`, { message }),

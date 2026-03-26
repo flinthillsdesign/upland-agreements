@@ -60,3 +60,83 @@ export function setupLogout() {
 		window.location.href = "/";
 	});
 }
+
+// === AI Thinking Animation ===
+
+const AI_THINKING_MESSAGES = [
+	// Legal process
+	"Reviewing the precedents...",
+	"Consulting the Kansas Statutes...",
+	"Checking the force majeure clause for typos...",
+	"Confirming the party of the first part...",
+	"Heretofore, hitherto, and notwithstanding...",
+	"Adding whereases and therefores...",
+	"Dotting the i's and crossing the t's...",
+	"Ensuring severability of all provisions...",
+	"Per the terms and conditions herein...",
+	"Whereas the party of the second part...",
+	"Drafting indemnification language with feeling...",
+	"Making liability limitations sound friendly...",
+	"Nervously double-checking the governing law...",
+	"The boilerplate writes itself. Just kidding...",
+
+	// Contract humor
+	"This agreement shall be binding upon...",
+	"IN WITNESS WHEREOF, the AI has drafted...",
+	"Subject to the terms below (way below)...",
+	"Adding a clause about adding clauses...",
+	"Defining 'reasonable' reasonably...",
+	"Making NET30 sound generous...",
+	"Calculating not-to-exceed with great precision...",
+	"Time is of the essence (especially right now)...",
+	"No waiver of contractual right to make jokes...",
+	"This scope of work shall include scope of work...",
+	"Wordsmithing the deliverables section...",
+	"Ensuring mutual indemnification is actually mutual...",
+
+	// Exhibit-specific
+	"Pricing exhibit hours like a seasoned pro...",
+	"Estimating fabrication costs with optimism...",
+	"Remembering that travel time is billable...",
+	"Imagining the ribbon cutting ceremony...",
+	"Factoring in the interactive displays...",
+	"Accounting for that one tricky casework piece...",
+	"Adding a line item for museum-grade dust...",
+	"Concept PDFs don't write themselves. Well...",
+
+	// Process & confidence
+	"Almost there, just making it airtight...",
+	"Drafting with extreme professionalism...",
+	"This is going to be a beautiful agreement...",
+	"Channeling the spirit of contract law...",
+	"One moment, perfecting the payment schedule...",
+	"Hold on, I'm in the zone...",
+	"Making this look like a real lawyer wrote it...",
+	"Trust the process (and the 18% interest clause)...",
+	"You're going to love this scope of work...",
+	"Wait till you see these client responsibilities...",
+	"Applying Kansas law with great enthusiasm...",
+	"Drafting something Joel would be proud of...",
+];
+
+let _thinkingInterval: number | null = null;
+
+export function startThinkingAnimation(el: HTMLElement) {
+	const used = new Set<number>();
+	el.innerHTML = `<div class="chat-thinking"><span class="chat-thinking-text">Thinking...</span></div>`;
+	_thinkingInterval = window.setInterval(() => {
+		if (used.size >= AI_THINKING_MESSAGES.length) used.clear();
+		let idx: number;
+		do { idx = Math.floor(Math.random() * AI_THINKING_MESSAGES.length); } while (used.has(idx));
+		used.add(idx);
+		const textEl = el.querySelector(".chat-thinking-text");
+		if (textEl) textEl.textContent = AI_THINKING_MESSAGES[idx];
+	}, 2200);
+}
+
+export function stopThinkingAnimation() {
+	if (_thinkingInterval) {
+		clearInterval(_thinkingInterval);
+		_thinkingInterval = null;
+	}
+}

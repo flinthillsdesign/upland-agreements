@@ -230,6 +230,15 @@ route("GET", "/api/agreements/:id/conversation", "user", async (_req, params) =>
 	return json(conv || { messages: [] });
 });
 
+// === Preview (authenticated, no view tracking) ===
+
+route("GET", "/api/agreements/:id/preview", "user", async (_req, params) => {
+	const agreement = await getAgreement(params.id);
+	if (!agreement) return err("Not found", 404);
+	const settings = await getSettings();
+	return json({ agreement, settings });
+});
+
 // === Sharing Routes ===
 
 route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
