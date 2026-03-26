@@ -30,9 +30,9 @@ let editingId: string | null = null;
 
 // Type filters
 document.getElementById("typeFilters")!.addEventListener("click", (e) => {
-	const btn = (e.target as HTMLElement).closest(".tab") as HTMLElement;
+	const btn = (e.target as HTMLElement).closest(".chip") as HTMLElement;
 	if (!btn) return;
-	document.querySelectorAll("#typeFilters .tab").forEach((t) => t.classList.remove("active"));
+	document.querySelectorAll("#typeFilters .chip").forEach((t) => t.classList.remove("active"));
 	btn.classList.add("active");
 	currentFilter = btn.dataset.type || "";
 	render();
