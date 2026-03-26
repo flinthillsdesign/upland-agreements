@@ -53,6 +53,16 @@
 	padding: 0;
 }
 
+.document.pdf-rendering .doc-section,
+.document.pdf-rendering .doc-term,
+.document.pdf-rendering .mou-field,
+.document.pdf-rendering .signature-block,
+.document.pdf-rendering .signature-pairs,
+.document.pdf-rendering .rate-table {
+	break-inside: avoid;
+	page-break-inside: avoid;
+}
+
 .doc-header .doc-logo {
 	height: 36px;
 	width: auto;
