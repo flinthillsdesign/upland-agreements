@@ -239,9 +239,11 @@ function renderForm() {
 							</div>
 						</div>
 					</div>
-					<div class="form-group">
-						<label>Additional Client Responsibilities (optional — standard list is included automatically)</label>
-						<textarea data-field="client_responsibilities" rows="3" placeholder="Any project-specific responsibilities beyond the standard list...">${esc(agreement.client_responsibilities)}</textarea>
+					<div style="margin-bottom:12px">
+						<button type="button" class="btn btn-ghost btn-sm" id="toggleResponsibilities" style="font-size:0.78rem;color:var(--text-muted);padding:4px 0">Additional Client Responsibilities (standard list included) &#9656;</button>
+						<div id="responsibilitiesFields" hidden>
+							<textarea data-field="client_responsibilities" rows="3" style="margin-top:8px;width:100%" placeholder="Any project-specific responsibilities beyond the standard list...">${esc(agreement.client_responsibilities)}</textarea>
+						</div>
 					</div>`;
 				})()}
 				</div>
@@ -353,6 +355,18 @@ function renderForm() {
 			} else {
 				fields.hidden = true;
 				btn.innerHTML = "Service Rates (using standard rates) &#9656;";
+			}
+		});
+
+		document.getElementById("toggleResponsibilities")?.addEventListener("click", () => {
+			const fields = document.getElementById("responsibilitiesFields")!;
+			const btn = document.getElementById("toggleResponsibilities")!;
+			if (fields.hidden) {
+				fields.hidden = false;
+				btn.innerHTML = "Additional Client Responsibilities &#9662;";
+			} else {
+				fields.hidden = true;
+				btn.innerHTML = "Additional Client Responsibilities (standard list included) &#9656;";
 			}
 		});
 	}
