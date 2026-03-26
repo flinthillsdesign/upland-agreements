@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import { extractToken, verifyToken, verifyPassword, createToken, hashPassword, type JwtPayload } from "../../lib/auth.js";
 import { ensureAuthSchema, getUserByLogin, getUserByEmail, getUserById, getUsers, createUser, updateUser, deleteUser, setResetToken, getUserByResetToken, clearResetToken, checkAppAccess } from "../../lib/auth-storage.js";
-import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, getAgreementByToken, recordView, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, type ChatMessage } from "../../lib/storage.js";
+import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, getAgreementByToken, recordView, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { generateShareToken } from "../../lib/share-tokens.js";
 import { sendResetEmail, sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
@@ -294,9 +294,6 @@ route("GET", "/api/agreements/view/:token", "none", async (req, params) => {
 	return json({ agreement, settings });
 });
 
-// Verification codes stored in memory (per function instance)
-const verificationCodes = new Map<string, { code: string; email: string; expires: number }>();
-
 route("POST", "/api/agreements/view/:token/send-code", "none", async (req, params) => {
 	const agreement = await getAgreementByToken(params.token);
 	if (!agreement) return err("Not found", 404);
@@ -306,9 +303,10 @@ route("POST", "/api/agreements/view/:token/send-code", "none", async (req, param
 	if (!email) return err("Email required");
 
 	const code = String(Math.floor(100000 + Math.random() * 900000));
-	verificationCodes.set(params.token, { code, email, expires: Date.now() + 10 * 60 * 1000 });
+	const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
 
-	// Send code via Postmark
+	await saveVerificationCode(params.token, code, email, expiresAt);
+
 	const { sendVerificationCode } = await import("../../lib/email.js");
 	await sendVerificationCode(email, code, agreement.title);
 
@@ -324,12 +322,12 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	if (!name) return err("Signature name required");
 	if (!code) return err("Verification code required");
 
-	// Verify the code
-	const stored = verificationCodes.get(params.token);
-	if (!stored || stored.code !== code || stored.email !== email || stored.expires < Date.now()) {
+	// Verify the code from database
+	const stored = await getVerificationCode(params.token);
+	if (!stored || stored.code !== code || stored.email !== email || new Date(stored.expires) < new Date()) {
 		return err("Invalid or expired verification code", 400);
 	}
-	verificationCodes.delete(params.token);
+	await deleteVerificationCode(params.token);
 
 	const consent = consent_text ? { text: consent_text, timestamp: new Date().toISOString() } : undefined;
 	const signature = buildSignature(name, getClientIp(req), title, consent);

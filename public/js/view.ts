@@ -520,7 +520,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			</label>
 			<button class="btn btn-primary btn-lg" id="signBtn">Sign Agreement</button>
 			<div id="verifyStep" hidden style="margin-top:16px">
-				<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">A verification code has been sent to your email. Enter it below to complete your signature.</p>
+				<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">A verification code has been sent to your email. Enter it below to complete your signature. The code is valid for 1 hour.</p>
 				<div class="form-row">
 					<div class="form-group">
 						<label>Verification Code</label>

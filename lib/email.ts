@@ -122,8 +122,8 @@ export async function sendVerificationCode(to: string, code: string, agreementTi
 			<div style="background:#f8f7f5;border:2px solid #e2dfd9;border-radius:8px;padding:16px;text-align:center;margin-bottom:20px">
 				<span style="font-size:32px;font-weight:700;letter-spacing:6px;color:#1a1a1a">${code}</span>
 			</div>
-			<p style="font-size:13px;color:#6b6560">This code expires in 10 minutes. If you did not request this, ignore this email.</p>
+			<p style="font-size:13px;color:#6b6560">This code expires in 1 hour. If you did not request this, ignore this email.</p>
 		`),
-		`Your verification code for signing "${agreementTitle}" is: ${code}\n\nThis code expires in 10 minutes.`,
+		`Your verification code for signing "${agreementTitle}" is: ${code}\n\nThis code expires in 1 hour.`,
 	);
 }

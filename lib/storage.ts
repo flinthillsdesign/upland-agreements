@@ -86,6 +86,15 @@ export async function ensureSchema(): Promise<void> {
 		)
 	`);
 
+	await db.execute(`
+		CREATE TABLE IF NOT EXISTS verification_codes (
+			token TEXT PRIMARY KEY,
+			code TEXT NOT NULL,
+			email TEXT NOT NULL,
+			expires TEXT NOT NULL
+		)
+	`);
+
 	// Settings row + indexes (all independent, run in parallel)
 	await Promise.all([
 		db.execute("INSERT OR IGNORE INTO settings (id, data) VALUES (1, '{}')"),
@@ -339,4 +348,25 @@ export async function updateSettings(data: Record<string, unknown>): Promise<Rec
 	const merged = { ...current, ...data };
 	await db.execute({ sql: "UPDATE settings SET data = ? WHERE id = 1", args: [JSON.stringify(merged)] });
 	return merged;
+}
+
+// === Verification Codes ===
+
+export async function saveVerificationCode(token: string, code: string, email: string, expiresAt: string): Promise<void> {
+	const db = getClient();
+	await db.execute({
+		sql: "INSERT OR REPLACE INTO verification_codes (token, code, email, expires) VALUES (?, ?, ?, ?)",
+		args: [token, code, email, expiresAt],
+	});
+}
+
+export async function getVerificationCode(token: string): Promise<{ code: string; email: string; expires: string } | null> {
+	const db = getClient();
+	const result = await db.execute({ sql: "SELECT code, email, expires FROM verification_codes WHERE token = ?", args: [token] });
+	return (result.rows[0] as unknown as { code: string; email: string; expires: string }) || null;
+}
+
+export async function deleteVerificationCode(token: string): Promise<void> {
+	const db = getClient();
+	await db.execute({ sql: "DELETE FROM verification_codes WHERE token = ?", args: [token] });
 }
