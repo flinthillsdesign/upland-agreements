@@ -401,6 +401,22 @@
 	}
 }
 
+/* === PDF Overlay === */
+.pdf-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(248, 247, 245, 0.95);
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.pdf-overlay-text {
+	font-size: 0.9rem;
+	color: var(--text-muted);
+	font-style: italic;
+}
+
 /* === Responsive === */
 @media (max-width: 768px) {
 	.view-page { padding: 16px 12px 60px; }

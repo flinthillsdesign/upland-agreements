@@ -553,6 +553,12 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 	btn.disabled = true;
 	btn.textContent = "Generating...";
 
+	// Overlay hides the layout shift while pdf-rendering styles are applied
+	const overlay = document.createElement("div");
+	overlay.className = "pdf-overlay";
+	overlay.innerHTML = '<div class="pdf-overlay-text">Generating PDF...</div>';
+	document.body.appendChild(overlay);
+
 	element.classList.add("pdf-rendering");
 
 	html2pdf()
@@ -579,11 +585,13 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 		.save()
 		.then(() => {
 			element.classList.remove("pdf-rendering");
+			overlay.remove();
 			btn.disabled = false;
 			btn.textContent = "Download PDF";
 		})
 		.catch(() => {
 			element.classList.remove("pdf-rendering");
+			overlay.remove();
 			btn.disabled = false;
 			btn.textContent = "Download PDF";
 			alert("Failed to generate PDF. Try using the Print button instead.");
