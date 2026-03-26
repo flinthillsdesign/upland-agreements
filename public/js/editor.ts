@@ -439,6 +439,7 @@ document.getElementById("countersignBtn")!.addEventListener("click", async () =>
 // === Share modal ===
 const shareModal = document.getElementById("shareModal")!;
 document.getElementById("shareBtn")!.addEventListener("click", () => {
+	if (!agreement) return;
 	const linkField = document.getElementById("shareLinkField")!;
 	const revokeBtn = document.getElementById("revokeShareLink")!;
 	if (agreement.share_token) {

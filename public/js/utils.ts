@@ -122,9 +122,11 @@ const AI_THINKING_MESSAGES = [
 let _thinkingInterval: number | null = null;
 
 export function startThinkingAnimation(el: HTMLElement) {
+	stopThinkingAnimation();
 	const used = new Set<number>();
 	el.innerHTML = `<div class="chat-thinking"><span class="chat-thinking-text">Thinking...</span></div>`;
 	_thinkingInterval = window.setInterval(() => {
+		if (!el.isConnected) { stopThinkingAnimation(); return; }
 		if (used.size >= AI_THINKING_MESSAGES.length) used.clear();
 		let idx: number;
 		do { idx = Math.floor(Math.random() * AI_THINKING_MESSAGES.length); } while (used.has(idx));

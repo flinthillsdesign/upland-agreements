@@ -46,7 +46,6 @@ if (!token && !previewId) {
 }
 
 const STATUS_TEXT: Record<string, string> = {
-	// These are full-sentence descriptions for the client-facing status bar
 	draft: "This agreement is still being prepared.",
 	sent: "This agreement is ready for your review.",
 	viewed: "This agreement is ready for your review and signature.",
@@ -130,8 +129,8 @@ function renderMou(agreement: Agreement, settings: Settings) {
 		<div class="mou-field">
 			<div class="mou-field-label">Cost</div>
 			<div class="mou-field-value">${agreement.hours && agreement.hourly_rate
-				? `${agreement.hours} hours x $${agreement.hourly_rate} / hr = $${(agreement.total_cost || 0).toLocaleString()}`
-				: agreement.total_cost ? `$${agreement.total_cost.toLocaleString()}` : "—"}</div>
+				? `${agreement.hours} hours x $${agreement.hourly_rate} / hr = ${formatCurrency(agreement.total_cost)}`
+				: agreement.total_cost ? formatCurrency(agreement.total_cost) : "—"}</div>
 		</div>
 
 		<div class="doc-terms-divider">----- PROJECT TERMS -----</div>
@@ -167,10 +166,10 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 	const companyAddress = settings.company_address || "507 SE 36th St., Newton, Kansas 67114";
 
 	let paymentStructure = { initial_pct: 10, initial_amount: 0, progress_note: "", final_pct: 10, final_amount: 0 };
-	try { if (agreement.payment_structure) paymentStructure = JSON.parse(agreement.payment_structure); } catch {}
+	try { if (agreement.payment_structure) paymentStructure = JSON.parse(agreement.payment_structure); } catch (e) { console.warn("Malformed payment_structure JSON:", e); }
 
 	let rates = { head_rate: 95, design_rate: 75, fab_rate: 65, materials_markup: 15, travel_rate: 55 };
-	try { if (agreement.service_rates) rates = JSON.parse(agreement.service_rates); } catch {}
+	try { if (agreement.service_rates) rates = JSON.parse(agreement.service_rates); } catch (e) { console.warn("Malformed service_rates JSON:", e); }
 
 	document.getElementById("documentContent")!.innerHTML = `
 		<div class="doc-header">
@@ -195,12 +194,12 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">3. </span><span class="doc-section-title">PROJECT COST.</span>
-			<div class="doc-section-body">The parties agree that all Services shall be performed on a Time-And-Material-Not-To-Exceed basis. The total compensation to Designer under this Agreement shall not exceed <strong>$${(agreement.total_cost || 0).toLocaleString()}</strong> ("NTE Amount").</div>
+			<div class="doc-section-body">The parties agree that all Services shall be performed on a Time-And-Material-Not-To-Exceed basis. The total compensation to Designer under this Agreement shall not exceed <strong>${formatCurrency(agreement.total_cost)}</strong> ("NTE Amount").</div>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">4. </span><span class="doc-section-title">INITIAL PAYMENT.</span>
-			<div class="doc-section-body">A payment of <strong>$${(paymentStructure.initial_amount || 0).toLocaleString()}</strong> (equaling approximately ${paymentStructure.initial_pct || 10}% of the Project Cost) will be required to retain Upland's services. This payment will be due within 30 days of signing this Agreement. Work shall not commence until the Initial Payment is received.</div>
+			<div class="doc-section-body">A payment of <strong>${formatCurrency(paymentStructure.initial_amount)}</strong> (equaling approximately ${paymentStructure.initial_pct || 10}% of the Project Cost) will be required to retain Upland's services. This payment will be due within 30 days of signing this Agreement. Work shall not commence until the Initial Payment is received.</div>
 		</div>
 
 		<div class="doc-section">
@@ -210,7 +209,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">6. </span><span class="doc-section-title">FINAL PAYMENT.</span>
-			<div class="doc-section-body">The remaining balance of approximately <strong>$${(paymentStructure.final_amount || 0).toLocaleString()}</strong> (${paymentStructure.final_pct || 10}% of the Project Cost) will be invoiced upon Substantial Completion of the Project.</div>
+			<div class="doc-section-body">The remaining balance of approximately <strong>${formatCurrency(paymentStructure.final_amount)}</strong> (${paymentStructure.final_pct || 10}% of the Project Cost) will be invoiced upon Substantial Completion of the Project.</div>
 		</div>
 
 		<div class="doc-section">
@@ -338,6 +337,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 function renderSignatures(agreement: Agreement, settings: Settings) {
 	const area = document.getElementById("signatureArea")!;
+	const companyName = settings.legal_name || "Flint Hills Design, LLC dba Upland Exhibits";
 	const designerName = settings.designer_name || "Joel Gaeddert";
 	const designerTitle = settings.designer_title || "CEO";
 	const isMou = isMouType(agreement.type);
@@ -422,7 +422,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 
 		<div class="signature-block">
 			<div class="signature-block-label">"Designer"</div>
-			<div class="signature-block-org">Flint Hills Design, LLC dba Upland Exhibits</div>
+			<div class="signature-block-org">${esc(companyName)}</div>
 			${designerSig ? `
 				<div class="signed-info">
 					<div class="signed-name">${esc(designerSig.name)}</div>
@@ -511,9 +511,9 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 			margin: [0.5, 0.6, 0.6, 0.6],
 			filename,
 			image: { type: "jpeg", quality: 0.98 },
-			html2canvas: { scale: 2, useCORS: true },
+			html2canvas: { scale: 1.5, useCORS: true },
 			jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-			pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+			pagebreak: { mode: ["css", "legacy"] },
 		})
 		.from(element)
 		.save()
