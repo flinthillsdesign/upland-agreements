@@ -98,7 +98,7 @@ export const api = {
 
 	// Client view (no auth)
 	viewAgreement: (token: string) => fetch(`/api/agreements/view/${token}`).then((r) => r.json()),
-	signAgreement: (token: string, data: { name: string; title?: string; client_name?: string; client_address?: string; consent_text?: string }) =>
+	signAgreement: (token: string, data: { name: string; title?: string; client_name?: string; client_address?: string; consent_text?: string; email?: string; code?: string }) =>
 		fetch(`/api/agreements/view/${token}/sign`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).then((r) => r.json()),
 
 	// Knowledge

@@ -294,21 +294,51 @@ route("GET", "/api/agreements/view/:token", "none", async (req, params) => {
 	return json({ agreement, settings });
 });
 
+// Verification codes stored in memory (per function instance)
+const verificationCodes = new Map<string, { code: string; email: string; expires: number }>();
+
+route("POST", "/api/agreements/view/:token/send-code", "none", async (req, params) => {
+	const agreement = await getAgreementByToken(params.token);
+	if (!agreement) return err("Not found", 404);
+	if (agreement.client_signature) return err("Already signed");
+
+	const { email } = await req.json() as { email?: string };
+	if (!email) return err("Email required");
+
+	const code = String(Math.floor(100000 + Math.random() * 900000));
+	verificationCodes.set(params.token, { code, email, expires: Date.now() + 10 * 60 * 1000 });
+
+	// Send code via Postmark
+	const { sendVerificationCode } = await import("../../lib/email.js");
+	await sendVerificationCode(email, code, agreement.title);
+
+	return json({ ok: true });
+});
+
 route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) => {
 	const agreement = await getAgreementByToken(params.token);
 	if (!agreement) return err("Not found", 404);
 	if (agreement.client_signature) return err("Already signed");
 
-	const { name, title, client_name, client_address, consent_text } = await req.json() as { name?: string; title?: string; client_name?: string; client_address?: string; consent_text?: string };
+	const { name, title, client_name, client_address, consent_text, email, code } = await req.json() as { name?: string; title?: string; client_name?: string; client_address?: string; consent_text?: string; email?: string; code?: string };
 	if (!name) return err("Signature name required");
+	if (!code) return err("Verification code required");
+
+	// Verify the code
+	const stored = verificationCodes.get(params.token);
+	if (!stored || stored.code !== code || stored.email !== email || stored.expires < Date.now()) {
+		return err("Invalid or expired verification code", 400);
+	}
+	verificationCodes.delete(params.token);
 
 	const consent = consent_text ? { text: consent_text, timestamp: new Date().toISOString() } : undefined;
 	const signature = buildSignature(name, getClientIp(req), title, consent);
 
-	// Update agreement: signature + client-confirmed org info + effective date if blank
+	// Update agreement: signature + client-confirmed org info + verified email + effective date if blank
 	const updates: Record<string, unknown> = { client_signature: signature, status: "signed" };
 	if (client_name !== undefined) updates.client_name = client_name;
 	if (client_address !== undefined) updates.client_address = client_address;
+	if (email) updates.client_email = email;
 	if (!agreement.effective_date) updates.effective_date = new Date().toISOString().split("T")[0];
 	await updateAgreement(agreement.id, updates);
 

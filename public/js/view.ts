@@ -504,20 +504,36 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 				<label>Your Full Name</label>
 				<input type="text" id="signName" placeholder="Type your full legal name" required>
 			</div>
-			<div class="form-group" style="margin-bottom:16px">
-				<label>Your Title</label>
-				<input type="text" id="signTitle" placeholder="e.g., Executive Director" required>
+			<div class="form-row" style="margin-bottom:12px">
+				<div class="form-group">
+					<label>Your Title</label>
+					<input type="text" id="signTitle" placeholder="e.g., Executive Director" required>
+				</div>
+				<div class="form-group">
+					<label>Your Email (verification code will be sent here)</label>
+					<input type="email" id="signEmail" value="${esc(agreement.client_email)}" placeholder="you@organization.org" required>
+				</div>
 			</div>
 			<label style="display:flex;align-items:flex-start;gap:8px;font-size:0.85rem;color:var(--text);margin-bottom:16px;cursor:pointer">
 				<input type="checkbox" id="signConsent" style="margin-top:3px;flex-shrink:0" required>
 				<span>I agree to sign this agreement electronically. I understand that my electronic signature has the same legal effect as a handwritten signature.</span>
 			</label>
 			<button class="btn btn-primary btn-lg" id="signBtn">Sign Agreement</button>
+			<div id="verifyStep" hidden style="margin-top:16px">
+				<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">A verification code has been sent to your email. Enter it below to complete your signature.</p>
+				<div class="form-row">
+					<div class="form-group">
+						<label>Verification Code</label>
+						<input type="text" id="verifyCode" placeholder="6-digit code" maxlength="6" style="letter-spacing:4px;font-size:1.2rem;text-align:center;width:160px">
+					</div>
+				</div>
+				<button class="btn btn-primary btn-lg" id="verifyBtn">Verify & Sign</button>
+			</div>
 		</div>
 		` : ""}
 	`;
 
-	// Sign handler
+	// Sign handler — two-step: send code, then verify
 	const signBtn = document.getElementById("signBtn");
 	if (signBtn) {
 		signBtn.addEventListener("click", async () => {
@@ -525,26 +541,26 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			const orgAddressInput = document.getElementById("signOrgAddress") as HTMLInputElement | null;
 			const nameInput = document.getElementById("signName") as HTMLInputElement;
 			const titleInput = document.getElementById("signTitle") as HTMLInputElement;
+			const emailInput = document.getElementById("signEmail") as HTMLInputElement;
 
 			// Validate all fields
 			if (orgNameInput && !orgNameInput.value.trim()) { orgNameInput.focus(); return; }
 			if (orgAddressInput && !orgAddressInput.value.trim()) { orgAddressInput.focus(); return; }
 			if (!nameInput.value.trim()) { nameInput.focus(); return; }
 			if (!titleInput.value.trim()) { titleInput.focus(); return; }
+			if (!emailInput.value.trim()) { emailInput.focus(); return; }
 			const consentBox = document.getElementById("signConsent") as HTMLInputElement;
 			if (!consentBox?.checked) { consentBox.focus(); return; }
 
-			const name = nameInput.value.trim();
-			const title = titleInput?.value.trim() || "";
-			const client_name = orgNameInput?.value.trim() || "";
-			const client_address = orgAddressInput?.value.trim() || "";
-			const consent_text = consentBox.parentElement?.querySelector("span")?.textContent || "";
-
 			(signBtn as HTMLButtonElement).disabled = true;
-			signBtn.textContent = "Signing...";
+			signBtn.textContent = "Sending verification code...";
 
 			try {
-				const result = (await api.signAgreement(token!, { name, title, client_name, client_address, consent_text })) as { error?: string };
+				const result = await fetch(`/api/agreements/view/${token}/send-code`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ email: emailInput.value.trim() }),
+				}).then((r) => r.json()) as { error?: string };
 
 				if (result.error) {
 					alert(result.error);
@@ -553,12 +569,57 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 					return;
 				}
 
-				// Reload to show signed state
-				load();
+				// Show verification step, hide sign button
+				signBtn.style.display = "none";
+				document.getElementById("verifyStep")!.hidden = false;
+				document.getElementById("verifyCode")!.focus();
 			} catch {
-				alert("Failed to sign. Please try again.");
+				alert("Failed to send code. Please try again.");
 				(signBtn as HTMLButtonElement).disabled = false;
 				signBtn.textContent = "Sign Agreement";
+			}
+		});
+
+		// Verify handler
+		document.getElementById("verifyBtn")?.addEventListener("click", async () => {
+			const codeInput = document.getElementById("verifyCode") as HTMLInputElement;
+			const code = codeInput.value.trim();
+			if (!code || code.length < 6) { codeInput.focus(); return; }
+
+			const verifyBtn = document.getElementById("verifyBtn") as HTMLButtonElement;
+			verifyBtn.disabled = true;
+			verifyBtn.textContent = "Verifying...";
+
+			const orgNameInput = document.getElementById("signOrgName") as HTMLInputElement | null;
+			const orgAddressInput = document.getElementById("signOrgAddress") as HTMLInputElement | null;
+			const nameInput = document.getElementById("signName") as HTMLInputElement;
+			const titleInput = document.getElementById("signTitle") as HTMLInputElement;
+			const emailInput = document.getElementById("signEmail") as HTMLInputElement;
+			const consentBox = document.getElementById("signConsent") as HTMLInputElement;
+
+			try {
+				const result = (await api.signAgreement(token!, {
+					name: nameInput.value.trim(),
+					title: titleInput.value.trim(),
+					client_name: orgNameInput?.value.trim() || "",
+					client_address: orgAddressInput?.value.trim() || "",
+					consent_text: consentBox.parentElement?.querySelector("span")?.textContent || "",
+					email: emailInput.value.trim(),
+					code,
+				})) as { error?: string };
+
+				if (result.error) {
+					alert(result.error);
+					verifyBtn.disabled = false;
+					verifyBtn.textContent = "Verify & Sign";
+					return;
+				}
+
+				load();
+			} catch {
+				alert("Verification failed. Please try again.");
+				verifyBtn.disabled = false;
+				verifyBtn.textContent = "Verify & Sign";
 			}
 		});
 	}

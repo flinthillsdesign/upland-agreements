@@ -111,3 +111,19 @@ export async function sendAgreementCountersignedEmail(to: string, agreementTitle
 		`Both parties have signed: ${agreementTitle}\n\nView it here: ${viewUrl}`,
 	);
 }
+
+export async function sendVerificationCode(to: string, code: string, agreementTitle: string): Promise<boolean> {
+	return send(to,
+		`Your verification code — ${escHtml(agreementTitle)}`,
+		wrap(`
+			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px">You're signing an agreement with Upland Exhibits:</p>
+			<p style="font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
+			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px">Your verification code is:</p>
+			<div style="background:#f8f7f5;border:2px solid #e2dfd9;border-radius:8px;padding:16px;text-align:center;margin-bottom:20px">
+				<span style="font-size:32px;font-weight:700;letter-spacing:6px;color:#1a1a1a">${code}</span>
+			</div>
+			<p style="font-size:13px;color:#6b6560">This code expires in 10 minutes. If you did not request this, ignore this email.</p>
+		`),
+		`Your verification code for signing "${agreementTitle}" is: ${code}\n\nThis code expires in 10 minutes.`,
+	);
+}
