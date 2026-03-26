@@ -590,6 +590,9 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 	document.body.appendChild(overlay);
 
 	element.classList.add("pdf-rendering");
+	// Force a narrow width so content reflows to fit the PDF page
+	// Letter = 8.5in, minus 0.7in margins each side = 7.1in content width
+	element.style.width = "7.1in";
 
 	html2pdf()
 		.set({
@@ -615,12 +618,14 @@ document.getElementById("pdfBtn")?.addEventListener("click", () => {
 		.save()
 		.then(() => {
 			element.classList.remove("pdf-rendering");
+			element.style.width = "";
 			overlay.remove();
 			btn.disabled = false;
 			btn.textContent = "Download PDF";
 		})
 		.catch(() => {
 			element.classList.remove("pdf-rendering");
+			element.style.width = "";
 			overlay.remove();
 			btn.disabled = false;
 			btn.textContent = "Download PDF";

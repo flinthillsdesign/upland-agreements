@@ -57,31 +57,24 @@
 	word-wrap: break-word;
 }
 
-/* PDF page break rules */
+/* PDF page break rules:
+   - Never break inside a paragraph or sub-item
+   - OK to break between paragraphs within the same section
+   - Signature area stays together */
 .document.pdf-rendering .doc-term-sub,
+.document.pdf-rendering .doc-section-body > div,
+.document.pdf-rendering .doc-section-body > span,
+.document.pdf-rendering .doc-term-body,
 .document.pdf-rendering .mou-field,
 .document.pdf-rendering .rate-table,
 .document.pdf-rendering .signature-line-row,
-.document.pdf-rendering .doc-preamble {
+.document.pdf-rendering .signature-block,
+.document.pdf-rendering .doc-preamble,
+.document.pdf-rendering .doc-header {
 	break-inside: avoid;
 	page-break-inside: avoid;
 }
 
-/* Keep section titles with their body — don't orphan a heading at page bottom */
-.document.pdf-rendering .doc-section-number,
-.document.pdf-rendering .doc-section-title,
-.document.pdf-rendering .doc-term-title {
-	break-after: avoid;
-	page-break-after: avoid;
-}
-
-/* Keep each section heading + first bit of content together */
-.document.pdf-rendering .doc-section {
-	orphans: 3;
-	widows: 2;
-}
-
-/* Signature area should never split across pages */
 .document.pdf-rendering .doc-signature-area {
 	break-inside: avoid;
 	page-break-inside: avoid;
