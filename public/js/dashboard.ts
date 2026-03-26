@@ -1,5 +1,5 @@
 import { api, requireAuth, getUser } from "./api.js";
-import { esc, TYPE_LABELS, STATUS_LABELS, formatCurrency, formatDate, setupLogout } from "./utils.js";
+import { esc, TYPE_LABELS, STATUS_LABELS, formatCurrency, formatDate, setupLogout, startLoadingAnimation, stopLoadingAnimation } from "./utils.js";
 
 requireAuth();
 setupLogout();
@@ -56,10 +56,15 @@ async function loadAgreements() {
 	if (currentStatus) params.status = currentStatus;
 	if (search) params.search = search;
 
+	const container = document.getElementById("agreementsList")!;
+	startLoadingAnimation(container);
+
 	try {
 		const agreements = (await api.listAgreements(params)) as Agreement[];
+		stopLoadingAnimation();
 		renderAgreements(agreements);
 	} catch (err) {
+		stopLoadingAnimation();
 		console.error("Failed to load agreements:", err);
 	}
 }

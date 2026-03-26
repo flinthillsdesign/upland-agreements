@@ -142,3 +142,48 @@ export function stopThinkingAnimation() {
 		_thinkingInterval = null;
 	}
 }
+
+// === Loading Animation ===
+
+const LOADING_MESSAGES = [
+	"Pulling files from the cabinet...",
+	"Alphabetizing the contracts...",
+	"Checking for unsigned pages...",
+	"Flipping through the stack...",
+	"Counting the paragraphs...",
+	"Verifying all signatures are in ink...",
+	"Dusting off the archives...",
+	"Cross-referencing the fine print...",
+	"Making sure Kansas law still applies...",
+	"Organizing by NTE amount...",
+	"Double-checking the effective dates...",
+	"Locating the right manila folder...",
+	"Straightening the paperclips...",
+	"Reviewing the whereas clauses...",
+	"Almost there...",
+];
+
+let _loadingInterval: number | null = null;
+
+export function startLoadingAnimation(el: HTMLElement) {
+	stopLoadingAnimation();
+	const msg = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
+	el.innerHTML = `<div class="loading-state"><span class="loading-text">${esc(msg)}</span></div>`;
+	const used = new Set<number>();
+	_loadingInterval = window.setInterval(() => {
+		if (!el.isConnected) { stopLoadingAnimation(); return; }
+		if (used.size >= LOADING_MESSAGES.length) used.clear();
+		let idx: number;
+		do { idx = Math.floor(Math.random() * LOADING_MESSAGES.length); } while (used.has(idx));
+		used.add(idx);
+		const textEl = el.querySelector(".loading-text");
+		if (textEl) textEl.textContent = LOADING_MESSAGES[idx];
+	}, 2000);
+}
+
+export function stopLoadingAnimation() {
+	if (_loadingInterval) {
+		clearInterval(_loadingInterval);
+		_loadingInterval = null;
+	}
+}

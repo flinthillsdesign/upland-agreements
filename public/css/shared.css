@@ -398,6 +398,22 @@ textarea { resize: vertical; }
 	margin: 4px 8px;
 }
 
+/* === Loading State === */
+.loading-state {
+	text-align: center;
+	padding: 48px 24px;
+}
+.loading-text {
+	font-size: 0.85rem;
+	color: var(--text-muted);
+	font-style: italic;
+	animation: loadingFade 2s ease-in-out infinite;
+}
+@keyframes loadingFade {
+	0%, 100% { opacity: 0.4; }
+	50% { opacity: 1; }
+}
+
 /* === Micro-interactions === */
 .btn:not(:disabled):hover { transform: translateY(-1px); }
 .btn:not(:disabled):active { transform: translateY(0) scale(0.98); }
