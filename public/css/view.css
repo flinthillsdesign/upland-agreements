@@ -58,22 +58,16 @@
 }
 
 /* PDF page break rules:
-   - Never break inside a paragraph or sub-item
-   - OK to break between paragraphs within the same section
+   - Never break inside a single sub-item, paragraph, or small block
+   - OK to break between sub-items within the same section
    - Signature area stays together */
 .document.pdf-rendering .doc-term-sub,
-.document.pdf-rendering .doc-section-body > span,
 .document.pdf-rendering .doc-term-body,
 .document.pdf-rendering .mou-field,
 .document.pdf-rendering .rate-table,
 .document.pdf-rendering .signature-line-row,
-.document.pdf-rendering .signature-block,
 .document.pdf-rendering .doc-preamble,
-.document.pdf-rendering .doc-header {
-	break-inside: avoid;
-	page-break-inside: avoid;
-}
-
+.document.pdf-rendering .doc-header,
 .document.pdf-rendering .doc-signature-area {
 	break-inside: avoid;
 	page-break-inside: avoid;
