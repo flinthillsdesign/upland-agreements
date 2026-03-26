@@ -29,7 +29,7 @@ await build({
 	platform: "node",
 	target: "node20",
 	sourcemap: true,
-	external: ["node:*"],
+	external: ["node:*", "@libsql/client"],
 	banner: {
 		js: 'import { createRequire } from "module"; const require = createRequire(import.meta.url);',
 	},
