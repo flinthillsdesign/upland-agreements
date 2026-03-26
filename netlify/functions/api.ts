@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { extractToken, verifyToken, verifyPassword, createToken, hashPassword, type JwtPayload } from "../../lib/auth.js";
-import { ensureAuthSchema, getUserByEmail, getUserById, getUsers, createUser, updateUser, deleteUser, setResetToken, getUserByResetToken, clearResetToken, checkAppAccess } from "../../lib/auth-storage.js";
+import { ensureAuthSchema, getUserByLogin, getUserByEmail, getUserById, getUsers, createUser, updateUser, deleteUser, setResetToken, getUserByResetToken, clearResetToken, checkAppAccess } from "../../lib/auth-storage.js";
 import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, getAgreementByToken, recordView, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { generateShareToken } from "../../lib/share-tokens.js";
@@ -81,9 +81,9 @@ function getClientIp(req: Request): string {
 route("POST", "/api/login", "none", async (req) => {
 	const body = await req.json() as { username?: string; password?: string };
 	const { username, password } = body;
-	if (!username || !password) return err("Email and password required");
+	if (!username || !password) return err("Username and password required");
 
-	const user = await getUserByEmail(username);
+	const user = await getUserByLogin(username);
 	if (!user || !verifyPassword(password, user.password_hash)) return err("Invalid credentials", 401);
 
 	// Check app access for non-superadmins
@@ -92,8 +92,8 @@ route("POST", "/api/login", "none", async (req) => {
 		if (!access) return err("No access to this application", 403);
 	}
 
-	const token = createToken({ sub: user.id, email: user.email, role: user.role });
-	return json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+	const token = createToken({ sub: user.id, email: user.email || user.username, role: user.role });
+	return json({ token, user: { id: user.id, email: user.email || user.username, name: user.name, role: user.role } });
 });
 
 route("POST", "/api/forgot-password", "none", async (req) => {

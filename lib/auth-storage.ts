@@ -54,7 +54,8 @@ export async function checkAppAccess(userId: string, app: string): Promise<{ rol
 
 export interface User {
 	id: string;
-	email: string;
+	username: string;
+	email: string | null;
 	name: string;
 	password_hash: string;
 	role: string;
@@ -64,10 +65,20 @@ export interface User {
 	updated_at: string;
 }
 
+export async function getUserByUsername(username: string): Promise<User | null> {
+	const db = getClient();
+	const result = await db.execute({ sql: "SELECT * FROM users WHERE username = ?", args: [username] });
+	return (result.rows[0] as unknown as User) || null;
+}
+
 export async function getUserByEmail(email: string): Promise<User | null> {
 	const db = getClient();
 	const result = await db.execute({ sql: "SELECT * FROM users WHERE email = ?", args: [email] });
 	return (result.rows[0] as unknown as User) || null;
+}
+
+export async function getUserByLogin(login: string): Promise<User | null> {
+	return login.includes("@") ? getUserByEmail(login) : getUserByUsername(login);
 }
 
 export async function getUserById(id: string): Promise<User | null> {

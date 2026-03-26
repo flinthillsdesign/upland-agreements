@@ -10,11 +10,11 @@ form.addEventListener("submit", async (e) => {
 	e.preventDefault();
 	errorEl.textContent = "";
 
-	const email = (document.getElementById("email") as HTMLInputElement).value;
+	const username = (document.getElementById("username") as HTMLInputElement).value;
 	const password = (document.getElementById("password") as HTMLInputElement).value;
 
 	try {
-		const data = (await api.login(email, password)) as { token: string; user: { id: string; email: string; name: string; role: string } };
+		const data = (await api.login(username, password)) as { token: string; user: { id: string; email: string; name: string; role: string } };
 		setAuth(data.token, data.user);
 		window.location.href = "/dashboard.html";
 	} catch (err) {
