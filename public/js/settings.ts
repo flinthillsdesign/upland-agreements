@@ -43,14 +43,42 @@ document.getElementById("companyForm")!.addEventListener("submit", async (e) => 
 // Rates form
 document.getElementById("ratesForm")!.addEventListener("submit", async (e) => {
 	e.preventDefault();
-	await api.updateSettings({
+	const rates = {
 		mou_rate: parseFloat((document.getElementById("mouRate") as HTMLInputElement).value),
 		head_rate: parseFloat((document.getElementById("headRate") as HTMLInputElement).value),
 		design_rate: parseFloat((document.getElementById("designRate") as HTMLInputElement).value),
 		fab_rate: parseFloat((document.getElementById("fabRate") as HTMLInputElement).value),
 		materials_markup: parseFloat((document.getElementById("materialsMarkup") as HTMLInputElement).value),
 		travel_rate: parseFloat((document.getElementById("travelRate") as HTMLInputElement).value),
-	});
+	};
+	await api.updateSettings(rates);
+
+	// Also sync to knowledge base so the AI always has current rates
+	const rateSheetContent = [
+		`Current Upland Exhibits Service Rates (updated ${new Date().toLocaleDateString()})`,
+		"",
+		`MoU Hourly Rate (concept work): $${rates.mou_rate}/hr`,
+		`Head of Design & Head of Fabrication: $${rates.head_rate}/hr`,
+		`Design Staff: $${rates.design_rate}/hr`,
+		`Fabrication Staff: $${rates.fab_rate}/hr`,
+		`Materials Markup: ${rates.materials_markup}%`,
+		`Travel Time: $${rates.travel_rate}/hr`,
+		"Travel Mileage & Per Diem: Current IRS or GSA rates",
+	].join("\n");
+
+	// Try to update existing rate sheet, or create one
+	try {
+		const entries = (await api.listKnowledge()) as { id: string; type: string }[];
+		const existing = entries.find((e) => e.type === "rate_sheet");
+		if (existing) {
+			await api.updateKnowledge(existing.id, { content: rateSheetContent, title: "Current Service Rates" });
+		} else {
+			await api.createKnowledge({ type: "rate_sheet", title: "Current Service Rates", content: rateSheetContent });
+		}
+	} catch {
+		// Non-critical — rates are saved to settings regardless
+	}
+
 	alert("Rates saved.");
 });
 
