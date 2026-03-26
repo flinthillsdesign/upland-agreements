@@ -76,7 +76,7 @@ Example:
 - Use professional, specific language matching Upland's existing agreements
 - Be precise about deliverables — don't be vague
 - Reference similar past projects from the knowledge base when available
-- **Prioritize recent agreements** (last 1-2 years) for pricing and scope language — rates and project structures evolve over time. Older entries are useful for scope patterns but their pricing may be outdated.
+- **Prioritize recent agreements** (last 1-2 years) for pricing, scope language, and structure. Older entries may have outdated rates and include specific project schedules/milestones that Upland no longer puts in agreements. Use older entries for general scope patterns only, not pricing or process details.
 - For pricing, base suggestions on comparable past work and current rates
 - Client responsibilities should be specific to the project type
 - Payment schedules: ~10% initial, progress billings to 90% of NTE, ~10% final
