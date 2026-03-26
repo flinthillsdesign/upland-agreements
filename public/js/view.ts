@@ -351,40 +351,44 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 		<div style="margin-bottom:16px;font-weight:600;font-size:15px">Agreed and accepted:</div>
 
 		${isMou ? `
-		<!-- MoU signature layout: side by side -->
-		<div class="signature-line-row">
-			<div class="signature-field">
+		<!-- MoU signature layout: two pairs side by side -->
+		<div class="signature-pairs">
+			<div class="signature-pair">
 				${clientSig ? `
 					<div class="signed-info">
 						<div class="signed-name">${esc(clientSig.name)}</div>
 						<div class="signed-meta">Signed ${formatDate(clientSig.timestamp, "long")}</div>
 					</div>
 				` : `
-					<div class="signature-line"></div>
-					<div class="signature-underline-label">Client Signature</div>
+					<div class="signature-line-row">
+						<div class="signature-field">
+							<div class="signature-line"></div>
+							<div class="signature-underline-label">Client Signature</div>
+						</div>
+						<div class="date-field">
+							<div class="signature-line"></div>
+							<div class="signature-underline-label">Date</div>
+						</div>
+					</div>
 				`}
 			</div>
-			<div class="date-field">
-				${clientSig ? "" : `
-					<div class="signature-line"></div>
-					<div class="signature-underline-label">Date</div>
-				`}
-			</div>
-			<div class="signature-field">
+			<div class="signature-pair">
 				${designerSig ? `
 					<div class="signed-info">
 						<div class="signed-name">${esc(designerSig.name)}</div>
 						<div class="signed-meta">Signed ${formatDate(designerSig.timestamp, "long")}</div>
 					</div>
 				` : `
-					<div class="signature-line">${designerName}, ${designerTitle}</div>
-					<div class="signature-underline-label">${designerName}, ${designerTitle}</div>
-				`}
-			</div>
-			<div class="date-field">
-				${designerSig ? "" : `
-					<div class="signature-line"></div>
-					<div class="signature-underline-label">Date</div>
+					<div class="signature-line-row">
+						<div class="signature-field">
+							<div class="signature-line"></div>
+							<div class="signature-underline-label">${esc(designerName)}, ${esc(designerTitle)}</div>
+						</div>
+						<div class="date-field">
+							<div class="signature-line"></div>
+							<div class="signature-underline-label">Date</div>
+						</div>
+					</div>
 				`}
 			</div>
 		</div>
@@ -487,5 +491,17 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 		});
 	}
 }
+
+// PDF download — sets a clean filename via document.title then triggers print
+document.getElementById("pdfBtn")?.addEventListener("click", () => {
+	const originalTitle = document.title;
+	const titleEl = document.querySelector(".doc-header h1");
+	const docType = titleEl?.textContent?.trim() || "Agreement";
+	// Use the page title which was already set to "Title — Upland Exhibits"
+	const parts = originalTitle.split(" — ");
+	document.title = parts[0] || docType;
+	window.print();
+	document.title = originalTitle;
+});
 
 load();

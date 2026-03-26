@@ -157,6 +157,17 @@
 	border-top: 1px solid var(--border);
 }
 
+/* MoU: side-by-side pairs */
+.signature-pairs {
+	display: flex;
+	gap: 40px;
+}
+
+.signature-pair {
+	flex: 1;
+}
+
+/* Full agreement: stacked blocks */
 .signature-block {
 	margin-bottom: 40px;
 }
@@ -175,6 +186,7 @@
 	margin-bottom: 16px;
 }
 
+/* Shared signature line layout */
 .signature-line-row {
 	display: flex;
 	gap: 24px;
@@ -193,10 +205,6 @@
 	border-bottom: 1px solid #1a1a1a;
 	min-height: 32px;
 	margin-bottom: 4px;
-	display: flex;
-	align-items: flex-end;
-	padding-bottom: 4px;
-	font-size: 14px;
 }
 
 .signature-underline-label {
@@ -283,8 +291,7 @@
 	.view-status-bar,
 	.view-actions,
 	.sign-area,
-	.top-nav,
-	.btn { display: none !important; }
+	.top-nav { display: none !important; }
 
 	.view-page {
 		max-width: none;
@@ -318,17 +325,44 @@
 
 	.doc-signature-area {
 		page-break-inside: avoid;
+		margin-top: 36pt;
+		padding-top: 24pt;
+	}
+
+	.signature-pairs {
+		display: flex;
+		gap: 32pt;
+	}
+
+	.signature-pair { flex: 1; }
+
+	.signature-line-row {
+		display: flex;
+		gap: 16pt;
+		align-items: flex-end;
 	}
 
 	.signature-line {
 		border-bottom: 0.5pt solid #000;
-		min-height: 24pt;
+		min-height: 28pt;
+	}
+
+	.signature-underline-label {
+		font-size: 8pt;
+	}
+
+	.signature-block {
+		margin-bottom: 32pt;
 	}
 
 	.signed-info {
 		border: 0.5pt solid #15803d;
 		background: white;
+		padding: 8pt 12pt;
 	}
+
+	.signed-name { font-size: 11pt; }
+	.signed-meta { font-size: 8pt; }
 
 	/* Page margins */
 	@page {
