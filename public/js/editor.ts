@@ -99,13 +99,12 @@ function renderForm() {
 							<input type="email" data-field="client_email" value="${esc(agreement.client_email)}">
 						</div>
 					</div>
-					${!isMou ? `
 					<div class="form-row">
 						<div class="form-group">
-							<label>Contact Title (for signature block)</label>
-							<input type="text" data-field="client_title" value="${esc(agreement.client_title)}">
+							<label>Contact Title</label>
+							<input type="text" data-field="client_title" value="${esc(agreement.client_title)}" placeholder="e.g., Executive Director">
 						</div>
-					</div>` : ""}
+					</div>
 				</div>
 			</div>
 

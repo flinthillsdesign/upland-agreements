@@ -361,7 +361,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 					<div class="signature-line-row">
 						<div class="signature-field">
 							<div class="signature-line"></div>
-							<div class="signature-underline-label">Client Signature</div>
+							<div class="signature-underline-label">${esc(agreement.client_contact) || "Client Signature"}${agreement.client_title ? `, ${esc(agreement.client_title)}` : ""}</div>
 						</div>
 						<div class="date-field">
 							<div class="signature-line"></div>
