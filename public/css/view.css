@@ -53,12 +53,13 @@
 	padding: 0;
 }
 
-.document.pdf-rendering .doc-section,
-.document.pdf-rendering .doc-term,
+/* Only prevent breaks inside small elements — NOT full sections,
+   which causes huge gaps when a section doesn't fit on a page */
+.document.pdf-rendering .doc-term-sub,
 .document.pdf-rendering .mou-field,
-.document.pdf-rendering .signature-block,
-.document.pdf-rendering .signature-pairs,
-.document.pdf-rendering .rate-table {
+.document.pdf-rendering .rate-table,
+.document.pdf-rendering .signature-line-row,
+.document.pdf-rendering .doc-preamble {
 	break-inside: avoid;
 	page-break-inside: avoid;
 }
@@ -185,8 +186,8 @@
 
 /* === Signature Block === */
 .doc-signature-area {
-	margin-top: 48px;
-	padding-top: 32px;
+	margin-top: 36px;
+	padding-top: 24px;
 	border-top: 1px solid var(--border);
 }
 
@@ -202,7 +203,7 @@
 
 /* Full agreement: stacked blocks */
 .signature-block {
-	margin-bottom: 40px;
+	margin-bottom: 32px;
 }
 
 .signature-block-label {

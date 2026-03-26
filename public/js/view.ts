@@ -456,7 +456,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 				</div>
 				<div style="margin-top:8px">
 					<div class="signature-line"></div>
-					<div class="signature-underline-label">By: ${esc(agreement.client_contact) || "_______________"}${agreement.client_title ? ", " + esc(agreement.client_title) : ""}</div>
+					<div class="signature-underline-label">Print Name and Title</div>
 				</div>
 			`}
 		</div>
