@@ -235,7 +235,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">8. </span><span class="doc-section-title">BEST EFFORTS BASIS.</span>
-			<span class="doc-section-body">The Services will be provided on a "best effort" basis. That is, Designer will create designs based on training, experience, and professional judgment that represent Designer's best effort; non-acceptance of the design(s) shall not constitute reason for non-payment.</span>
+			<span class="doc-section-body">Services are provided on a "best effort" basis, meaning Designer will apply professional training, experience, and judgment. Non-acceptance of a design direction shall not constitute reason for non-payment.</span>
 		</div>
 
 		<div class="doc-section">
@@ -280,12 +280,12 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">12. </span><span class="doc-section-title">SCHEDULE; CLIENT DELAYS.</span>
-			<span class="doc-section-body">The Project schedule is based on timely receipt of Client decisions, approvals, content, site information, access, and other Client-required inputs. Any delay caused by Client, its consultants, contractors, or other representatives shall automatically extend the Project schedule by a reasonable period of time. If such delay results in additional costs, inefficiencies, remobilization, storage, resequencing, or other impacts to Designer, Client shall pay such additional costs as Additional Services.</span>
+			<span class="doc-section-body">The Project schedule assumes timely Client decisions, approvals, content, site access, and other required inputs. Delays caused by Client or its representatives shall automatically extend the schedule. If delays result in additional costs to Designer, Client shall pay such costs as Additional Services.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">13. </span><span class="doc-section-title">SUBSTITUTIONS.</span>
-			<span class="doc-section-body">Designer reserves the right, in its reasonable professional judgment, to substitute materials, components, equipment, finishes, fabrication methods, or installation methods of comparable quality, function, and design intent where required by availability, lead times, field conditions, code requirements, discontinuation, cost escalation, or other circumstances beyond Designer's reasonable control. Any substitution that materially affects the agreed design intent or functionality shall be communicated to Client.</span>
+			<span class="doc-section-body">Designer may substitute materials, components, finishes, or methods of comparable quality and design intent when required by availability, lead times, field conditions, code requirements, or other circumstances beyond Designer's reasonable control. Substitutions that materially affect design intent or functionality shall be communicated to Client.</span>
 		</div>
 
 		<div class="doc-section">
@@ -319,14 +319,14 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">17. </span><span class="doc-section-title">CONFIDENTIAL INFORMATION.</span>
-			<span class="doc-section-body">Each party acknowledges that in connection with this Agreement it may receive certain confidential or proprietary technical and business information and materials of the other party, including without limitation Preliminary Works ("Confidential Information"). Each party, its agents and employees shall hold and maintain in strict confidence all Confidential Information, shall not disclose Confidential Information to any third party, and shall not share or use any Confidential Information except as may be necessary to perform its obligations under this Agreement, or as may be required by law, or by a court or governmental authority. Notwithstanding the foregoing, Confidential Information shall not include any information that is in the public domain or becomes publicly known through no fault of the receiving party or is otherwise properly received from a third party without an obligation of confidentiality.</span>
+			<span class="doc-section-body">Each party may receive confidential information from the other, including Preliminary Works ("Confidential Information"). Both parties shall keep Confidential Information in strict confidence and use it only to perform under this Agreement, unless required by law. This does not apply to information already public, made public through no fault of the receiving party, or received from a third party without confidentiality obligations.</span>
 		</div>
 
 		<div class="doc-section">
 			<span class="doc-section-number">18. </span><span class="doc-section-title">RELATIONSHIP OF THE PARTIES.</span>
 			<div class="doc-section-body">
-				<div>Designer is an independent contractor, not an employee of Client or any company affiliated with Client. Designer shall provide the Services under the general direction of Client, but Designer shall determine, in Designer's sole discretion, the manner and means by which the Services are accomplished. This Agreement does not create a partnership or joint venture and neither party is authorized to act as agent or bind the other party except as expressly stated in this Agreement. All rights, if any, granted to Client are contractual in nature and are wholly defined by the express written agreement of the parties and the various terms and conditions of this Agreement.</div>
-				<div style="margin-top:8px">If applicable, Designer shall contract with and pay all subcontractors used by Designer in the performance of the Services. Client shall in no event have any liability to any subcontractor of Designer, and Designer shall indemnify and hold Client harmless for, and against all damages, losses, and costs directly related to Designer's non-payment of subcontractors, including but not limited to reasonable attorney's fees.</div>
+				<div>Designer is an independent contractor, not an employee of Client. Designer determines the manner and means by which Services are accomplished. This Agreement does not create a partnership, joint venture, or agency, and neither party may bind the other except as expressly stated herein.</div>
+				<div style="margin-top:8px">Designer shall contract with and pay all subcontractors. Client has no liability to Designer's subcontractors, and Designer shall indemnify Client for any costs related to subcontractor non-payment.</div>
 			</div>
 		</div>
 
@@ -362,7 +362,7 @@ function renderFullAgreement(agreement: Agreement, settings: Settings) {
 
 		<div class="doc-section">
 			<span class="doc-section-number">23. </span><span class="doc-section-title">FORCE MAJEURE.</span>
-			<span class="doc-section-body">If performance of this Agreement or any obligation under this Agreement is prevented, restricted, or interfered with by causes beyond either party's reasonable control ("Force Majeure"), and if the party unable to carry out its obligations gives the other party prompt written notice of such event, then the obligations of the party invoking this provision shall be suspended to the extent necessary by such event. The term Force Majeure shall include, without limitation, acts of God, pandemics, fire, explosion, vandalism, storm or other similar occurrence, orders or acts of military or civil authority, or by national emergencies, insurrections, riots, or wars, or strikes, or lock-outs. The excused party shall use reasonable efforts under the circumstances to avoid or remove such causes of non-performance and shall proceed to perform with reasonable dispatch whenever such causes are removed or ceased. An act or omission shall be deemed within the reasonable control of a party if committed, omitted, or caused by such party, or its employees, officers, agents, or affiliates.</span>
+			<span class="doc-section-body">If performance is prevented or delayed by causes beyond either party's reasonable control ("Force Majeure"), the affected party shall give prompt written notice and its obligations shall be suspended to the extent necessary. Force Majeure includes acts of God, pandemics, fire, explosion, vandalism, storms, government action, national emergencies, insurrections, riots, wars, strikes, or lock-outs. The excused party shall use reasonable efforts to resume performance when the cause is removed.</span>
 		</div>
 
 		<div class="doc-section">
