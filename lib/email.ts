@@ -98,13 +98,7 @@ export async function sendAgreementSignedEmail(to: string, agreementTitle: strin
 	);
 }
 
-export async function sendAgreementCountersignedEmail(to: string, agreementTitle: string, viewUrl: string, pdfBuffer?: ArrayBuffer | null): Promise<boolean> {
-	const attachments = pdfBuffer ? [{
-		Name: `${agreementTitle.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "_")}.pdf`,
-		Content: Buffer.from(pdfBuffer).toString("base64"),
-		ContentType: "application/pdf",
-	}] : undefined;
-
+export async function sendAgreementCountersignedEmail(to: string, agreementTitle: string, viewUrl: string): Promise<boolean> {
 	return send(to,
 		`Agreement fully executed: ${agreementTitle}`,
 		wrap(`
@@ -113,11 +107,10 @@ export async function sendAgreementCountersignedEmail(to: string, agreementTitle
 			</div>
 			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px">Both parties have signed the agreement:</p>
 			<p style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
-			<p style="margin-bottom:24px">${btn(viewUrl, "View Agreement")}</p>
-			<p style="font-size:13px;color:#6b6560">Your fully executed agreement is attached as a PDF.${viewUrl ? " You can also view it online using the link above." : ""}</p>
+			<p style="margin-bottom:24px">${btn(viewUrl, "View & Download PDF")}</p>
+			<p style="font-size:13px;color:#6b6560">Your fully executed agreement is ready. Click above to view it and download a PDF copy for your records.</p>
 		`),
-		`Both parties have signed: ${agreementTitle}\n\nView your agreement: ${viewUrl}`,
-		attachments,
+		`Both parties have signed: ${agreementTitle}\n\nView and download your PDF: ${viewUrl}`,
 	);
 }
 
