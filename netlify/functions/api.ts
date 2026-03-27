@@ -139,7 +139,33 @@ route("POST", "/api/agreements", "user", async (req, _params, user) => {
 	const body = await req.json() as Record<string, unknown>;
 	if (!body.type || !body.title) return err("type and title required");
 
+	// Pull default rates and designer email from settings for new agreements
+	const settings = await getSettings() as Record<string, unknown>;
+	const defaults: Record<string, unknown> = {};
+
+	if (settings.designer_email) defaults.designer_email = settings.designer_email;
+
+	if (body.type === "full_services") {
+		defaults.service_rates = JSON.stringify({
+			head_rate: settings.head_rate || 95,
+			design_rate: settings.design_rate || 75,
+			fab_rate: settings.fab_rate || 65,
+			materials_markup: settings.materials_markup || 15,
+			travel_rate: settings.travel_rate || 55,
+		});
+		defaults.payment_structure = JSON.stringify({
+			initial_pct: 10,
+			initial_amount: 0,
+			progress_note: "Progress billings will be invoiced on a percentage of completion basis, not to exceed 90% of the NTE Amount.",
+			final_pct: 10,
+			final_amount: 0,
+		});
+	} else {
+		defaults.hourly_rate = settings.mou_rate || 85;
+	}
+
 	const agreement = await createAgreement({
+		...defaults,
 		...body as { type: string; title: string },
 		created_by: user!.sub,
 	});
