@@ -94,7 +94,7 @@ export const api = {
 	revokeShare: (id: string) => request("DELETE", `/api/agreements/${id}/share`),
 
 	// Signatures
-	countersign: (id: string, name: string) => request("POST", `/api/agreements/${id}/countersign`, { name }),
+	countersign: (id: string, name: string, title?: string) => request("POST", `/api/agreements/${id}/countersign`, { name, title }),
 
 	// Client view (no auth)
 	viewAgreement: (token: string) => fetch(`/api/agreements/view/${token}`).then((r) => r.json()),

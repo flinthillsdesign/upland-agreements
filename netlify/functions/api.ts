@@ -410,9 +410,9 @@ route("POST", "/api/agreements/:id/countersign", "user", async (req, params, use
 	if (!agreement.client_signature) return err("Client must sign first");
 	if (agreement.designer_signature) return err("Already countersigned");
 
-	const { name } = await req.json() as { name?: string };
+	const { name, title } = await req.json() as { name?: string; title?: string };
 
-	const signature = buildSignature(name || user!.email, getClientIp(req));
+	const signature = buildSignature(name || user!.email, getClientIp(req), title);
 
 	await updateAgreement(agreement.id, { designer_signature: signature, status: "countersigned" });
 

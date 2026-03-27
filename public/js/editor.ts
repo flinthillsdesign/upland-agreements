@@ -613,8 +613,9 @@ document.getElementById("deleteBtn")!.addEventListener("click", async () => {
 document.getElementById("countersignBtn")!.addEventListener("click", async () => {
 	const name = prompt("Enter your name to countersign:");
 	if (!name) return;
+	const title = prompt("Your title (e.g., CEO):");
 	try {
-		await api.countersign(agreementId!, name);
+		await api.countersign(agreementId!, name, title || "");
 		alert("Agreement countersigned.");
 		load();
 	} catch (err) {

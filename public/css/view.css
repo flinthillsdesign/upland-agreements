@@ -267,8 +267,8 @@
 }
 
 .signed-info .signed-name {
-	font-size: 14px;
-	font-style: italic;
+	font-family: 'Dancing Script', cursive;
+	font-size: 20px;
 }
 
 .signed-info .signed-meta {
