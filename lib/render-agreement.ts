@@ -42,7 +42,7 @@ export function esc(val: string | null | undefined): string {
 
 export function formatDate(dateStr: string | null | undefined, style: "short" | "long" = "short"): string {
 	if (!dateStr) return style === "long" ? "_______________" : "";
-	return new Date(dateStr).toLocaleDateString("en-US", {
+	return new Date(dateStr + (dateStr.length === 10 ? "T00:00:00" : "")).toLocaleDateString("en-US", {
 		month: style === "long" ? "long" : "short",
 		day: "numeric",
 		year: "numeric",
