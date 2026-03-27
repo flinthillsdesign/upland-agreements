@@ -553,7 +553,15 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 
 			// Validate all fields
 			if (orgNameInput && !orgNameInput.value.trim()) { orgNameInput.focus(); return; }
-			if (orgAddressInput && !orgAddressInput.value.trim()) { orgAddressInput.focus(); return; }
+			if (orgAddressInput) {
+				const addr = orgAddressInput.value.trim();
+				if (!addr) { orgAddressInput.focus(); return; }
+				if (!addr.includes(",") || addr.length < 15) {
+					alert("Please enter a full address including city, state, and ZIP code.");
+					orgAddressInput.focus();
+					return;
+				}
+			}
 			if (!nameInput.value.trim()) { nameInput.focus(); return; }
 			if (!titleInput.value.trim()) { titleInput.focus(); return; }
 			if (!emailInput.value.trim()) { emailInput.focus(); return; }
