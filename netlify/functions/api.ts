@@ -442,13 +442,35 @@ route("POST", "/api/agreements/:id/countersign", "user", async (req, params, use
 
 	await updateAgreement(agreement.id, { designer_signature: signature, status: "countersigned" });
 
-	// Notify client + designer
+	// Generate PDF and notify client + designer
 	const viewUrl = agreement.share_token ? `${getBaseUrl(req)}/view.html?token=${agreement.share_token}` : "";
+	const updatedAgreement = await getAgreement(params.id);
+
+	let pdfBuffer: ArrayBuffer | null = null;
+	const docRaptorKey = process.env.DOCRAPTOR_API_KEY;
+	if (docRaptorKey && updatedAgreement) {
+		try {
+			const { renderAgreementHtml } = await import("../../lib/render-agreement.js");
+			const settings = await getSettings();
+			const html = renderAgreementHtml(updatedAgreement as any, settings as any);
+			const pdfResp = await fetch("https://docraptor.com/docs", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					user_credentials: docRaptorKey,
+					doc: { type: "pdf", document_content: html, test: false },
+				}),
+			});
+			if (pdfResp.ok) pdfBuffer = await pdfResp.arrayBuffer();
+		} catch (e) {
+			console.error("PDF generation failed:", e);
+		}
+	}
 
 	if (viewUrl) {
 		const emails = [agreement.client_email, agreement.designer_email].filter(Boolean) as string[];
 		await Promise.all(emails.map((email) =>
-			sendAgreementCountersignedEmail(email, agreement.title, viewUrl)
+			sendAgreementCountersignedEmail(email, agreement.title, viewUrl, pdfBuffer)
 		));
 	}
 

@@ -98,7 +98,13 @@ export async function sendAgreementSignedEmail(to: string, agreementTitle: strin
 	);
 }
 
-export async function sendAgreementCountersignedEmail(to: string, agreementTitle: string, viewUrl: string): Promise<boolean> {
+export async function sendAgreementCountersignedEmail(to: string, agreementTitle: string, viewUrl: string, pdfBuffer?: ArrayBuffer | null): Promise<boolean> {
+	const attachments = pdfBuffer ? [{
+		Name: `${agreementTitle.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "_")}.pdf`,
+		Content: Buffer.from(pdfBuffer).toString("base64"),
+		ContentType: "application/pdf",
+	}] : undefined;
+
 	return send(to,
 		`Agreement fully executed: ${agreementTitle}`,
 		wrap(`
@@ -111,6 +117,7 @@ export async function sendAgreementCountersignedEmail(to: string, agreementTitle
 			<p style="font-size:13px;color:#6b6560">Your fully executed agreement is ready. Click above to view it and download a PDF copy for your records.</p>
 		`),
 		`Both parties have signed: ${agreementTitle}\n\nView and download your PDF: ${viewUrl}`,
+		attachments,
 	);
 }
 
