@@ -524,7 +524,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 				<div class="form-row">
 					<div class="form-group">
 						<label>Verification Code</label>
-						<input type="text" id="verifyCode" placeholder="6-digit code" maxlength="6" style="letter-spacing:4px;font-size:1.2rem;text-align:center;width:160px">
+						<input type="text" id="verifyCode" placeholder="6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:4px;font-size:16px;text-align:center;width:100%;max-width:200px">
 					</div>
 				</div>
 				<button class="btn btn-primary btn-lg" id="verifyBtn">Verify & Sign</button>

@@ -243,6 +243,26 @@
 	gap: 8px;
 }
 
+/* === Mobile Chat FAB === */
+.chat-fab {
+	display: none;
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	background: var(--primary);
+	color: #fff;
+	border: none;
+	font-size: 0.8rem;
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: var(--shadow-lg);
+	z-index: 50;
+}
+.chat-fab:hover { background: var(--primary-hover); }
+
 /* === Save Status === */
 .save-status {
 	font-size: 0.75rem;
@@ -268,5 +288,10 @@
 		border-top: 1px solid var(--border);
 		max-height: 50vh;
 	}
+	.editor-sidebar.collapsed + .editor-chat-toggle-mobile { display: block; }
 	.editor-main { padding: 16px; }
+	/* Hide non-essential nav items on mobile */
+	.editor-status { display: none; }
+	.save-status { display: none; }
+	.nav-divider { display: none; }
 }

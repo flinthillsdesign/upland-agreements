@@ -438,5 +438,19 @@
 	.view-page { padding: 16px 12px 60px; }
 	.document { padding: 32px 24px; }
 	.signature-line-row { flex-direction: column; gap: 16px; }
+	.signature-pairs { flex-direction: column; gap: 24px; }
 	.view-status-bar { flex-direction: column; gap: 12px; text-align: center; }
+	.view-actions { width: 100%; justify-content: center; }
+	.sign-area .form-row { flex-direction: column; }
+	.sign-area .form-row .form-group { min-width: 100%; }
+	.sign-area input, .sign-area select { font-size: 16px; }
+	.rate-table { margin-left: 0; }
+	.rate-table td:first-child { padding-right: 16px; }
+	.doc-header h1 { font-size: 17px; }
+}
+
+@media (max-width: 480px) {
+	.view-page { padding: 12px 8px 60px; }
+	.document { padding: 20px 16px; font-size: 13px; }
+	.sign-area { padding: 16px; }
 }

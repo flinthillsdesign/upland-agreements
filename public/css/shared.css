@@ -443,14 +443,18 @@ textarea { resize: vertical; }
 @media (max-width: 768px) {
 	.top-nav { padding: 0 16px; }
 	.nav-brand { font-size: 0.9rem; }
+	.nav-link { padding: 8px 12px; }
 	.form-row { flex-wrap: wrap; }
 	.form-row .form-group { min-width: calc(50% - 8px); }
 	.modal-content { width: 95%; padding: 20px; }
+	.modal-actions { flex-wrap: wrap; gap: 8px; }
 	.dashboard { padding: 24px 16px; }
 	.settings-page { padding: 24px 16px; }
-	.dashboard-bar { flex-wrap: wrap; }
+	.dashboard-bar { flex-wrap: wrap; gap: 12px; }
 	.dashboard-bar-right { width: 100%; }
-	.search-wrapper input { flex: 1; width: auto; }
+	.search-wrapper { flex: 1; }
+	.search-wrapper input { width: 100%; }
+	.filter-select { flex-shrink: 0; }
 	.status-chips {
 		overflow-x: auto;
 		-webkit-overflow-scrolling: touch;
@@ -459,6 +463,18 @@ textarea { resize: vertical; }
 	}
 	.status-chips::-webkit-scrollbar { display: none; }
 	.nav-actions { right: 16px; top: 48px; }
+	/* iOS zoom prevention — inputs must be 16px+ */
+	input, select, textarea { font-size: 16px; }
+	/* Minimum tap targets */
+	.btn { min-height: 40px; }
+	.btn-sm { min-height: 36px; padding: 6px 12px; }
+	.chip { padding: 8px 14px; font-size: 0.82rem; }
+	.modal-close { padding: 8px 12px; }
+	/* Rate table responsive */
+	.rates-table td:last-child { width: auto; }
+	.rate-input input { width: 80px; }
+	/* Copy field overflow */
+	.copy-field input { min-width: 0; }
 }
 
 @media (max-width: 480px) {

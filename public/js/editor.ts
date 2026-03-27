@@ -576,9 +576,14 @@ async function sendChat() {
 }
 
 // === Chat toggle ===
-document.getElementById("chatToggle")!.addEventListener("click", () => {
-	document.getElementById("chatSidebar")!.classList.toggle("collapsed");
-});
+function toggleChat() {
+	const sidebar = document.getElementById("chatSidebar")!;
+	const fab = document.getElementById("chatFab")!;
+	sidebar.classList.toggle("collapsed");
+	fab.hidden = !sidebar.classList.contains("collapsed");
+}
+document.getElementById("chatToggle")!.addEventListener("click", toggleChat);
+document.getElementById("chatFab")!.addEventListener("click", toggleChat);
 
 // === More menu ===
 document.getElementById("moreBtn")!.addEventListener("click", (e) => {
