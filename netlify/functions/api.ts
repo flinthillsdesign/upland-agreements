@@ -313,6 +313,18 @@ route("POST", "/api/agreements/view/:token/send-code", "none", async (req, param
 	return json({ ok: true });
 });
 
+route("POST", "/api/agreements/view/:token/verify-code", "none", async (req, params) => {
+	const { email, code } = await req.json() as { email?: string; code?: string };
+	if (!email || !code) return err("Email and code required");
+
+	const stored = await getVerificationCode(params.token);
+	if (!stored || stored.code !== code || stored.email !== email || new Date(stored.expires) < new Date()) {
+		return err("Invalid or expired verification code", 400);
+	}
+	// Don't delete — code stays valid for the actual sign step
+	return json({ verified: true });
+});
+
 route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) => {
 	const agreement = await getAgreementByToken(params.token);
 	if (!agreement) return err("Not found", 404);

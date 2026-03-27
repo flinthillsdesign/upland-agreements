@@ -520,14 +520,18 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			</label>
 			<button class="btn btn-primary btn-lg" id="signBtn">Sign Agreement</button>
 			<div id="verifyStep" hidden style="margin-top:16px">
-				<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">A verification code has been sent to your email. Enter it below to complete your signature. The code is valid for 1 hour.</p>
-				<div class="form-row">
-					<div class="form-group">
+				<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">A verification code has been sent to your email. Enter it below. The code is valid for 1 hour.</p>
+				<div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:16px">
+					<div class="form-group" style="flex:0 0 auto">
 						<label>Verification Code</label>
-						<input type="text" id="verifyCode" placeholder="6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:4px;font-size:16px;text-align:center;width:100%;max-width:200px">
+						<input type="text" id="verifyCode" placeholder="6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:4px;font-size:16px;text-align:center;width:160px">
 					</div>
+					<button class="btn btn-primary" id="verifyBtn">Verify</button>
 				</div>
-				<button class="btn btn-primary btn-lg" id="verifyBtn">Verify & Sign</button>
+			</div>
+			<div id="confirmStep" hidden style="margin-top:16px">
+				<div class="form-success" style="margin-bottom:16px">Email verified. Click below to sign this agreement.</div>
+				<button class="btn btn-primary btn-lg" id="confirmSignBtn">Sign Agreement</button>
 			</div>
 		</div>
 		` : ""}
@@ -580,7 +584,8 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			}
 		});
 
-		// Verify handler
+		// Step 2: Verify code (just checks — does not sign)
+		let verifiedCode = "";
 		document.getElementById("verifyBtn")?.addEventListener("click", async () => {
 			const codeInput = document.getElementById("verifyCode") as HTMLInputElement;
 			const code = codeInput.value.trim();
@@ -589,6 +594,39 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			const verifyBtn = document.getElementById("verifyBtn") as HTMLButtonElement;
 			verifyBtn.disabled = true;
 			verifyBtn.textContent = "Verifying...";
+
+			const emailInput = document.getElementById("signEmail") as HTMLInputElement;
+
+			try {
+				const result = await fetch(`/api/agreements/view/${token}/verify-code`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ email: emailInput.value.trim(), code }),
+				}).then((r) => r.json()) as { error?: string; verified?: boolean };
+
+				if (result.error) {
+					alert(result.error);
+					verifyBtn.disabled = false;
+					verifyBtn.textContent = "Verify";
+					return;
+				}
+
+				// Code verified — show the final sign button
+				verifiedCode = code;
+				document.getElementById("verifyStep")!.hidden = true;
+				document.getElementById("confirmStep")!.hidden = false;
+			} catch {
+				alert("Verification failed. Please try again.");
+				verifyBtn.disabled = false;
+				verifyBtn.textContent = "Verify";
+			}
+		});
+
+		// Step 3: Actually sign (after code is verified)
+		document.getElementById("confirmSignBtn")?.addEventListener("click", async () => {
+			const confirmBtn = document.getElementById("confirmSignBtn") as HTMLButtonElement;
+			confirmBtn.disabled = true;
+			confirmBtn.textContent = "Signing...";
 
 			const orgNameInput = document.getElementById("signOrgName") as HTMLInputElement | null;
 			const orgAddressInput = document.getElementById("signOrgAddress") as HTMLInputElement | null;
@@ -605,21 +643,21 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 					client_address: orgAddressInput?.value.trim() || "",
 					consent_text: consentBox.parentElement?.querySelector("span")?.textContent || "",
 					email: emailInput.value.trim(),
-					code,
+					code: verifiedCode,
 				})) as { error?: string };
 
 				if (result.error) {
 					alert(result.error);
-					verifyBtn.disabled = false;
-					verifyBtn.textContent = "Verify & Sign";
+					confirmBtn.disabled = false;
+					confirmBtn.textContent = "Sign Agreement";
 					return;
 				}
 
 				load();
 			} catch {
-				alert("Verification failed. Please try again.");
-				verifyBtn.disabled = false;
-				verifyBtn.textContent = "Verify & Sign";
+				alert("Failed to sign. Please try again.");
+				confirmBtn.disabled = false;
+				confirmBtn.textContent = "Sign Agreement";
 			}
 		});
 	}
