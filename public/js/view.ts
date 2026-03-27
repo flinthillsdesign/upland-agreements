@@ -556,8 +556,16 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			if (orgAddressInput) {
 				const addr = orgAddressInput.value.trim();
 				if (!addr) { orgAddressInput.focus(); return; }
-				if (!addr.includes(",") || addr.length < 15) {
-					alert("Please enter a full address including city, state, and ZIP code.");
+				const addrWarning = document.getElementById("addrWarning");
+				if ((!addr.includes(",") || addr.length < 15) && !addrWarning?.dataset.acknowledged) {
+					if (!addrWarning) {
+						const warn = document.createElement("div");
+						warn.id = "addrWarning";
+						warn.style.cssText = "font-size:0.82rem;color:#ca8a04;margin-top:4px;display:flex;align-items:center;gap:8px";
+						warn.innerHTML = 'This doesn\'t look like a complete address — please include city, state, and ZIP. <button class="btn btn-sm" style="flex-shrink:0" id="addrOk">It\'s correct</button>';
+						orgAddressInput.parentElement!.appendChild(warn);
+						document.getElementById("addrOk")!.addEventListener("click", () => { warn.dataset.acknowledged = "1"; warn.remove(); });
+					}
 					orgAddressInput.focus();
 					return;
 				}
