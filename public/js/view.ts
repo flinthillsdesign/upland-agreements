@@ -711,7 +711,7 @@ document.getElementById("pdfBtn")?.addEventListener("click", async () => {
 ${fonts}
 ${styles}
 <style>
-	@page { size: letter; margin: 0.75in 0.85in; }
+	@page { size: letter; margin: 1in; }
 	body { background: white; margin: 0; padding: 0; }
 	.document { border: none; border-radius: 0; box-shadow: none; padding: 0; max-width: none; }
 	.view-status-bar, .view-actions, .sign-area, .pdf-overlay, #verifyStep, #confirmStep { display: none !important; }
