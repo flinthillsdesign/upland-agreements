@@ -60,6 +60,22 @@ function formatList(text: string | null): string {
 	return esc(text);
 }
 
+function renderSignedInfo(sig: Record<string, unknown>): string {
+	const name = esc(sig.name as string);
+	const title = sig.title ? `, ${esc(sig.title as string)}` : "";
+	const ts = sig.timestamp as string;
+	const date = new Date(ts);
+	const dateStr = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+	const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+	const ip = sig.ip ? esc(sig.ip as string) : "";
+	const email = sig.consent && (sig.consent as Record<string, string>).timestamp ? "" : "";
+
+	return `<div class="signed-info">
+		<div class="signed-name">${name}${title}</div>
+		<div class="signed-meta">Signed ${dateStr} at ${timeStr}${ip ? ` &middot; IP: ${ip}` : ""}</div>
+	</div>`;
+}
+
 const STATUS_TEXT: Record<string, string> = {
 	draft: "This agreement is still being prepared.",
 	sent: "This agreement is ready for your review.",
@@ -396,10 +412,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 		<div class="signature-pairs">
 			<div class="signature-pair">
 				${clientSig ? `
-					<div class="signed-info">
-						<div class="signed-name">${esc(clientSig.name)}${clientSig.title ? `, ${esc(clientSig.title)}` : ""}</div>
-						<div class="signed-meta">Signed ${formatDate(clientSig.timestamp, "long")}${clientSig.ip ? ` — IP: ${esc(clientSig.ip)}` : ""}</div>
-					</div>
+					${renderSignedInfo(clientSig)}
 				` : `
 					<div class="signature-line-row">
 						<div class="signature-field">
@@ -415,10 +428,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			</div>
 			<div class="signature-pair">
 				${designerSig ? `
-					<div class="signed-info">
-						<div class="signed-name">${esc(designerSig.name)}</div>
-						<div class="signed-meta">Signed ${formatDate(designerSig.timestamp, "long")}${designerSig.ip ? ` — IP: ${esc(designerSig.ip)}` : ""}</div>
-					</div>
+					${renderSignedInfo(designerSig)}
 				` : `
 					<div class="signature-line-row">
 						<div class="signature-field">
@@ -439,10 +449,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			<div class="signature-block-label">"Client"</div>
 			<div class="signature-block-org">${esc(agreement.client_name) || "_______________"}</div>
 			${clientSig ? `
-				<div class="signed-info">
-					<div class="signed-name">${esc(clientSig.name)}${clientSig.title ? `, ${esc(clientSig.title)}` : ""}</div>
-					<div class="signed-meta">Signed ${formatDate(clientSig.timestamp, "long")}</div>
-				</div>
+				${renderSignedInfo(clientSig)}
 			` : `
 				<div class="signature-line-row">
 					<div class="signature-field">
@@ -468,10 +475,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			<div class="signature-block-label">"Designer"</div>
 			<div class="signature-block-org">${esc(companyName)}</div>
 			${designerSig ? `
-				<div class="signed-info">
-					<div class="signed-name">${esc(designerSig.name)}</div>
-					<div class="signed-meta">Signed ${formatDate(designerSig.timestamp, "long")}</div>
-				</div>
+				${renderSignedInfo(designerSig)}
 			` : `
 				<div class="signature-line-row">
 					<div class="signature-field">
@@ -691,7 +695,7 @@ document.getElementById("pdfBtn")?.addEventListener("click", async () => {
 ${fonts}
 ${styles}
 <style>
-	@page { size: letter; margin: 0.7in 0.75in; }
+	@page { size: letter; margin: 0.75in 0.85in; }
 	body { background: white; margin: 0; padding: 0; }
 	.document { border: none; border-radius: 0; box-shadow: none; padding: 0; max-width: none; }
 	.view-status-bar, .view-actions, .sign-area, .pdf-overlay, #verifyStep, #confirmStep { display: none !important; }
