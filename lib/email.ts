@@ -28,14 +28,16 @@ function btn(href: string, label: string): string {
 	return `<a href="${href}" style="display:inline-block;padding:12px 24px;background:#2c5530;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px">${label}</a>`;
 }
 
-async function send(to: string, subject: string, html: string, text: string): Promise<boolean> {
+async function send(to: string, subject: string, html: string, text: string, attachments?: { Name: string; Content: string; ContentType: string }[]): Promise<boolean> {
 	const pm = getClient();
 	if (!pm) {
 		console.log(`[email] Would send to ${to}: ${subject}`);
 		return true;
 	}
 	try {
-		await pm.sendEmail({ From: FROM, To: to, Subject: subject, HtmlBody: html, TextBody: text, MessageStream: "outbound" });
+		const msg: Record<string, unknown> = { From: FROM, To: to, Subject: subject, HtmlBody: html, TextBody: text, MessageStream: "outbound" };
+		if (attachments?.length) msg.Attachments = attachments;
+		await pm.sendEmail(msg as any);
 		return true;
 	} catch (err) {
 		console.error("[email] Send failed:", err);
@@ -96,7 +98,13 @@ export async function sendAgreementSignedEmail(to: string, agreementTitle: strin
 	);
 }
 
-export async function sendAgreementCountersignedEmail(to: string, agreementTitle: string, viewUrl: string): Promise<boolean> {
+export async function sendAgreementCountersignedEmail(to: string, agreementTitle: string, viewUrl: string, pdfBuffer?: ArrayBuffer | null): Promise<boolean> {
+	const attachments = pdfBuffer ? [{
+		Name: `${agreementTitle.replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "_")}.pdf`,
+		Content: Buffer.from(pdfBuffer).toString("base64"),
+		ContentType: "application/pdf",
+	}] : undefined;
+
 	return send(to,
 		`Agreement fully executed: ${agreementTitle}`,
 		wrap(`
@@ -105,10 +113,11 @@ export async function sendAgreementCountersignedEmail(to: string, agreementTitle
 			</div>
 			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px">Both parties have signed the agreement:</p>
 			<p style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
-			<p style="margin-bottom:24px">${btn(viewUrl, "View & Download PDF")}</p>
-			<p style="font-size:13px;color:#6b6560">Your fully executed agreement is ready. Click above to view it and download a PDF copy for your records.</p>
+			<p style="margin-bottom:24px">${btn(viewUrl, "View Agreement")}</p>
+			<p style="font-size:13px;color:#6b6560">Your fully executed agreement is attached as a PDF.${viewUrl ? " You can also view it online using the link above." : ""}</p>
 		`),
-		`Both parties have signed: ${agreementTitle}\n\nView and download your PDF: ${viewUrl}`,
+		`Both parties have signed: ${agreementTitle}\n\nView your agreement: ${viewUrl}`,
+		attachments,
 	);
 }
 

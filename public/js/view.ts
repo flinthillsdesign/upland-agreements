@@ -522,16 +522,14 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 				<input type="checkbox" id="signConsent" style="margin-top:3px;flex-shrink:0" required>
 				<span>I agree to sign this agreement electronically. I understand that my electronic signature has the same legal effect as a handwritten signature.</span>
 			</label>
-			<button class="btn btn-primary btn-lg" id="signBtn">Sign Agreement</button>
+			<button class="btn btn-primary btn-lg" id="signBtn">Request Verification Code</button>
 			<div id="verifyStep" hidden style="margin-top:16px">
 				<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px">A verification code has been sent to your email. Enter it below. The code is valid for 1 hour.</p>
-				<div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:16px">
-					<div class="form-group" style="flex:0 0 auto">
-						<label>Verification Code</label>
-						<input type="text" id="verifyCode" placeholder="6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:4px;font-size:16px;text-align:center;width:160px">
-					</div>
-					<button class="btn btn-primary" id="verifyBtn">Verify</button>
+				<div class="form-group" style="margin-bottom:12px">
+					<label>Verification Code</label>
+					<input type="text" id="verifyCode" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="letter-spacing:6px;font-size:18px;text-align:center;width:140px">
 				</div>
+				<button class="btn btn-primary" id="verifyBtn">Verify Code</button>
 			</div>
 			<div id="confirmStep" hidden style="margin-top:16px">
 				<div class="form-success" style="margin-bottom:16px">Email verified. Click below to sign this agreement.</div>
@@ -577,7 +575,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			if (!consentBox?.checked) { consentBox.focus(); return; }
 
 			(signBtn as HTMLButtonElement).disabled = true;
-			signBtn.textContent = "Sending verification code...";
+			signBtn.textContent = "Sending code...";
 
 			try {
 				const result = await fetch(`/api/agreements/view/${token}/send-code`, {
@@ -589,7 +587,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 				if (result.error) {
 					alert(result.error);
 					(signBtn as HTMLButtonElement).disabled = false;
-					signBtn.textContent = "Sign Agreement";
+					signBtn.textContent = "Request Verification Code";
 					return;
 				}
 
@@ -600,7 +598,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			} catch {
 				alert("Failed to send code. Please try again.");
 				(signBtn as HTMLButtonElement).disabled = false;
-				signBtn.textContent = "Sign Agreement";
+				signBtn.textContent = "Request Verification Code";
 			}
 		});
 
@@ -627,7 +625,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 				if (result.error) {
 					alert(result.error);
 					verifyBtn.disabled = false;
-					verifyBtn.textContent = "Verify";
+					verifyBtn.textContent = "Verify Code";
 					return;
 				}
 
@@ -638,7 +636,7 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 			} catch {
 				alert("Verification failed. Please try again.");
 				verifyBtn.disabled = false;
-				verifyBtn.textContent = "Verify";
+				verifyBtn.textContent = "Verify Code";
 			}
 		});
 
