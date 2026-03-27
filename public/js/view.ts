@@ -663,68 +663,69 @@ function renderSignatures(agreement: Agreement, settings: Settings) {
 	}
 }
 
-// PDF download via html2pdf.js
-declare const html2pdf: any;
-
-document.getElementById("pdfBtn")?.addEventListener("click", () => {
+// PDF download via DocRaptor (server-side, real text PDF)
+document.getElementById("pdfBtn")?.addEventListener("click", async () => {
 	const element = document.getElementById("documentContent")!;
-	const titleEl = document.querySelector(".doc-header h1");
-	const docType = titleEl?.textContent?.trim() || "Agreement";
 	const parts = document.title.split(" — ");
-	const filename = `${(parts[0] || docType).replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "_")}.pdf`;
+	const filename = (parts[0] || "Agreement").replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "_");
 
 	const btn = document.getElementById("pdfBtn") as HTMLButtonElement;
 	btn.disabled = true;
 	btn.textContent = "Generating...";
 
-	// Overlay hides the layout shift while pdf-rendering styles are applied
 	const overlay = document.createElement("div");
 	overlay.className = "pdf-overlay";
 	overlay.innerHTML = '<div class="pdf-overlay-text">Generating PDF...</div>';
 	document.body.appendChild(overlay);
 
-	element.classList.add("pdf-rendering");
-	// Force a narrow width so content reflows to fit the PDF page
-	// Letter = 8.5in, minus margins and buffer for rendering tolerance
-	element.style.width = "6.8in";
+	try {
+		// Gather the document HTML + styles for server-side rendering
+		const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+			.map((el) => el.outerHTML).join("\n");
+		const fonts = Array.from(document.querySelectorAll('link[href*="fonts"]'))
+			.map((el) => el.outerHTML).join("\n");
 
-	html2pdf()
-		.set({
-			margin: [0.6, 0.7, 0.75, 0.7],
-			filename,
-			image: { type: "jpeg", quality: 0.98 },
-			html2canvas: { scale: 1.5, useCORS: true },
-			jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-			pagebreak: { mode: ["avoid-all", "css"] },
-		})
-		.from(element)
-		.toPdf()
-		.get("pdf")
-		.then((pdf: any) => {
-			const totalPages = pdf.internal.getNumberOfPages();
-			for (let i = 1; i <= totalPages; i++) {
-				pdf.setPage(i);
-				pdf.setFontSize(8);
-				pdf.setTextColor(150);
-				pdf.text(`Page ${i} of ${totalPages}`, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 0.3, { align: "center" });
-			}
-		})
-		.save()
-		.then(() => {
-			element.classList.remove("pdf-rendering");
-			element.style.width = "";
-			overlay.remove();
-			btn.disabled = false;
-			btn.textContent = "Download PDF";
-		})
-		.catch(() => {
-			element.classList.remove("pdf-rendering");
-			element.style.width = "";
-			overlay.remove();
-			btn.disabled = false;
-			btn.textContent = "Download PDF";
-			alert("Failed to generate PDF. Try using the Print button instead.");
+		const html = `<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+${fonts}
+${styles}
+<style>
+	@page { size: letter; margin: 0.7in 0.75in; }
+	body { background: white; margin: 0; padding: 0; }
+	.document { border: none; border-radius: 0; box-shadow: none; padding: 0; max-width: none; }
+	.view-status-bar, .view-actions, .sign-area, .pdf-overlay, #verifyStep, #confirmStep { display: none !important; }
+	@media print { }
+</style>
+</head><body>
+<div class="document">${element.innerHTML}</div>
+</body></html>`;
+
+		const response = await fetch("/api/pdf", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ html, filename }),
 		});
+
+		if (!response.ok) {
+			throw new Error("PDF generation failed");
+		}
+
+		// Download the PDF
+		const blob = await response.blob();
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `${filename}.pdf`;
+		a.click();
+		URL.revokeObjectURL(url);
+	} catch {
+		alert("Failed to generate PDF. Try using the Print button instead.");
+	}
+
+	overlay.remove();
+	btn.disabled = false;
+	btn.textContent = "Download PDF";
 });
 
 load();

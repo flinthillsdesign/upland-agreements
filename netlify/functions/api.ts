@@ -233,6 +233,47 @@ route("GET", "/api/agreements/:id/conversation", "user", async (_req, params) =>
 	return json(conv || { messages: [] });
 });
 
+// === PDF Generation via DocRaptor ===
+
+route("POST", "/api/pdf", "none", async (req) => {
+	const { html, filename } = await req.json() as { html?: string; filename?: string };
+	if (!html) return err("html required");
+
+	const apiKey = process.env.DOCRAPTOR_API_KEY || "YOUR_API_KEY_HERE";
+
+	const response = await fetch("https://docraptor.com/docs", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			user_credentials: apiKey,
+			doc: {
+				type: "pdf",
+				document_content: html,
+				test: !process.env.DOCRAPTOR_API_KEY,
+				prince_options: {
+					media: "print",
+					baseurl: "https://agreements.uplandexhibits.com",
+				},
+			},
+		}),
+	});
+
+	if (!response.ok) {
+		const text = await response.text();
+		console.error("DocRaptor error:", text);
+		return err("PDF generation failed", 500);
+	}
+
+	const pdfBuffer = await response.arrayBuffer();
+	return new Response(pdfBuffer, {
+		status: 200,
+		headers: {
+			"Content-Type": "application/pdf",
+			"Content-Disposition": `attachment; filename="${filename || "document"}.pdf"`,
+		},
+	});
+});
+
 // === Preview (authenticated, no view tracking) ===
 
 route("GET", "/api/agreements/:id/preview", "user", async (_req, params) => {
