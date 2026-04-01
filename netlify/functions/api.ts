@@ -505,12 +505,12 @@ route("DELETE", "/api/knowledge/:id", "user", async (_req, params) => {
 
 // === Settings ===
 
-route("GET", "/api/settings", "superadmin", async () => {
+route("GET", "/api/settings", "user", async () => {
 	const settings = await getSettings();
 	return json(settings);
 });
 
-route("PUT", "/api/settings", "superadmin", async (req) => {
+route("PUT", "/api/settings", "user", async (req) => {
 	const body = await req.json() as Record<string, unknown>;
 	const settings = await updateSettings(body);
 	return json(settings);
@@ -582,12 +582,8 @@ export default async function handler(req: Request): Promise<Response> {
 			user = await requireAuth(req);
 			if (!user) return err("Unauthorized", 401);
 
-			if (r.auth === "superadmin" && user.role !== "superadmin") {
-				// Check app access
-				const access = await checkAppAccess(user.sub, APP_NAME);
-				if (!access || access.role !== "admin") {
-					return err("Forbidden", 403);
-				}
+			if (r.auth === "superadmin") {
+				if (user.role !== "superadmin") return err("Forbidden", 403);
 			} else if (r.auth === "user" && user.role !== "superadmin") {
 				const access = await checkAppAccess(user.sub, APP_NAME);
 				if (!access) return err("Forbidden", 403);
