@@ -338,13 +338,13 @@
 .deliverable-list {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 1px;
 }
 
 .deliverable-item {
 	display: flex;
 	align-items: center;
-	gap: 6px;
+	gap: 4px;
 }
 
 .deliverable-check {
@@ -361,7 +361,7 @@
 	flex: 1;
 	border: 1px solid transparent;
 	border-radius: var(--radius);
-	padding: 4px 8px;
+	padding: 2px 6px;
 	font: inherit;
 	font-size: 0.85rem;
 	background: transparent;

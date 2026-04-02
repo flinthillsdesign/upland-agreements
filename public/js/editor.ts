@@ -158,7 +158,7 @@ function renderForm() {
 					</div>
 					${agreement.type === "mou_concept" ? `
 					<div class="form-group" style="margin-bottom:8px">
-						<label>Concept PDF will include input on</label>
+						<label>Concept PDF may include input on</label>
 						<div id="deliverableList" class="deliverable-list"></div>
 						<input type="hidden" data-field="deliverable" value="${esc(agreement.deliverable)}">
 					</div>` : ""}
@@ -338,7 +338,7 @@ function renderForm() {
 					const txt = row.querySelector("input[type='text']") as HTMLInputElement;
 					if (cb.checked && txt.value.trim()) items.push(txt.value.trim());
 				});
-				const heading = "The concept PDF will include input on:";
+				const heading = "The concept PDF may include input on:";
 				const body = items.map((i) => `- ${i}`).join("\n");
 				return body ? `${heading}\n${body}` : "";
 			}

@@ -469,8 +469,11 @@ export function renderAgreementHtml(agreement: AgreementData, settings: Settings
 	body { background: white; margin: 0; padding: 0; }
 	.document { border: none; border-radius: 0; box-shadow: none; padding: 0; max-width: none; }
 	.view-status-bar, .view-actions, .sign-area, .pdf-overlay, #verifyStep, #confirmStep { display: none !important; }
+	.signature-pairs { display: flex; gap: 32pt; }
+	.signature-pair { flex: 1; }
+	.signature-line-row { display: flex; gap: 16pt; align-items: flex-end; }
 </style>
 </head><body>
-<div class="document">${body}</div>
+<div class="document${isMouType(agreement.type) ? "" : " doc-full"}">${body}
 </body></html>`;
 }

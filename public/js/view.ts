@@ -52,7 +52,9 @@ async function load() {
 		}
 
 		// Render document using shared template
-		document.getElementById("documentContent")!.innerHTML = renderAgreementBody(agreement, settings);
+		const docEl = document.getElementById("documentContent")!;
+		docEl.innerHTML = renderAgreementBody(agreement, settings);
+		if (agreement.type !== "mou_concept" && agreement.type !== "mou_small") docEl.classList.add("doc-full");
 
 		// Append signing form if needed
 		const a = agreement as any;

@@ -451,8 +451,8 @@
 		margin: 0.6in 0.75in;
 	}
 
-	/* Page break before terms for full agreements */
-	.doc-terms-divider {
+	/* Page break before terms for full agreements only — MoUs are short enough to flow */
+	.doc-full .doc-terms-divider {
 		page-break-before: always;
 		padding-top: 0;
 	}
