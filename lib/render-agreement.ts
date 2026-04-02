@@ -160,19 +160,29 @@ function renderSignatures(agreement: AgreementData, settings: SettingsData): str
 		<div class="signature-pairs">
 			<div class="signature-pair">
 				${clientSig ? renderSignedInfo(clientSig) : `
-					<div class="signature-line"></div>
-					<div class="signature-label-row">
-						<span>${esc(agreement.client_contact) || "Client Signature"}${agreement.client_title ? `, ${esc(agreement.client_title)}` : ", Title"}</span>
-						<span>Date</span>
+					<div class="signature-line-row">
+						<div class="signature-field">
+							<div class="signature-line"></div>
+							<div class="signature-underline-label">${esc(agreement.client_contact) || "Client Signature"}${agreement.client_title ? `, ${esc(agreement.client_title)}` : ", Title"}</div>
+						</div>
+						<div class="date-field">
+							<div class="signature-line"></div>
+							<div class="signature-underline-label">Date</div>
+						</div>
 					</div>
 				`}
 			</div>
 			<div class="signature-pair">
 				${designerSig ? renderSignedInfo(designerSig) : `
-					<div class="signature-line"></div>
-					<div class="signature-label-row">
-						<span>${esc(designerName)}, ${esc(designerTitle)}</span>
-						<span>Date</span>
+					<div class="signature-line-row">
+						<div class="signature-field">
+							<div class="signature-line"></div>
+							<div class="signature-underline-label">${esc(designerName)}, ${esc(designerTitle)}</div>
+						</div>
+						<div class="date-field">
+							<div class="signature-line"></div>
+							<div class="signature-underline-label">Date</div>
+						</div>
 					</div>
 				`}
 			</div>
@@ -459,10 +469,9 @@ export function renderAgreementHtml(agreement: AgreementData, settings: Settings
 	body { background: white; margin: 0; padding: 0; }
 	.document { border: none; border-radius: 0; box-shadow: none; padding: 0; max-width: none; }
 	.view-status-bar, .view-actions, .sign-area, .pdf-overlay, #verifyStep, #confirmStep { display: none !important; }
-	.signature-pairs { display: flex; gap: 32pt; }
+	.signature-pairs { display: flex; gap: 48pt; }
 	.signature-pair { flex: 1; }
 	.signature-line-row { display: flex; gap: 16pt; align-items: flex-end; }
-	.signature-label-row { display: flex; justify-content: space-between; font-size: 9pt; color: #6b6560; }
 </style>
 </head><body>
 <div class="document${isMouType(agreement.type) ? "" : " doc-full"}">${body}</div>

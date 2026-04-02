@@ -210,7 +210,7 @@
 /* MoU: side-by-side pairs */
 .signature-pairs {
 	display: flex;
-	gap: 40px;
+	gap: 48px;
 }
 
 .signature-pair {
@@ -427,7 +427,7 @@
 
 	.signature-pairs {
 		display: flex;
-		gap: 32pt;
+		gap: 48pt;
 	}
 
 	.signature-pair { flex: 1; }
