@@ -157,36 +157,34 @@ function renderSignatures(agreement: AgreementData, settings: SettingsData): str
 		<div style="margin-bottom:16px;font-weight:600;font-size:15px">Agreed and accepted:</div>
 
 		${isMou ? `
-		<div class="signature-pairs">
-			<div class="signature-pair">
-				${clientSig ? renderSignedInfo(clientSig) : `
-					<div class="signature-line-row">
-						<div class="signature-field">
-							<div class="signature-line"></div>
-							<div class="signature-underline-label">${esc(agreement.client_contact) || "Client Signature"}${agreement.client_title ? `, ${esc(agreement.client_title)}` : ", Title"}</div>
-						</div>
-						<div class="date-field">
-							<div class="signature-line"></div>
-							<div class="signature-underline-label">Date</div>
-						</div>
-					</div>
-				`}
-			</div>
-			<div class="signature-pair">
-				${designerSig ? renderSignedInfo(designerSig) : `
-					<div class="signature-line-row">
-						<div class="signature-field">
-							<div class="signature-line"></div>
-							<div class="signature-underline-label">${esc(designerName)}, ${esc(designerTitle)}</div>
-						</div>
-						<div class="date-field">
-							<div class="signature-line"></div>
-							<div class="signature-underline-label">Date</div>
-						</div>
-					</div>
-				`}
-			</div>
-		</div>
+		<table class="signature-table" style="width:100%;border-collapse:collapse">
+			<tr>
+				<td style="width:42%;padding-right:16pt;vertical-align:bottom">
+					${clientSig ? renderSignedInfo(clientSig) : `
+						<div style="border-bottom:0.5pt solid #000;min-height:28pt"></div>
+						<div style="font-size:11px;color:#6b6560">${esc(agreement.client_contact) || "Client Signature"}${agreement.client_title ? `, ${esc(agreement.client_title)}` : ", Title"}</div>
+					`}
+				</td>
+				<td style="width:8%;padding-right:24pt;vertical-align:bottom">
+					${clientSig ? "" : `
+						<div style="border-bottom:0.5pt solid #000;min-height:28pt"></div>
+						<div style="font-size:11px;color:#6b6560">Date</div>
+					`}
+				</td>
+				<td style="width:42%;padding-right:16pt;vertical-align:bottom">
+					${designerSig ? renderSignedInfo(designerSig) : `
+						<div style="border-bottom:0.5pt solid #000;min-height:28pt"></div>
+						<div style="font-size:11px;color:#6b6560">${esc(designerName)}, ${esc(designerTitle)}</div>
+					`}
+				</td>
+				<td style="width:8%;vertical-align:bottom">
+					${designerSig ? "" : `
+						<div style="border-bottom:0.5pt solid #000;min-height:28pt"></div>
+						<div style="font-size:11px;color:#6b6560">Date</div>
+					`}
+				</td>
+			</tr>
+		</table>
 		` : `
 		<div class="signature-block">
 			<div class="signature-block-label">"Client"</div>
