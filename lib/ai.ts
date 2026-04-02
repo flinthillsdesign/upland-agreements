@@ -35,11 +35,12 @@ When the user describes a project, draft the VARIABLE sections. Do NOT draft boi
 
 For MoUs, draft:
 - project_description: Scope of work / deliverable description
-- deliverable: What the concept PDF will cover
 - hours: Suggested hours based on project complexity
-- hourly_rate: Current rate (check knowledge base or settings, typically $85-95/hr)
+- hourly_rate: Current rate ($100/hr unless knowledge base shows otherwise)
 - total_cost: hours × rate
-- timeframe: Delivery target (e.g., "Goal is to deliver PDF within 8 weeks after MoU is signed and returned")
+- end_date: Suggested target delivery date (ISO format YYYY-MM-DD). Consider Upland's current workload and project complexity — typically 6-12 weeks out from today.
+- effective_date: Usually leave blank (defaults to date of signing), but set if the user specifies a start date
+- Do NOT draft deliverable for concept MoUs — the standard deliverable list is pre-populated. Only update it if the user explicitly asks to customize it.
 
 For Agreements for Services, draft:
 - project_description: Description of services paragraph
@@ -47,9 +48,8 @@ For Agreements for Services, draft:
 - payment_structure: JSON with {initial_pct, initial_amount, progress_note, final_pct, final_amount}
 - service_rates: JSON with current rates {head_rate, design_rate, fab_rate, materials_markup, travel_rate}
 - Do NOT draft client_responsibilities — these are hardcoded in the agreement template. Only add to client_responsibilities if the user explicitly asks for project-specific additions.
-- timeframe: Contract term description
-- effective_date: Suggested effective date
-- end_date: Suggested end date
+- end_date: Suggested end date (ISO format YYYY-MM-DD)
+- effective_date: Usually leave blank (defaults to date of signing), but set if the user specifies a start date
 
 ## Output Format
 Respond with a JSON object containing the fields to update. Wrap it in a \`\`\`json code block.
@@ -63,11 +63,10 @@ Example:
   "references": ["Past Agreement: Heritage Center Concept 2024"],
   "fields": {
     "project_description": "Upland Exhibits will dedicate 160 hours to developing...",
-    "deliverable": "The concept PDF will include...",
     "hours": 160,
-    "hourly_rate": 85,
-    "total_cost": 13600,
-    "timeframe": "Goal is to deliver PDF within 10 weeks after MoU is signed and returned"
+    "hourly_rate": 100,
+    "total_cost": 16000,
+    "end_date": "2026-06-15"
   }
 }
 \`\`\`
@@ -284,15 +283,16 @@ function mockGenerate(prompt: string, agreement: Agreement): AiResponse {
 		};
 	}
 
+	const endDate = new Date();
+	endDate.setDate(endDate.getDate() + 56); // ~8 weeks
 	return {
 		message: "AI is not configured. Here's a template structure for an MoU. Set CLAUDE_API_KEY to enable AI drafting.",
 		fields: {
 			project_description: `Upland Exhibits will dedicate hours to developing a design concept for ${agreement.client_name || "the Client"}'s project: ${prompt}`,
-			deliverable: "The concept PDF will include: exhibit content themes and narrative approach, loose thematic floorplan, early sketches and renderings, interactive display options, casework and display hardware examples, graphic design samples, and a project implementation schedule and budget.",
 			hours: 120,
-			hourly_rate: 85,
-			total_cost: 10200,
-			timeframe: "Goal is to deliver PDF within 8 weeks after MoU is signed and returned",
+			hourly_rate: 100,
+			total_cost: 12000,
+			end_date: endDate.toISOString().split("T")[0],
 		},
 		references: [],
 	};

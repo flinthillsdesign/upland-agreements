@@ -40,9 +40,9 @@
 /* === Document Header === */
 .doc-header {
 	text-align: center;
-	margin-bottom: 28px;
-	padding-bottom: 14px;
-	border-bottom: 1.5px solid #1a1a1a;
+	margin-bottom: 32px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #c8c4be;
 }
 
 /* Strip border/radius/padding during PDF generation — html2pdf adds its own margins */
@@ -79,9 +79,9 @@
 }
 
 .doc-header .doc-logo {
-	height: 36px;
+	height: 52px;
 	width: auto;
-	margin-bottom: 8px;
+	margin-bottom: 20px;
 }
 
 .doc-header .company-name {
@@ -92,16 +92,20 @@
 }
 
 .doc-header h1 {
-	font-size: 20px;
-	font-weight: 700;
-	letter-spacing: 0.5px;
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 4px;
 	text-transform: uppercase;
-	margin-bottom: 4px;
+	color: #1a1a1a;
+	margin-bottom: 0;
 }
 
 .doc-header .doc-subtitle {
-	font-size: 14px;
-	color: #6b6560;
+	font-size: 11px;
+	letter-spacing: 4px;
+	text-transform: uppercase;
+	font-weight: 500;
+	color: #1a1a1a;
 }
 
 /* === MoU Sections (Key-Value Style) === */
@@ -172,7 +176,6 @@
 	text-transform: uppercase;
 	color: #999;
 	font-weight: 600;
-	border-top: 1px solid #ddd;
 	margin-top: 8px;
 }
 
@@ -202,7 +205,6 @@
 .doc-signature-area {
 	margin-top: 36px;
 	padding-top: 24px;
-	border-top: 1px solid var(--border);
 }
 
 /* MoU: side-by-side pairs */
@@ -306,6 +308,37 @@
 	line-height: 1.7;
 }
 
+/* === MoU Cost Table === */
+.cost-table {
+	border-collapse: collapse;
+	width: 100%;
+	font-size: 14px;
+}
+
+.cost-table td {
+	padding: 3px 0;
+	vertical-align: baseline;
+}
+
+.cost-table .cost-label {
+	padding-right: 24px;
+}
+
+.cost-table .cost-amount {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.cost-total-row {
+	border-top: 1px solid #1a1a1a;
+}
+
+.cost-total-row .cost-label,
+.cost-total-row .cost-amount {
+	font-weight: 700;
+	padding-top: 6px;
+}
+
 /* === Rate Table === */
 .rate-table {
 	border-collapse: collapse;
@@ -358,16 +391,22 @@
 	}
 
 	.doc-header {
-		margin-bottom: 36pt;
+		margin-bottom: 28pt;
 		padding-bottom: 12pt;
-		border-bottom-width: 1.5pt;
+		border-bottom: 0.5pt solid #c8c4be;
 	}
 
 	.doc-header h1 {
-		font-size: 16pt;
+		font-size: 9pt;
+		letter-spacing: 3pt;
 	}
 
-	.doc-header img { height: 28pt; }
+	.doc-header .doc-subtitle {
+		font-size: 9pt;
+		letter-spacing: 3pt;
+	}
+
+	.doc-header img { height: 40pt; margin-bottom: 14pt; }
 
 	.doc-section { margin-bottom: 12pt; }
 	.doc-term { margin-bottom: 8pt; }
@@ -436,7 +475,7 @@
 }
 
 /* === Responsive === */
-@media (max-width: 768px) {
+@media screen and (max-width: 768px) {
 	.view-page { padding: 16px 12px 60px; }
 	.document { padding: 32px 24px; }
 	.signature-line-row { flex-direction: column; gap: 16px; }
@@ -451,7 +490,7 @@
 	.doc-header h1 { font-size: 17px; }
 }
 
-@media (max-width: 480px) {
+@media screen and (max-width: 480px) {
 	.view-page { padding: 12px 8px 60px; }
 	.document { padding: 20px 16px; font-size: 13px; }
 	.sign-area { padding: 16px; }

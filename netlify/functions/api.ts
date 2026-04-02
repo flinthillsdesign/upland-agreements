@@ -161,7 +161,10 @@ route("POST", "/api/agreements", "user", async (req, _params, user) => {
 			final_amount: 0,
 		});
 	} else {
-		defaults.hourly_rate = settings.mou_rate || 85;
+		defaults.hourly_rate = settings.mou_rate || 100;
+		if (body.type === "mou_concept") {
+			defaults.deliverable = "The concept PDF will include input on:\n- Exhibit content / themes\n- Loose thematic floorplan\n- Early sketches or renderings of interior exhibits\n- Suggestion of interactive display options\n- Examples of casework / display hardware\n- Graphic design sample\n- Project implementation schedule & budget";
+		}
 	}
 
 	const agreement = await createAgreement({

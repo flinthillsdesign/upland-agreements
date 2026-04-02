@@ -43,6 +43,7 @@ let conversationStarted = false;
 // Batched auto-save: collect dirty fields and flush once
 let dirtyFields: Record<string, unknown> = {};
 let saveTimeout: ReturnType<typeof setTimeout>;
+let recalcMouTotal: (() => void) | null = null;
 
 function setSaveStatus(status: "dirty" | "saving" | "saved" | "error") {
 	const el = document.getElementById("saveStatus");
@@ -86,7 +87,7 @@ async function load() {
 }
 
 function getDurationMonths(a: Record<string, unknown>): string {
-	const dateStr = (a.end_date || a.timeframe_date || "") as string;
+	const dateStr = (a.end_date || "") as string;
 	if (!dateStr) return "";
 	const target = new Date(dateStr + "T00:00:00");
 	const now = new Date();
@@ -105,6 +106,21 @@ function renderForm() {
 			<div class="form-section">
 				<div class="form-section-header"><h2>Client Information</h2></div>
 				<div class="form-section-body">
+					${isMou ? `
+					<div class="form-group" style="margin-bottom:8px">
+						<label>Client / Organization Name</label>
+						<input type="text" data-field="client_name" value="${esc(agreement.client_name)}">
+					</div>
+					<div class="form-row">
+						<div class="form-group">
+							<label>Contact Person</label>
+							<input type="text" data-field="client_contact" value="${esc(agreement.client_contact)}">
+						</div>
+						<div class="form-group">
+							<label>Email</label>
+							<input type="email" data-field="client_email" value="${esc(agreement.client_email)}">
+						</div>
+					</div>` : `
 					<div class="form-row">
 						<div class="form-group flex-2">
 							<label>Client / Organization Name</label>
@@ -124,7 +140,7 @@ function renderForm() {
 							<label>Email</label>
 							<input type="email" data-field="client_email" value="${esc(agreement.client_email)}">
 						</div>
-					</div>
+					</div>`}
 					</div>
 			</div>
 
@@ -137,25 +153,29 @@ function renderForm() {
 						<input type="text" data-field="title" value="${esc(agreement.title)}">
 					</div>
 					<div class="form-group" style="margin-bottom:8px">
-						<label>${isMou ? "Scope of Work / Deliverable" : "Description of Services"}</label>
+						<label>${isMou ? "Scope of Work" : "Description of Services"}</label>
 						<textarea data-field="project_description" rows="6">${esc(agreement.project_description)}</textarea>
 					</div>
-					${isMou ? `
+					${agreement.type === "mou_concept" ? `
 					<div class="form-group" style="margin-bottom:8px">
-						<label>Deliverable Description</label>
-						<textarea data-field="deliverable" rows="4">${esc(agreement.deliverable)}</textarea>
+						<label>Concept PDF will include input on</label>
+						<div id="deliverableList" class="deliverable-list"></div>
+						<input type="hidden" data-field="deliverable" value="${esc(agreement.deliverable)}">
 					</div>` : ""}
 					<div class="form-row">
+						${!isMou ? `<div class="form-group">
+							<label>Effective Date (blank = date of signing)</label>
+							<input type="date" data-field="effective_date" value="${agreement.effective_date || ""}">
+						</div>` : ""}
 						<div class="form-group">
-							<label>Duration (months)</label>
+							<label>${isMou ? "Target Delivery Date" : "End Date"}</label>
+							<input type="date" id="targetDate" data-field="end_date" value="${agreement.end_date || ""}">
+						</div>
+						<div class="form-group" style="flex:0 0 100px">
+							<label>Duration (mo)</label>
 							<input type="number" id="durationMonths" min="0.5" step="0.5" placeholder="e.g., 3" value="${getDurationMonths(agreement)}">
 						</div>
-						<div class="form-group flex-2">
-							<label>${isMou ? "Target Delivery Date" : "End Date"}</label>
-							<input type="date" id="targetDate" data-field="${isMou ? "timeframe_date" : "end_date"}" value="${isMou ? (agreement as any).timeframe_date || "" : agreement.end_date || ""}">
-						</div>
 					</div>
-					<input type="hidden" data-field="timeframe" value="${esc(agreement.timeframe)}">
 				</div>
 			</div>
 
@@ -164,19 +184,28 @@ function renderForm() {
 				<div class="form-section-header"><h2>${isMou ? "Cost" : "Project Cost & Payment"}</h2></div>
 				<div class="form-section-body">
 					${isMou ? `
-					<div class="form-row">
-						<div class="form-group">
-							<label>Hours</label>
-							<input type="number" data-field="hours" value="${agreement.hours || ""}" step="1">
+					<div class="cost-line cost-line-primary">
+						<label class="cost-line-label">Concept design</label>
+						<div class="form-row">
+							<div class="form-group">
+								<label>Hours</label>
+								<input type="number" data-field="hours" value="${agreement.hours || ""}" step="1">
+							</div>
+							<div class="form-group" style="flex:0 0 100px">
+								<label>Rate ($/hr)</label>
+								<input type="number" data-field="hourly_rate" value="${agreement.hourly_rate || ""}" step="5">
+							</div>
+							<div class="form-group" style="flex:0 0 120px">
+								<label>Subtotal</label>
+								<div class="calculated-field" id="primarySubtotal">${agreement.hours && agreement.hourly_rate ? formatCurrency(agreement.hours * agreement.hourly_rate) : "—"}</div>
+							</div>
 						</div>
-						<div class="form-group">
-							<label>Hourly Rate ($)</label>
-							<input type="number" data-field="hourly_rate" value="${agreement.hourly_rate || ""}" step="5">
-						</div>
-						<div class="form-group">
-							<label>Total Cost</label>
-							<div class="calculated-field" id="totalCost">${agreement.total_cost ? "$" + agreement.total_cost.toLocaleString() : "—"}</div>
-						</div>
+					</div>
+					<div id="expenseLines"></div>
+					<button type="button" class="btn btn-ghost btn-sm" id="addExpenseLine" style="font-size:0.78rem;margin:4px 0 12px;padding:4px 0">+ Add expense line</button>
+					<div class="cost-total">
+						<label>Total</label>
+						<div class="calculated-field" id="totalCost">${agreement.total_cost ? formatCurrency(agreement.total_cost) : "—"}</div>
 					</div>` : (() => {
 					let ps = { initial_pct: 10, initial_amount: 0, final_pct: 10, final_amount: 0 };
 					let sr = { head_rate: 95, design_rate: 75, fab_rate: 65, materials_markup: 15, travel_rate: 55 };
@@ -187,10 +216,6 @@ function renderForm() {
 						<div class="form-group">
 							<label>Not-to-Exceed (NTE) Amount ($)</label>
 							<input type="number" data-field="total_cost" value="${agreement.total_cost || ""}" step="1000">
-						</div>
-						<div class="form-group">
-							<label>Effective Date (blank = date of signing)</label>
-							<input type="date" data-field="effective_date" value="${agreement.effective_date || ""}">
 						</div>
 					</div>
 					<div style="margin-bottom:12px">
@@ -283,12 +308,7 @@ function renderForm() {
 
 			// Auto-calculate for MoUs
 			if (isMou && (field === "hours" || field === "hourly_rate")) {
-				const hours = agreement!.hours || 0;
-				const rate = agreement!.hourly_rate || 0;
-				agreement!.total_cost = hours * rate;
-				const costEl = document.getElementById("totalCost");
-				if (costEl) costEl.textContent = formatCurrency(agreement!.total_cost) || "—";
-				markDirty("total_cost", agreement!.total_cost);
+				recalcMouTotal?.();
 			}
 
 			if (field === "title") {
@@ -298,6 +318,138 @@ function renderForm() {
 			markDirty(field, value);
 		});
 	});
+
+	// Deliverable checklist (mou_concept)
+	if (agreement.type === "mou_concept") {
+		const listEl = document.getElementById("deliverableList");
+		const hiddenEl = main.querySelector("[data-field='deliverable']") as HTMLInputElement;
+		if (listEl && hiddenEl) {
+			function parseItems(text: string | null): string[] {
+				if (!text) return [];
+				return text.split("\n").map((l) => l.trim()).filter(Boolean)
+					.filter((l) => l.startsWith("- ") || l.startsWith("* "))
+					.map((l) => l.replace(/^[-*]\s*/, ""));
+			}
+
+			function serializeItems(): string {
+				const items: string[] = [];
+				listEl!.querySelectorAll(".deliverable-item").forEach((row) => {
+					const cb = row.querySelector("input[type='checkbox']") as HTMLInputElement;
+					const txt = row.querySelector("input[type='text']") as HTMLInputElement;
+					if (cb.checked && txt.value.trim()) items.push(txt.value.trim());
+				});
+				const heading = "The concept PDF will include input on:";
+				const body = items.map((i) => `- ${i}`).join("\n");
+				return body ? `${heading}\n${body}` : "";
+			}
+
+			function saveDeliverable() {
+				const val = serializeItems();
+				hiddenEl!.value = val;
+				(agreement as Record<string, unknown>).deliverable = val;
+				markDirty("deliverable", val);
+			}
+
+			function addItemRow(text: string, checked: boolean) {
+				const row = document.createElement("div");
+				row.className = "deliverable-item";
+				row.innerHTML = `<label class="deliverable-check"><input type="checkbox" ${checked ? "checked" : ""}></label><input type="text" class="deliverable-text" value="${esc(text)}"><button type="button" class="inline-remove" title="Remove">&times;</button>`;
+				row.querySelector("input[type='checkbox']")!.addEventListener("change", saveDeliverable);
+				row.querySelector("input[type='text']")!.addEventListener("input", saveDeliverable);
+				row.querySelector(".inline-remove")!.addEventListener("click", () => { row.remove(); saveDeliverable(); });
+				listEl!.appendChild(row);
+			}
+
+			// Parse existing items
+			const items = parseItems(agreement.deliverable);
+			items.forEach((item) => addItemRow(item, true));
+
+			// Add button
+			const addBtn = document.createElement("button");
+			addBtn.type = "button";
+			addBtn.className = "btn btn-ghost btn-sm";
+			addBtn.style.cssText = "font-size:0.78rem;margin-top:4px;padding:4px 0";
+			addBtn.textContent = "+ Add item";
+			addBtn.addEventListener("click", () => { addItemRow("", true); listEl!.parentElement!.querySelector(".deliverable-item:last-of-type .deliverable-text")?.focus(); });
+			listEl.after(addBtn);
+		}
+	}
+
+	// Expense lines (MoUs) — stored in payment_structure as JSON array
+	if (isMou) {
+		const expenseContainer = document.getElementById("expenseLines")!;
+		let expenseLines: { label: string; amount: number }[] = [];
+		try {
+			if (agreement.payment_structure) expenseLines = JSON.parse(typeof agreement.payment_structure === "string" ? agreement.payment_structure : JSON.stringify(agreement.payment_structure));
+			if (!Array.isArray(expenseLines)) expenseLines = [];
+		} catch { expenseLines = []; }
+
+		function _recalcMouTotal() {
+			const hours = agreement!.hours || 0;
+			const rate = agreement!.hourly_rate || 0;
+			const primarySubtotal = hours * rate;
+			const primaryEl = document.getElementById("primarySubtotal");
+			if (primaryEl) primaryEl.textContent = primarySubtotal ? formatCurrency(primarySubtotal) : "—";
+
+			let expenseTotal = 0;
+			expenseContainer.querySelectorAll(".expense-line").forEach((row) => {
+				const amt = parseFloat((row.querySelector(".expense-amount") as HTMLInputElement)?.value) || 0;
+				expenseTotal += amt;
+			});
+
+			const newTotal = primarySubtotal + expenseTotal;
+			const totalEl = document.getElementById("totalCost");
+			if (totalEl) totalEl.textContent = newTotal ? formatCurrency(newTotal) : "—";
+			if (newTotal !== agreement!.total_cost) {
+				agreement!.total_cost = newTotal;
+				markDirty("total_cost", newTotal);
+			}
+		}
+
+		recalcMouTotal = _recalcMouTotal;
+
+		function saveExpenseLines() {
+			const lines: { label: string; amount: number }[] = [];
+			expenseContainer.querySelectorAll(".expense-line").forEach((row) => {
+				const label = (row.querySelector(".expense-label") as HTMLInputElement)?.value.trim() || "";
+				const amount = parseFloat((row.querySelector(".expense-amount") as HTMLInputElement)?.value) || 0;
+				if (label || amount) lines.push({ label, amount });
+			});
+			const val = JSON.stringify(lines);
+			(agreement as Record<string, unknown>).payment_structure = val;
+			markDirty("payment_structure", val);
+			_recalcMouTotal();
+		}
+
+		function addExpenseLine(label = "", amount = 0) {
+			const row = document.createElement("div");
+			row.className = "expense-line";
+			row.innerHTML = `
+				<div class="form-row">
+					<div class="form-group flex-2">
+						<input type="text" class="expense-label" value="${esc(label)}" placeholder="e.g., Travel expenses">
+					</div>
+					<div class="form-group" style="flex:0 0 120px">
+						<input type="number" class="expense-amount" value="${amount || ""}" step="100" placeholder="$0">
+					</div>
+					<button type="button" class="inline-remove" title="Remove">&times;</button>
+				</div>`;
+			row.querySelector(".expense-label")!.addEventListener("input", saveExpenseLines);
+			row.querySelector(".expense-amount")!.addEventListener("input", saveExpenseLines);
+			row.querySelector(".inline-remove")!.addEventListener("click", () => { row.remove(); saveExpenseLines(); });
+			expenseContainer.appendChild(row);
+		}
+
+		// Render existing expense lines
+		expenseLines.forEach((line) => addExpenseLine(line.label, line.amount));
+
+		document.getElementById("addExpenseLine")!.addEventListener("click", () => {
+			addExpenseLine();
+			expenseContainer.querySelector(".expense-line:last-child .expense-label")?.focus();
+		});
+
+		_recalcMouTotal();
+	}
 
 	// Payment structure + service rates (full agreements) — sync individual fields to JSON
 	if (!isMou) {
@@ -382,7 +534,7 @@ function renderForm() {
 			target.setTime(target.getTime() + months * 30.44 * 24 * 60 * 60 * 1000);
 			dateInput.value = target.toISOString().split("T")[0];
 			dateInput.dispatchEvent(new Event("input", { bubbles: true }));
-			updateTimeframeText();
+			updateFromDatePicker();
 		});
 		dateInput.addEventListener("input", () => {
 			// Update months display from date
@@ -393,27 +545,14 @@ function renderForm() {
 				const diffMonths = diffMs / (1000 * 60 * 60 * 24 * 30.44);
 				durationInput.value = diffMonths > 0 ? diffMonths.toFixed(1) : "";
 			}
-			updateTimeframeText();
+			updateFromDatePicker();
 		});
 	}
 
-	function updateTimeframeText() {
+	function updateFromDatePicker() {
 		if (!dateInput?.value) return;
-		const date = new Date(dateInput.value + "T00:00:00");
-		const formatted = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-		const timeframeText = isMou
-			? `Goal is to deliver PDF by ${formatted}`
-			: formatted;
-		const hidden = main.querySelector("[data-field='timeframe']") as HTMLInputElement;
-		if (hidden) {
-			hidden.value = timeframeText;
-			(agreement as Record<string, unknown>).timeframe = timeframeText;
-			markDirty("timeframe", timeframeText);
-		}
-		if (!isMou) {
-			(agreement as Record<string, unknown>).end_date = dateInput.value;
-			markDirty("end_date", dateInput.value);
-		}
+		(agreement as Record<string, unknown>).end_date = dateInput.value;
+		markDirty("end_date", dateInput.value);
 	}
 
 	// Boilerplate toggle

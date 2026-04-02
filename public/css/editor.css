@@ -275,6 +275,107 @@
 .save-status.saved { color: var(--success); }
 .save-status.error { color: var(--danger); }
 
+/* === Cost Lines === */
+.cost-line-primary {
+	margin-bottom: 8px;
+}
+
+.cost-line-primary .cost-line-label {
+	font-size: 0.78rem;
+	font-weight: 500;
+	color: var(--text-muted);
+	margin-bottom: 4px;
+	display: block;
+}
+
+.expense-line {
+	margin-bottom: 4px;
+}
+
+.expense-line .form-row {
+	align-items: center;
+}
+
+.inline-remove {
+	flex-shrink: 0;
+	background: none;
+	border: none;
+	color: var(--text-muted);
+	font-size: 1rem;
+	cursor: pointer;
+	padding: 2px 4px;
+	opacity: 0;
+	transition: opacity 100ms;
+}
+
+.expense-line:hover .inline-remove,
+.deliverable-item:hover .inline-remove {
+	opacity: 1;
+}
+
+.inline-remove:hover {
+	color: var(--danger);
+}
+
+.cost-total {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding-top: 8px;
+	border-top: 1px solid var(--border);
+}
+
+.cost-total label {
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+
+.cost-total .calculated-field {
+	font-weight: 600;
+}
+
+/* === Deliverable Checklist === */
+.deliverable-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.deliverable-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.deliverable-check {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+}
+
+.deliverable-check input[type="checkbox"] {
+	margin: 0;
+}
+
+.deliverable-text {
+	flex: 1;
+	border: 1px solid transparent;
+	border-radius: var(--radius);
+	padding: 4px 8px;
+	font: inherit;
+	font-size: 0.85rem;
+	background: transparent;
+}
+
+.deliverable-text:hover,
+.deliverable-text:focus {
+	border-color: var(--border);
+	background: var(--bg);
+	outline: none;
+}
+
+
+
 /* === Responsive === */
 @media (max-width: 900px) {
 	.editor-sidebar { width: 320px; }

@@ -59,6 +59,28 @@ function formatParagraphs(text: string | null): string {
 	return text.split(/\n\n+/).map((p) => p.trim()).filter(Boolean).map((p) => `<p style="margin:0 0 8px">${esc(p)}</p>`).join("");
 }
 
+function formatMixed(text: string | null): string {
+	if (!text) return "";
+	const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+	let html = "";
+	let listItems: string[] = [];
+	for (const line of lines) {
+		if (line.startsWith("- ") || line.startsWith("* ")) {
+			listItems.push(esc(line.replace(/^[-*]\s*/, "")));
+		} else {
+			if (listItems.length > 0) {
+				html += "<ul style='margin:4px 0 8px;padding-left:24px'>" + listItems.map((li) => `<li>${li}</li>`).join("") + "</ul>";
+				listItems = [];
+			}
+			html += `<p style="margin:0 0 8px">${esc(line)}</p>`;
+		}
+	}
+	if (listItems.length > 0) {
+		html += "<ul style='margin:4px 0 8px;padding-left:24px'>" + listItems.map((li) => `<li>${li}</li>`).join("") + "</ul>";
+	}
+	return html;
+}
+
 function formatList(text: string | null): string {
 	if (!text) return "—";
 	const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
@@ -67,6 +89,32 @@ function formatList(text: string | null): string {
 		return "<ul>" + lines.map((l) => `<li>${esc(l.replace(/^[-*]\s*/, ""))}</li>`).join("") + "</ul>";
 	}
 	return esc(text);
+}
+
+function renderMouCost(agreement: AgreementData): string {
+	const rows: { label: string; amount: string }[] = [];
+	if (agreement.hours && agreement.hourly_rate) {
+		rows.push({
+			label: `Concept design: ${agreement.hours} hours x $${agreement.hourly_rate} / hr`,
+			amount: formatCurrency(agreement.hours * agreement.hourly_rate),
+		});
+	}
+	let expenses: { label: string; amount: number }[] = [];
+	try { if (agreement.payment_structure) expenses = JSON.parse(agreement.payment_structure); } catch {}
+	if (Array.isArray(expenses)) {
+		for (const exp of expenses) {
+			if (exp.label || exp.amount) rows.push({ label: esc(exp.label), amount: formatCurrency(exp.amount) });
+		}
+	}
+	if (rows.length === 0) return agreement.total_cost ? formatCurrency(agreement.total_cost) : "—";
+	if (rows.length === 1) return `${rows[0].label} = ${rows[0].amount}`;
+	let html = '<table class="cost-table">';
+	for (const row of rows) {
+		html += `<tr><td class="cost-label">${row.label}</td><td class="cost-amount">${row.amount}</td></tr>`;
+	}
+	html += `<tr class="cost-total-row"><td class="cost-label">Total</td><td class="cost-amount">${formatCurrency(agreement.total_cost)}</td></tr>`;
+	html += "</table>";
+	return html;
 }
 
 function isMouType(type: string): boolean {
@@ -78,8 +126,9 @@ function renderSignedInfo(sig: Record<string, unknown>): string {
 	const title = sig.title ? `, ${esc(sig.title as string)}` : "";
 	const ts = sig.timestamp as string;
 	const date = new Date(ts);
-	const dateStr = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-	const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+	const tz = "America/Chicago";
+	const dateStr = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: tz });
+	const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: tz, timeZoneName: "short" });
 	const ip = sig.ip ? esc(sig.ip as string) : "";
 
 	return `<div class="signed-info">
@@ -114,7 +163,7 @@ function renderSignatures(agreement: AgreementData, settings: SettingsData): str
 					<div class="signature-line-row">
 						<div class="signature-field">
 							<div class="signature-line"></div>
-							<div class="signature-underline-label">${esc(agreement.client_contact) || "Client Signature"}${agreement.client_title ? `, ${esc(agreement.client_title)}` : ""}</div>
+							<div class="signature-underline-label">${esc(agreement.client_contact) || "Client Signature"}${agreement.client_title ? `, ${esc(agreement.client_title)}` : ", Title"}</div>
 						</div>
 						<div class="date-field">
 							<div class="signature-line"></div>
@@ -198,7 +247,7 @@ function renderMouBody(agreement: AgreementData, settings: SettingsData): string
 
 		<div class="mou-field">
 			<div class="mou-field-label">Client</div>
-			<div class="mou-field-value">${esc(agreement.client_name) || "_______________"}<br>${esc(agreement.client_address) || ""}</div>
+			<div class="mou-field-value">${esc(agreement.client_name) || "_______________"}</div>
 		</div>
 
 		<div class="mou-field">
@@ -208,19 +257,17 @@ function renderMouBody(agreement: AgreementData, settings: SettingsData): string
 
 		<div class="mou-field">
 			<div class="mou-field-label">Scope of Work / Deliverable</div>
-			<div class="mou-field-value">${formatParagraphs(agreement.project_description)}${agreement.deliverable ? formatParagraphs(agreement.deliverable) : ""}</div>
+			<div class="mou-field-value">${formatParagraphs(agreement.project_description)}${agreement.deliverable ? formatMixed(agreement.deliverable) : ""}</div>
 		</div>
 
 		<div class="mou-field">
-			<div class="mou-field-label">Timeframe</div>
-			<div class="mou-field-value">${esc(agreement.timeframe) || "—"}</div>
+			<div class="mou-field-label">Target Delivery</div>
+			<div class="mou-field-value">${agreement.end_date ? formatDate(agreement.end_date, "long") : "—"}</div>
 		</div>
 
 		<div class="mou-field">
 			<div class="mou-field-label">Cost</div>
-			<div class="mou-field-value">${agreement.hours && agreement.hourly_rate
-				? `${agreement.hours} hours x $${agreement.hourly_rate} / hr = ${formatCurrency(agreement.total_cost)}`
-				: agreement.total_cost ? formatCurrency(agreement.total_cost) : "—"}</div>
+			<div class="mou-field-value">${renderMouCost(agreement)}</div>
 		</div>
 
 		<div class="doc-terms-divider">Project Terms</div>
