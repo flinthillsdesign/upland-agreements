@@ -95,7 +95,7 @@ function renderMouCost(agreement: AgreementData): string {
 	const rows: { label: string; amount: string }[] = [];
 	if (agreement.hours && agreement.hourly_rate) {
 		rows.push({
-			label: `Concept design: ${agreement.hours} hours x $${agreement.hourly_rate} / hr`,
+			label: `${agreement.hours} hours x $${agreement.hourly_rate} / hr`,
 			amount: formatCurrency(agreement.hours * agreement.hourly_rate),
 		});
 	}
@@ -469,9 +469,12 @@ export function renderAgreementHtml(agreement: AgreementData, settings: Settings
 	body { background: white; margin: 0; padding: 0; }
 	.document { border: none; border-radius: 0; box-shadow: none; padding: 0; max-width: none; }
 	.view-status-bar, .view-actions, .sign-area, .pdf-overlay, #verifyStep, #confirmStep { display: none !important; }
-	.signature-pairs { display: flex; gap: 48pt; }
+	.signature-pairs { display: flex; }
 	.signature-pair { flex: 1; }
-	.signature-line-row { display: flex; gap: 16pt; align-items: flex-end; }
+	.signature-pair + .signature-pair { margin-left: 48pt; }
+	.signature-line-row { display: flex; align-items: flex-end; }
+	.signature-field { flex: 1; }
+	.date-field { flex: 0 0 60pt; margin-left: 12pt; }
 </style>
 </head><body>
 <div class="document${isMouType(agreement.type) ? "" : " doc-full"}">${body}</div>
