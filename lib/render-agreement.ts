@@ -159,7 +159,7 @@ function renderMouSignatures(
 	}
 	const clientLabel = (esc(agreement.client_contact) || "Client Signature") + (agreement.client_title ? ", " + esc(agreement.client_title) : ", Title");
 	const lbl = 'style="font-size:11px;color:#6b6560"';
-	const line = '<hr style="border:none;border-top:0.5pt solid #000;margin:0">';
+	const line = '<hr style="border:none;border-top:0.5pt solid #000;margin:32pt 0 0 0">';
 	return '<table style="width:100%;border-collapse:separate;border-spacing:0"><tr>'
 		+ '<td style="width:36%;vertical-align:bottom;padding:0 8pt 0 0">' + line + '<div ' + lbl + ">" + clientLabel + "</div></td>"
 		+ '<td style="width:8%;vertical-align:bottom;padding:0 24pt 0 0">' + line + '<div ' + lbl + ">Date</div></td>"
