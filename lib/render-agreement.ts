@@ -179,7 +179,7 @@ function renderSignatures(agreement: AgreementData, settings: SettingsData): str
 	const designerSig = parseSig(agreement.designer_signature);
 
 	return `
-		<div style="margin-bottom:16px;font-weight:600;font-size:15px">Agreed and accepted:</div>
+		<div style="margin-bottom:16px;font-weight:600;font-size:15px">Agreed and accepted: (TEST)</div>
 
 		${isMou ? renderMouSignatures(agreement, clientSig, designerSig, designerName, designerTitle)
 		 : `
