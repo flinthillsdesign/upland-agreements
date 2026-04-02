@@ -10,7 +10,7 @@ function getClient(): postmark.ServerClient | null {
 	return client;
 }
 
-const FROM = process.env.POSTMARK_FROM_EMAIL || "info@uplandexhibits.com";
+const FROM = process.env.POSTMARK_FROM_EMAIL || "Upland Exhibits <info@uplandexhibits.com>";
 
 function escHtml(val: string): string {
 	return val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
