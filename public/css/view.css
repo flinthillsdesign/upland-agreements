@@ -251,11 +251,11 @@
 }
 
 .signature-field {
-	flex: 2;
+	flex: 1;
 }
 
 .date-field {
-	flex: 1;
+	flex: 0 0 80px;
 }
 
 .signature-line {
