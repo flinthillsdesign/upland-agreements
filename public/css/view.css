@@ -416,13 +416,17 @@
 	.doc-header img { height: 40pt; margin-bottom: 14pt; }
 
 	.doc-section { margin-bottom: 12pt; }
-	.doc-term { margin-bottom: 8pt; }
-	.mou-field { margin-bottom: 12pt; }
+	.doc-term { margin-bottom: 6pt; }
+	.doc-term-sub { margin-top: 2pt; }
+	.mou-field { margin-bottom: 10pt; }
+
+	.doc-terms-divider {
+		padding: 16pt 0 12pt;
+	}
 
 	.doc-signature-area {
 		page-break-inside: avoid;
-		margin-top: 36pt;
-		padding-top: 24pt;
+		margin-top: 20pt;
 	}
 
 	.signature-pairs {
