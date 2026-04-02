@@ -144,6 +144,35 @@ function parseSig(json: string | null): Record<string, unknown> | null {
 
 // === Signature Block ===
 
+function renderMouSignatures(
+	agreement: AgreementData,
+	clientSig: Record<string, unknown> | null,
+	designerSig: Record<string, unknown> | null,
+	designerName: string,
+	designerTitle: string,
+): string {
+	if (clientSig || designerSig) {
+		return '<div class="signature-pairs">'
+			+ '<div class="signature-pair">' + (clientSig ? renderSignedInfo(clientSig) : "") + "</div>"
+			+ '<div class="signature-pair">' + (designerSig ? renderSignedInfo(designerSig) : "") + "</div>"
+			+ "</div>";
+	}
+	const clientLabel = (esc(agreement.client_contact) || "Client Signature") + (agreement.client_title ? ", " + esc(agreement.client_title) : ", Title");
+	const lbl = 'style="font-size:11px;color:#6b6560;padding-top:3pt"';
+	return '<table style="width:100%;border-collapse:collapse;border-spacing:0">'
+		+ '<tr style="height:32pt">'
+		+ '<td style="width:36%;border-bottom:0.5pt solid #000"></td><td style="width:3%"></td>'
+		+ '<td style="width:8%;border-bottom:0.5pt solid #000"></td><td style="width:6%"></td>'
+		+ '<td style="width:36%;border-bottom:0.5pt solid #000"></td><td style="width:3%"></td>'
+		+ '<td style="width:8%;border-bottom:0.5pt solid #000"></td>'
+		+ "</tr><tr>"
+		+ '<td ' + lbl + ">" + clientLabel + "</td><td></td>"
+		+ '<td ' + lbl + ">Date</td><td></td>"
+		+ '<td ' + lbl + ">" + esc(designerName) + ", " + esc(designerTitle) + "</td><td></td>"
+		+ '<td ' + lbl + ">Date</td>"
+		+ "</tr></table>";
+}
+
 function renderSignatures(agreement: AgreementData, settings: SettingsData): string {
 	const companyName = settings.legal_name || "Flint Hills Design, LLC dba Upland Exhibits";
 	const designerName = settings.designer_name || "Joel Gaeddert";
@@ -156,36 +185,8 @@ function renderSignatures(agreement: AgreementData, settings: SettingsData): str
 	return `
 		<div style="margin-bottom:16px;font-weight:600;font-size:15px">Agreed and accepted:</div>
 
-		${isMou ? `
-		<table class="signature-table" style="width:100%;border-collapse:collapse">
-			<tr>
-				<td style="width:42%;padding-right:16pt;vertical-align:bottom">
-					${clientSig ? renderSignedInfo(clientSig) : `
-						<div style="border-bottom:0.5pt solid #000;min-height:28pt"></div>
-						<div style="font-size:11px;color:#6b6560">${esc(agreement.client_contact) || "Client Signature"}${agreement.client_title ? `, ${esc(agreement.client_title)}` : ", Title"}</div>
-					`}
-				</td>
-				<td style="width:8%;padding-right:24pt;vertical-align:bottom">
-					${clientSig ? "" : `
-						<div style="border-bottom:0.5pt solid #000;min-height:28pt"></div>
-						<div style="font-size:11px;color:#6b6560">Date</div>
-					`}
-				</td>
-				<td style="width:42%;padding-right:16pt;vertical-align:bottom">
-					${designerSig ? renderSignedInfo(designerSig) : `
-						<div style="border-bottom:0.5pt solid #000;min-height:28pt"></div>
-						<div style="font-size:11px;color:#6b6560">${esc(designerName)}, ${esc(designerTitle)}</div>
-					`}
-				</td>
-				<td style="width:8%;vertical-align:bottom">
-					${designerSig ? "" : `
-						<div style="border-bottom:0.5pt solid #000;min-height:28pt"></div>
-						<div style="font-size:11px;color:#6b6560">Date</div>
-					`}
-				</td>
-			</tr>
-		</table>
-		` : `
+		${isMou ? renderMouSignatures(agreement, clientSig, designerSig, designerName, designerTitle)
+		 : `
 		<div class="signature-block">
 			<div class="signature-block-label">"Client"</div>
 			<div class="signature-block-org">${esc(agreement.client_name) || "_______________"}</div>
