@@ -271,13 +271,15 @@
 
 .signed-info {
 	margin-top: 4px;
-	border-bottom: 1px solid #1a1a1a;
-	padding-bottom: 8px;
 }
 
 .signed-info .signed-name {
 	font-family: 'Caveat', cursive;
 	font-size: 24px;
+}
+
+.signed-info .signed-line {
+	border-bottom: 1px solid #1a1a1a;
 }
 
 .signed-info .signed-meta {

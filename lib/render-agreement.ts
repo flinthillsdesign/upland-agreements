@@ -133,7 +133,8 @@ function renderSignedInfo(sig: Record<string, unknown>): string {
 
 	return `<div class="signed-info">
 		<div class="signed-name">${name}${title}</div>
-		<div class="signed-meta">Signed ${dateStr} at ${timeStr}${ip ? ` &middot; IP: ${ip}` : ""}</div>
+		<div class="signed-line"></div>
+		<div class="signed-meta">${dateStr} at ${timeStr}${ip ? ` &middot; IP: ${ip}` : ""}</div>
 	</div>`;
 }
 
