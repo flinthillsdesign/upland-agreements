@@ -162,7 +162,7 @@ function renderMouSignatures(
 	const line = '<hr style="border:none;border-top:0.5pt solid #000;margin:0">';
 	return '<table style="width:100%;border-collapse:separate;border-spacing:0">'
 		+ '<tr><td colspan="4" style="height:36pt;line-height:36pt">&nbsp;</td></tr><tr>'
-		+ '<td style="width:36%;vertical-align:bottom;padding:0 8pt 0 0">X' + line + '<div ' + lbl + ">" + clientLabel + "</div></td>"
+		+ '<td style="width:36%;vertical-align:bottom;padding:0 8pt 0 0">' + line + '<div ' + lbl + ">" + clientLabel + "</div></td>"
 		+ '<td style="width:8%;vertical-align:bottom;padding:0 24pt 0 0">' + line + '<div ' + lbl + ">Date</div></td>"
 		+ '<td style="width:36%;vertical-align:bottom;padding:0 8pt 0 0">' + line + '<div ' + lbl + ">" + esc(designerName) + ", " + esc(designerTitle) + "</div></td>"
 		+ '<td style="width:8%;vertical-align:bottom;padding:0">' + line + '<div ' + lbl + ">Date</div></td>"
@@ -179,7 +179,7 @@ function renderSignatures(agreement: AgreementData, settings: SettingsData): str
 	const designerSig = parseSig(agreement.designer_signature);
 
 	return `
-		<div style="margin-bottom:16px;font-weight:600;font-size:15px">Agreed and accepted: (TEST)</div>
+		<div style="margin-bottom:16px;font-weight:600;font-size:15px">Agreed and accepted:</div>
 
 		${isMou ? renderMouSignatures(agreement, clientSig, designerSig, designerName, designerTitle)
 		 : `
