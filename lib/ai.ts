@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Agreement, KnowledgeEntry, ChatMessage } from "./storage.js";
 
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "claude-opus-4-7";
 
 let anthropic: Anthropic | null = null;
 function getClient(): Anthropic | null {
