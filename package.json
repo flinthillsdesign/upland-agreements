@@ -13,6 +13,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "@libsql/client": "^0.14.0",
+    "@upland/auth": "github:flinthillsdesign/upland-auth#v0.2.0",
     "bcryptjs": "^2.4.3",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
