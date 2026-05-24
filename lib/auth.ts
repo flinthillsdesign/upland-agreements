@@ -34,8 +34,12 @@ export function verifyPassword(password: string, hash: string): boolean {
 	return bcrypt.compareSync(password, hash);
 }
 
+// Cutover-state mint: new {sub, role, name} shape via @upland/auth.
+// Maps the off-spec role:"user" to "staff"; drops the `email` claim
+// (handlers read email from DB, not from the token).
 export function createToken(payload: JwtPayload): string {
-	return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+	const role = payload.role === "user" || payload.role === "editor" || payload.role === "manager" ? "staff" : (payload.role as "superadmin" | "staff");
+	return upland.createJWT({ sub: payload.sub, role, name: payload.email });
 }
 
 export function verifyToken(token: string): JwtPayload | null {
