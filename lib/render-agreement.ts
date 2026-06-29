@@ -40,6 +40,12 @@ export function esc(val: string | null | undefined): string {
 	return val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// Like esc(), but preserves the user's line breaks as <br> so newlines typed in a
+// textarea survive into the rendered HTML (where whitespace would otherwise collapse).
+export function escLines(val: string | null | undefined): string {
+	return esc(val).replace(/\n/g, "<br>");
+}
+
 export function formatDate(dateStr: string | null | undefined, style: "short" | "long" = "short"): string {
 	if (!dateStr) return style === "long" ? "_______________" : "";
 	return new Date(dateStr + (dateStr.length === 10 ? "T00:00:00" : "")).toLocaleDateString("en-US", {
@@ -56,7 +62,7 @@ export function formatCurrency(amount: number | null | undefined): string {
 
 function formatParagraphs(text: string | null): string {
 	if (!text) return "<p>—</p>";
-	return text.split(/\n\n+/).map((p) => p.trim()).filter(Boolean).map((p) => `<p style="margin:0 0 8px">${esc(p)}</p>`).join("");
+	return text.split(/\n\n+/).map((p) => p.trim()).filter(Boolean).map((p) => `<p style="margin:0 0 8px">${escLines(p)}</p>`).join("");
 }
 
 function formatMixed(text: string | null): string {
@@ -320,7 +326,7 @@ function renderFullAgreementBody(agreement: AgreementData, settings: SettingsDat
 
 		<div class="doc-section"><span class="doc-section-number">1. </span><span class="doc-section-title">TERM.</span> <span class="doc-section-body">This Agreement shall begin on the Effective Date and shall end, unless earlier terminated, upon satisfactory completion of the Project as outlined in the Description of Services, but in any event, no later than ${formatDate(agreement.end_date, "long")}.</span></div>
 
-		<div class="doc-section"><span class="doc-section-number">2. </span><span class="doc-section-title">DESCRIPTION OF SERVICES.</span> <span class="doc-section-body">${esc(agreement.project_description) || "—"}</span></div>
+		<div class="doc-section"><span class="doc-section-number">2. </span><span class="doc-section-title">DESCRIPTION OF SERVICES.</span> <span class="doc-section-body">${escLines(agreement.project_description) || "—"}</span></div>
 
 		<div class="doc-section"><span class="doc-section-number">3. </span><span class="doc-section-title">PROJECT COST.</span> <span class="doc-section-body">The parties agree that all Services shall be performed on a Time-And-Material-Not-To-Exceed basis. The total compensation to Designer under this Agreement shall not exceed <strong>${formatCurrency(agreement.total_cost)}</strong> ("NTE Amount"). The NTE Amount is based on the Project scope, assumptions, and information available as of the Effective Date. Material changes in scope, assumptions, site conditions, Client direction, code requirements, or other project conditions may require an equitable adjustment to the NTE Amount.</span></div>
 
