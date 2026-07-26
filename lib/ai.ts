@@ -1,15 +1,19 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Agreement, KnowledgeEntry, ChatMessage } from "./storage.js";
 
-const MODEL = "claude-opus-4-7";
+const MODEL = "claude-opus-5";
+
+// Opus 5 runs adaptive thinking by default; low effort keeps drafting calls
+// close to the old (no-thinking) latency and cost.
+const OUTPUT_CONFIG = { effort: "low" as const };
 
 let anthropic: Anthropic | null = null;
 function getClient(): Anthropic | null {
-	if (!process.env.CLAUDE_API_KEY) return null;
-	if (!anthropic) {
-		anthropic = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
-	}
-	return anthropic;
+  if (!process.env.CLAUDE_API_KEY) return null;
+  if (!anthropic) {
+    anthropic = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
+  }
+  return anthropic;
 }
 
 const SYSTEM_PROMPT = `You are an agreement drafting assistant for Upland Exhibits (Flint Hills Design, LLC dba Upland Exhibits), located at 507 SE 36th St., Newton, Kansas 67114. You help draft professional contracts and memoranda of understanding for exhibit design, fabrication, and installation projects.
@@ -83,217 +87,227 @@ Example:
 - Always explain your reasoning in the message field`;
 
 function buildKnowledgeContext(entries: KnowledgeEntry[]): string {
-	if (entries.length === 0) return "";
+  if (entries.length === 0) return "";
 
-	let context = "\n\n## Knowledge Base\n";
-	context += "(Entries are ordered by relevance — recent agreements first, with more detail. Older entries are summarized.)\n";
-	let charCount = 0;
-	const maxChars = 60000;
+  let context = "\n\n## Knowledge Base\n";
+  context +=
+    "(Entries are ordered by relevance — recent agreements first, with more detail. Older entries are summarized.)\n";
+  let charCount = 0;
+  const maxChars = 60000;
 
-	// Rate sheets always included in full
-	const rateSheets = entries.filter((e) => e.type === "rate_sheet");
-	const others = entries.filter((e) => e.type !== "rate_sheet");
+  // Rate sheets always included in full
+  const rateSheets = entries.filter((e) => e.type === "rate_sheet");
+  const others = entries.filter((e) => e.type !== "rate_sheet");
 
-	// Sort by metadata date or updated_at, newest first
-	others.sort((a, b) => {
-		const dateA = getEntryYear(a);
-		const dateB = getEntryYear(b);
-		return dateB - dateA;
-	});
+  // Sort by metadata date or updated_at, newest first
+  others.sort((a, b) => {
+    const dateA = getEntryYear(a);
+    const dateB = getEntryYear(b);
+    return dateB - dateA;
+  });
 
-	// Rate sheets first (full content)
-	for (const entry of rateSheets) {
-		const block = `\n### ${entry.title} (${entry.type})\n${entry.content}\n`;
-		if (charCount + block.length > maxChars) break;
-		context += block;
-		charCount += block.length;
-	}
+  // Rate sheets first (full content)
+  for (const entry of rateSheets) {
+    const block = `\n### ${entry.title} (${entry.type})\n${entry.content}\n`;
+    if (charCount + block.length > maxChars) break;
+    context += block;
+    charCount += block.length;
+  }
 
-	// Recent entries (last 2 years) get full content
-	// Older entries get a condensed summary (first 500 chars)
-	const now = new Date().getFullYear();
-	for (const entry of others) {
-		const year = getEntryYear(entry);
-		const isRecent = (now - year) <= 2;
-		const content = isRecent ? entry.content : condenseSummary(entry.content);
-		const label = isRecent ? "" : " [older — summarized]";
-		const block = `\n### ${entry.title} (${entry.type})${label}\n${content}\n`;
-		if (charCount + block.length > maxChars) break;
-		context += block;
-		charCount += block.length;
-	}
+  // Recent entries (last 2 years) get full content
+  // Older entries get a condensed summary (first 500 chars)
+  const now = new Date().getFullYear();
+  for (const entry of others) {
+    const year = getEntryYear(entry);
+    const isRecent = now - year <= 2;
+    const content = isRecent ? entry.content : condenseSummary(entry.content);
+    const label = isRecent ? "" : " [older — summarized]";
+    const block = `\n### ${entry.title} (${entry.type})${label}\n${content}\n`;
+    if (charCount + block.length > maxChars) break;
+    context += block;
+    charCount += block.length;
+  }
 
-	return context;
+  return context;
 }
 
 function getEntryYear(entry: KnowledgeEntry): number {
-	// Try to extract year from metadata
-	try {
-		const meta = entry.metadata ? JSON.parse(entry.metadata) : {};
-		if (meta.date) return new Date(meta.date).getFullYear();
-		if (meta.year) return meta.year;
-	} catch {}
-	// Fall back to updated_at
-	return new Date(entry.updated_at).getFullYear();
+  // Try to extract year from metadata
+  try {
+    const meta = entry.metadata ? JSON.parse(entry.metadata) : {};
+    if (meta.date) return new Date(meta.date).getFullYear();
+    if (meta.year) return meta.year;
+  } catch {}
+  // Fall back to updated_at
+  return new Date(entry.updated_at).getFullYear();
 }
 
 function condenseSummary(content: string): string {
-	const lines = content.split("\n").filter((l) => l.trim());
-	// Keep the key facts (client, type, cost, description) but trim the rest
-	const keyLines = lines.filter((l) =>
-		/^(Client:|Type:|NTE:|Total:|Hours:|Rate:|Description|Scope|Cost:)/i.test(l.trim())
-	);
-	if (keyLines.length > 0) return keyLines.join("\n");
-	// Fallback: first 500 chars
-	return content.substring(0, 500) + (content.length > 500 ? "..." : "");
+  const lines = content.split("\n").filter((l) => l.trim());
+  // Keep the key facts (client, type, cost, description) but trim the rest
+  const keyLines = lines.filter((l) =>
+    /^(Client:|Type:|NTE:|Total:|Hours:|Rate:|Description|Scope|Cost:)/i.test(l.trim()),
+  );
+  if (keyLines.length > 0) return keyLines.join("\n");
+  // Fallback: first 500 chars
+  return content.substring(0, 500) + (content.length > 500 ? "..." : "");
 }
 
 function buildAgreementContext(agreement: Agreement): string {
-	const typeLabels: Record<string, string> = {
-		mou_concept: "MoU — Concept",
-		mou_small: "MoU — Small Design",
-		full_services: "Agreement for Services",
-	};
+  const typeLabels: Record<string, string> = {
+    mou_concept: "MoU — Concept",
+    mou_small: "MoU — Small Design",
+    full_services: "Agreement for Services",
+  };
 
-	let ctx = `\n\n## Current Agreement\n- Type: ${typeLabels[agreement.type] || agreement.type}\n- Title: ${agreement.title}\n- Status: ${agreement.status}`;
-	if (agreement.client_name) ctx += `\n- Client: ${agreement.client_name}`;
-	if (agreement.client_address) ctx += `\n- Address: ${agreement.client_address}`;
-	if (agreement.project_description) ctx += `\n- Current Scope: ${agreement.project_description}`;
-	if (agreement.total_cost) ctx += `\n- Current Cost: $${agreement.total_cost.toLocaleString()}`;
-	if (agreement.hours) ctx += `\n- Hours: ${agreement.hours}`;
-	if (agreement.hourly_rate) ctx += `\n- Rate: $${agreement.hourly_rate}/hr`;
-	if (agreement.timeframe) ctx += `\n- Timeframe: ${agreement.timeframe}`;
-	if (agreement.payment_structure) ctx += `\n- Payment Structure: ${agreement.payment_structure}`;
-	if (agreement.service_rates) ctx += `\n- Service Rates: ${agreement.service_rates}`;
-	if (agreement.client_responsibilities) ctx += `\n- Client Responsibilities: ${agreement.client_responsibilities}`;
-	return ctx;
+  let ctx = `\n\n## Current Agreement\n- Type: ${typeLabels[agreement.type] || agreement.type}\n- Title: ${agreement.title}\n- Status: ${agreement.status}`;
+  if (agreement.client_name) ctx += `\n- Client: ${agreement.client_name}`;
+  if (agreement.client_address) ctx += `\n- Address: ${agreement.client_address}`;
+  if (agreement.project_description) ctx += `\n- Current Scope: ${agreement.project_description}`;
+  if (agreement.total_cost) ctx += `\n- Current Cost: $${agreement.total_cost.toLocaleString()}`;
+  if (agreement.hours) ctx += `\n- Hours: ${agreement.hours}`;
+  if (agreement.hourly_rate) ctx += `\n- Rate: $${agreement.hourly_rate}/hr`;
+  if (agreement.timeframe) ctx += `\n- Timeframe: ${agreement.timeframe}`;
+  if (agreement.payment_structure) ctx += `\n- Payment Structure: ${agreement.payment_structure}`;
+  if (agreement.service_rates) ctx += `\n- Service Rates: ${agreement.service_rates}`;
+  if (agreement.client_responsibilities)
+    ctx += `\n- Client Responsibilities: ${agreement.client_responsibilities}`;
+  return ctx;
 }
 
 export interface AiResponse {
-	message: string;
-	fields?: Partial<Agreement>;
-	references?: string[];
+  message: string;
+  fields?: Partial<Agreement>;
+  references?: string[];
 }
 
 function parseResponse(text: string): AiResponse {
-	// Extract JSON from code block
-	const jsonMatch = text.match(/```json\s*([\s\S]*?)```/);
-	if (jsonMatch) {
-		try {
-			const parsed = JSON.parse(jsonMatch[1]);
-			return {
-				message: parsed.message || "Updated agreement fields.",
-				fields: parsed.fields || undefined,
-				references: parsed.references || [],
-			};
-		} catch {
-			// Fall through
-		}
-	}
+  // Extract JSON from code block
+  const jsonMatch = text.match(/```json\s*([\s\S]*?)```/);
+  if (jsonMatch) {
+    try {
+      const parsed = JSON.parse(jsonMatch[1]);
+      return {
+        message: parsed.message || "Updated agreement fields.",
+        fields: parsed.fields || undefined,
+        references: parsed.references || [],
+      };
+    } catch {
+      // Fall through
+    }
+  }
 
-	// Try parsing the whole response as JSON
-	try {
-		const parsed = JSON.parse(text);
-		return {
-			message: parsed.message || "Updated agreement fields.",
-			fields: parsed.fields || undefined,
-			references: parsed.references || [],
-		};
-	} catch {
-		// Plain text response
-		return { message: text };
-	}
+  // Try parsing the whole response as JSON
+  try {
+    const parsed = JSON.parse(text);
+    return {
+      message: parsed.message || "Updated agreement fields.",
+      fields: parsed.fields || undefined,
+      references: parsed.references || [],
+    };
+  } catch {
+    // Plain text response
+    return { message: text };
+  }
 }
 
 export async function generateAgreement(
-	prompt: string,
-	agreement: Agreement,
-	knowledge: KnowledgeEntry[],
+  prompt: string,
+  agreement: Agreement,
+  knowledge: KnowledgeEntry[],
 ): Promise<AiResponse> {
-	const client = getClient();
-	if (!client) {
-		return mockGenerate(prompt, agreement);
-	}
+  const client = getClient();
+  if (!client) {
+    return mockGenerate(prompt, agreement);
+  }
 
-	const systemPrompt = SYSTEM_PROMPT + buildKnowledgeContext(knowledge) + buildAgreementContext(agreement);
+  const systemPrompt =
+    SYSTEM_PROMPT + buildKnowledgeContext(knowledge) + buildAgreementContext(agreement);
 
-	const response = await client.messages.create({
-		model: MODEL,
-		max_tokens: 4096,
-		system: systemPrompt,
-		messages: [{ role: "user", content: prompt }],
-	});
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 4096,
+    output_config: OUTPUT_CONFIG,
+    system: systemPrompt,
+    messages: [{ role: "user", content: prompt }],
+  });
 
-	const text = response.content.map((b) => (b.type === "text" ? b.text : "")).join("");
-	return parseResponse(text);
+  const text = response.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+  return parseResponse(text);
 }
 
 export async function chat(
-	messages: ChatMessage[],
-	agreement: Agreement,
-	knowledge: KnowledgeEntry[],
+  messages: ChatMessage[],
+  agreement: Agreement,
+  knowledge: KnowledgeEntry[],
 ): Promise<AiResponse> {
-	const client = getClient();
-	if (!client) {
-		return { message: "AI is not configured. Set CLAUDE_API_KEY in your environment." };
-	}
+  const client = getClient();
+  if (!client) {
+    return { message: "AI is not configured. Set CLAUDE_API_KEY in your environment." };
+  }
 
-	const systemPrompt = SYSTEM_PROMPT + buildKnowledgeContext(knowledge) + buildAgreementContext(agreement);
+  const systemPrompt =
+    SYSTEM_PROMPT + buildKnowledgeContext(knowledge) + buildAgreementContext(agreement);
 
-	const apiMessages = messages.map((m) => ({
-		role: m.role as "user" | "assistant",
-		content: m.content,
-	}));
+  const apiMessages = messages.map((m) => ({
+    role: m.role as "user" | "assistant",
+    content: m.content,
+  }));
 
-	const response = await client.messages.create({
-		model: MODEL,
-		max_tokens: 4096,
-		system: systemPrompt,
-		messages: apiMessages,
-	});
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: 4096,
+    output_config: OUTPUT_CONFIG,
+    system: systemPrompt,
+    messages: apiMessages,
+  });
 
-	const text = response.content.map((b) => (b.type === "text" ? b.text : "")).join("");
-	return parseResponse(text);
+  const text = response.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+  return parseResponse(text);
 }
 
 function mockGenerate(prompt: string, agreement: Agreement): AiResponse {
-	if (agreement.type === "full_services") {
-		return {
-			message: "AI is not configured. Here's a template structure for an Agreement for Services. Set CLAUDE_API_KEY to enable AI drafting.",
-			fields: {
-				project_description: `Upland Exhibits will provide exhibit design, fabrication, and installation services for ${agreement.client_name || "the Client"}'s project as described: ${prompt}`,
-				total_cost: 150000,
-				payment_structure: JSON.stringify({
-					initial_pct: 10,
-					initial_amount: 15000,
-					progress_note: "Progress billings invoiced on percentage of completion, not to exceed 90% of NTE",
-					final_pct: 10,
-					final_amount: 15000,
-				}),
-				service_rates: JSON.stringify({
-					head_rate: 95,
-					design_rate: 75,
-					fab_rate: 65,
-					materials_markup: 15,
-					travel_rate: 55,
-				}),
-				client_responsibilities: "- Coordinate internal decision-making and provide timely approvals\n- Provide all text content, photographs, and artifacts\n- Provide architectural drawings and site plans\n- Arrange for electrical and structural work\n- Prepare installation site\n- Provide final proofreading and approval",
-			},
-			references: [],
-		};
-	}
+  if (agreement.type === "full_services") {
+    return {
+      message:
+        "AI is not configured. Here's a template structure for an Agreement for Services. Set CLAUDE_API_KEY to enable AI drafting.",
+      fields: {
+        project_description: `Upland Exhibits will provide exhibit design, fabrication, and installation services for ${agreement.client_name || "the Client"}'s project as described: ${prompt}`,
+        total_cost: 150000,
+        payment_structure: JSON.stringify({
+          initial_pct: 10,
+          initial_amount: 15000,
+          progress_note:
+            "Progress billings invoiced on percentage of completion, not to exceed 90% of NTE",
+          final_pct: 10,
+          final_amount: 15000,
+        }),
+        service_rates: JSON.stringify({
+          head_rate: 95,
+          design_rate: 75,
+          fab_rate: 65,
+          materials_markup: 15,
+          travel_rate: 55,
+        }),
+        client_responsibilities:
+          "- Coordinate internal decision-making and provide timely approvals\n- Provide all text content, photographs, and artifacts\n- Provide architectural drawings and site plans\n- Arrange for electrical and structural work\n- Prepare installation site\n- Provide final proofreading and approval",
+      },
+      references: [],
+    };
+  }
 
-	const endDate = new Date();
-	endDate.setDate(endDate.getDate() + 56); // ~8 weeks
-	return {
-		message: "AI is not configured. Here's a template structure for an MoU. Set CLAUDE_API_KEY to enable AI drafting.",
-		fields: {
-			project_description: `Upland Exhibits will dedicate hours to developing a design concept for ${agreement.client_name || "the Client"}'s project: ${prompt}`,
-			hours: 120,
-			hourly_rate: 100,
-			total_cost: 12000,
-			end_date: endDate.toISOString().split("T")[0],
-		},
-		references: [],
-	};
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + 56); // ~8 weeks
+  return {
+    message:
+      "AI is not configured. Here's a template structure for an MoU. Set CLAUDE_API_KEY to enable AI drafting.",
+    fields: {
+      project_description: `Upland Exhibits will dedicate hours to developing a design concept for ${agreement.client_name || "the Client"}'s project: ${prompt}`,
+      hours: 120,
+      hourly_rate: 100,
+      total_cost: 12000,
+      end_date: endDate.toISOString().split("T")[0],
+    },
+    references: [],
+  };
 }

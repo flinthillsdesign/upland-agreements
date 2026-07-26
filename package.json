@@ -11,7 +11,7 @@
     "fmt": "oxfmt --write public/js/**/*.ts lib/**/*.ts netlify/functions/**/*.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "@anthropic-ai/sdk": "^0.80.0",
     "@libsql/client": "^0.14.0",
     "@upland/auth": "github:flinthillsdesign/upland-auth#v0.2.0",
     "bcryptjs": "^2.4.3",
