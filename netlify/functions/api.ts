@@ -326,7 +326,8 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 
 	// Only send email on first share, or if explicitly requested
 	const recipients = isNew || send_email ? recipientEmails(agreement) : [];
-	await Promise.all(recipients.map((email) => sendAgreementSharedEmail(email, agreement.title, viewUrl, recipients.filter((r) => r !== email))));
+	const signer = agreement.client_contact?.trim() || agreement.client_email || "your organization";
+	await Promise.all(recipients.map((email) => sendAgreementSharedEmail(email, agreement.title, viewUrl, signer, recipients.filter((r) => r !== email))));
 
 	return json({ token, url: viewUrl, recipients });
 });

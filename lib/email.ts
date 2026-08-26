@@ -58,8 +58,10 @@ export async function sendResetEmail(to: string, token: string, baseUrl: string)
 	);
 }
 
-// `others` = the rest of the recipient list, so each person can see who else has it.
-export async function sendAgreementSharedEmail(to: string, agreementTitle: string, viewUrl: string, others: string[] = []): Promise<boolean> {
+// Same email to everyone on the send. `signer` = who we assume will sign (a soft assumption — anyone
+// with the link can sign); `others` = the rest of the recipient list, so each person sees who else has it.
+export async function sendAgreementSharedEmail(to: string, agreementTitle: string, viewUrl: string, signer: string, others: string[] = []): Promise<boolean> {
+	const addressed = `We've addressed this to ${signer} for signature. If someone else should sign for your organization, forward this email to them.`;
 	const alsoSent = others.length ? `Also sent to: ${others.join(", ")}` : "";
 	return send(to,
 		`Agreement from Upland Exhibits: ${agreementTitle}`,
@@ -67,10 +69,11 @@ export async function sendAgreementSharedEmail(to: string, agreementTitle: strin
 			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px">Upland Exhibits has prepared an agreement for your review:</p>
 			<p style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
 			<p style="margin-bottom:24px">${btn(viewUrl, "Review Agreement")}</p>
+			<p style="font-size:14px;color:#1a1a1a;margin-bottom:16px">We've addressed this to <strong>${escHtml(signer)}</strong> for signature. If someone else should sign for your organization, forward this email to them.</p>
 			${alsoSent ? `<p style="font-size:13px;color:#6b6560;margin-bottom:8px">${escHtml(alsoSent)}</p>` : ""}
 			<p style="font-size:13px;color:#6b6560">If you have questions, reply to this email or contact us directly.</p>
 		`),
-		`Upland Exhibits has prepared an agreement for your review.\n\n${agreementTitle}\n\nReview it here: ${viewUrl}${alsoSent ? `\n\n${alsoSent}` : ""}`,
+		`Upland Exhibits has prepared an agreement for your review.\n\n${agreementTitle}\n\nReview it here: ${viewUrl}\n\n${addressed}${alsoSent ? `\n\n${alsoSent}` : ""}`,
 	);
 }
 
