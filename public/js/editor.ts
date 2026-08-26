@@ -13,6 +13,7 @@ interface Agreement {
 	client_contact: string | null;
 	client_title: string | null;
 	client_email: string | null;
+	client_cc: string | null;
 	effective_date: string | null;
 	end_date: string | null;
 	project_description: string | null;
@@ -95,6 +96,19 @@ function getDurationMonths(a: Record<string, unknown>): string {
 	return months > 0 ? String(months) : "";
 }
 
+// Who signed, and whether they were on the list we sent to — the check happens here, at countersign time, not on the client.
+function renderSignedNote(): string {
+	if (!agreement?.client_signature) return "";
+	let sig: { name?: string; title?: string; email?: string; timestamp?: string } = {};
+	try { sig = JSON.parse(agreement.client_signature); } catch { return ""; }
+	const sent = [agreement.client_email || "", ...(agreement.client_cc || "").split(/[\s,;]+/)]
+		.map((e) => e.trim().toLowerCase()).filter((e) => e.includes("@"));
+	const offList = !!sig.email && !sent.includes(sig.email.toLowerCase());
+	const when = sig.timestamp ? new Date(sig.timestamp).toLocaleDateString() : "";
+	const who = [sig.name, sig.title].filter(Boolean).map((s) => esc(s!)).join(", ");
+	return `<div class="signed-note">Signed by ${who}${sig.email ? ` &middot; ${esc(sig.email)}` : ""}${when ? ` &middot; ${when}` : ""}${offList ? `<span class="signed-note-flag">not on the recipient list</span>` : ""}</div>`;
+}
+
 function renderForm() {
 	if (!agreement) return;
 	const main = document.getElementById("editorMain")!;
@@ -102,6 +116,7 @@ function renderForm() {
 
 	main.innerHTML = `
 		<div class="agreement-form">
+			${renderSignedNote()}
 			<!-- Client Info -->
 			<div class="form-section">
 				<div class="form-section-header"><h2>Client Information</h2></div>
@@ -120,6 +135,10 @@ function renderForm() {
 							<label>Email</label>
 							<input type="email" data-field="client_email" value="${esc(agreement.client_email)}">
 						</div>
+					</div>
+					<div class="form-group">
+						<label>Also send to</label>
+						<input type="text" data-field="client_cc" value="${esc(agreement.client_cc)}" placeholder="cc emails, comma-separated">
 					</div>` : `
 					<div class="form-row">
 						<div class="form-group flex-2">
@@ -140,6 +159,10 @@ function renderForm() {
 							<label>Email</label>
 							<input type="email" data-field="client_email" value="${esc(agreement.client_email)}">
 						</div>
+					</div>
+					<div class="form-group">
+						<label>Also send to</label>
+						<input type="text" data-field="client_cc" value="${esc(agreement.client_cc)}" placeholder="cc emails, comma-separated">
 					</div>`}
 					</div>
 			</div>
@@ -791,11 +814,11 @@ document.getElementById("generateShareLink")!.addEventListener("click", async ()
 	const btn = document.getElementById("generateShareLink") as HTMLButtonElement;
 	btn.disabled = true;
 	btn.textContent = "Sending...";
-	const data = (await api.shareAgreement(agreementId!)) as { token: string; url: string; emailSent: boolean };
+	const data = (await api.shareAgreement(agreementId!)) as { token: string; url: string; emailSent: boolean; recipients: string[] };
 	agreement!.share_token = data.token;
 	showShareState();
 	const status = document.getElementById("shareStatus")!;
-	status.textContent = data.emailSent ? "Link generated and email sent to client." : "Link generated.";
+	status.textContent = data.emailSent ? `Link generated and sent to ${data.recipients.join(", ")}.` : "Link generated.";
 	status.hidden = false;
 	btn.disabled = false;
 	btn.textContent = "Generate & Send Link";
@@ -805,9 +828,9 @@ document.getElementById("resendEmail")!.addEventListener("click", async () => {
 	const btn = document.getElementById("resendEmail") as HTMLButtonElement;
 	btn.disabled = true;
 	btn.textContent = "Sending...";
-	const data = (await api.shareAgreement(agreementId!, true)) as { emailSent: boolean };
+	const data = (await api.shareAgreement(agreementId!, true)) as { emailSent: boolean; recipients: string[] };
 	const status = document.getElementById("shareStatus")!;
-	status.textContent = data.emailSent ? "Email resent." : "No client email on file.";
+	status.textContent = data.emailSent ? `Email resent to ${data.recipients.join(", ")}.` : "No client email on file.";
 	status.hidden = false;
 	btn.textContent = "Resend Email";
 	btn.disabled = false;

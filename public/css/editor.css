@@ -32,6 +32,21 @@
 	margin: 0 auto;
 }
 
+.signed-note {
+	font-size: 0.85rem;
+	color: var(--text-muted);
+	margin-bottom: 12px;
+}
+
+.signed-note-flag {
+	margin-left: 8px;
+	padding: 1px 6px;
+	border-radius: var(--radius);
+	background: var(--warning-light);
+	color: var(--warning);
+	font-weight: 600;
+}
+
 .form-section {
 	background: var(--surface);
 	border: 1px solid var(--border);

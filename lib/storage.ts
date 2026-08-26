@@ -95,6 +95,9 @@ export async function ensureSchema(): Promise<void> {
 		)
 	`);
 
+	// Additive columns on existing tables (no migration runner — ALTER is a no-op once applied)
+	try { await db.execute("ALTER TABLE agreements ADD COLUMN client_cc TEXT"); } catch { /* already exists */ }
+
 	// Settings row + indexes (all independent, run in parallel)
 	await Promise.all([
 		db.execute("INSERT OR IGNORE INTO settings (id, data) VALUES (1, '{}')"),
@@ -116,6 +119,7 @@ export interface Agreement {
 	client_contact: string | null;
 	client_title: string | null;
 	client_email: string | null;
+	client_cc: string | null;
 	effective_date: string | null;
 	end_date: string | null;
 	project_description: string | null;
@@ -222,13 +226,13 @@ export async function duplicateAgreement(id: string, userId: string): Promise<Ag
 	const newId = nanoid();
 	const db = getClient();
 	await db.execute({
-		sql: `INSERT INTO agreements (id, type, title, status, client_name, client_address, client_contact, client_title, client_email,
+		sql: `INSERT INTO agreements (id, type, title, status, client_name, client_address, client_contact, client_title, client_email, client_cc,
 			effective_date, end_date, project_description, deliverable, timeframe, hours, hourly_rate, total_cost,
 			payment_structure, service_rates, client_responsibilities, custom_terms, designer_email, prompt, notes, created_by)
-			VALUES (?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			VALUES (?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		args: [
 			newId, original.type, `${original.title} (Copy)`, original.client_name, original.client_address,
-			original.client_contact, original.client_title, original.client_email, original.effective_date,
+			original.client_contact, original.client_title, original.client_email, original.client_cc, original.effective_date,
 			original.end_date, original.project_description, original.deliverable, original.timeframe,
 			original.hours, original.hourly_rate, original.total_cost, original.payment_structure,
 			original.service_rates, original.client_responsibilities, original.custom_terms,

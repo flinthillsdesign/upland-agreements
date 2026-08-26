@@ -18,17 +18,24 @@ async function init() {
 
 // Allowed fields for the generic PUT /api/agreements/:id endpoint
 const EDITABLE_FIELDS = new Set([
-	"title", "client_name", "client_address", "client_contact", "client_title", "client_email",
+	"title", "client_name", "client_address", "client_contact", "client_title", "client_email", "client_cc",
 	"effective_date", "end_date", "project_description", "deliverable", "timeframe",
 	"hours", "hourly_rate", "total_cost", "payment_structure", "service_rates",
 	"client_responsibilities", "custom_terms", "designer_email", "notes", "valid_until",
 ]);
 
-function buildSignature(name: string, ip: string, title?: string, consent?: { text: string; timestamp: string }): string {
+function buildSignature(name: string, ip: string, title?: string, consent?: { text: string; timestamp: string }, email?: string): string {
 	const sig: Record<string, unknown> = { name, timestamp: new Date().toISOString(), ip };
 	if (title) sig.title = title;
+	if (email) sig.email = email;
 	if (consent) sig.consent = consent;
 	return JSON.stringify(sig);
+}
+
+// Everyone the agreement was sent to: the primary contact plus the cc list (free text, any separator).
+function recipientEmails(agreement: { client_email: string | null; client_cc: string | null }): string[] {
+	const raw = [agreement.client_email || "", ...(agreement.client_cc || "").split(/[\s,;]+/)];
+	return [...new Set(raw.map((e) => e.trim().toLowerCase()).filter((e) => e.includes("@")))];
 }
 
 // === Router ===
@@ -330,13 +337,10 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 	const viewUrl = `${getBaseUrl(req)}/view.html?token=${token}`;
 
 	// Only send email on first share, or if explicitly requested
-	let emailSent = false;
-	if (agreement.client_email && (isNew || send_email)) {
-		await sendAgreementSharedEmail(agreement.client_email, agreement.title, viewUrl);
-		emailSent = true;
-	}
+	const recipients = isNew || send_email ? recipientEmails(agreement) : [];
+	await Promise.all(recipients.map((email) => sendAgreementSharedEmail(email, agreement.title, viewUrl)));
 
-	return json({ token, url: viewUrl, emailSent });
+	return json({ token, url: viewUrl, emailSent: recipients.length > 0, recipients });
 });
 
 route("DELETE", "/api/agreements/:id/share", "user", async (_req, params) => {
@@ -412,13 +416,14 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	await deleteVerificationCode(params.token);
 
 	const consent = consent_text ? { text: consent_text, timestamp: new Date().toISOString() } : undefined;
-	const signature = buildSignature(name, getClientIp(req), title, consent);
+	const signature = buildSignature(name, getClientIp(req), title, consent, email);
 
-	// Update agreement: signature + client-confirmed org info + verified email + effective date if blank
+	// Update agreement: signature (carries the verified signer email) + client-confirmed org info + effective date if blank.
+	// The primary contact is kept as sent so the recipient list stays intact; it's only filled in if it was blank.
 	const updates: Record<string, unknown> = { client_signature: signature, status: "signed" };
 	if (client_name !== undefined) updates.client_name = client_name;
 	if (client_address !== undefined) updates.client_address = client_address;
-	if (email) updates.client_email = email;
+	if (email && !agreement.client_email) updates.client_email = email;
 	if (!agreement.effective_date) updates.effective_date = new Date().toISOString().split("T")[0];
 	await updateAgreement(agreement.id, updates);
 
@@ -471,7 +476,10 @@ route("POST", "/api/agreements/:id/countersign", "user", async (req, params, use
 	}
 
 	if (viewUrl) {
-		const emails = [agreement.client_email, agreement.designer_email].filter(Boolean) as string[];
+		// Everyone it was sent to, whoever signed it, and the designer
+		let signerEmail: string | null = null;
+		try { signerEmail = JSON.parse(agreement.client_signature).email || null; } catch { /* legacy signature without email */ }
+		const emails = [...new Set([...recipientEmails(agreement), signerEmail, agreement.designer_email].filter(Boolean) as string[])];
 		await Promise.all(emails.map((email) =>
 			sendAgreementCountersignedEmail(email, agreement.title, viewUrl, pdfBuffer)
 		));
