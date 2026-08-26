@@ -58,16 +58,19 @@ export async function sendResetEmail(to: string, token: string, baseUrl: string)
 	);
 }
 
-export async function sendAgreementSharedEmail(to: string, agreementTitle: string, viewUrl: string): Promise<boolean> {
+// `others` = the rest of the recipient list, so each person can see who else has it.
+export async function sendAgreementSharedEmail(to: string, agreementTitle: string, viewUrl: string, others: string[] = []): Promise<boolean> {
+	const alsoSent = others.length ? `Also sent to: ${others.join(", ")}` : "";
 	return send(to,
 		`Agreement from Upland Exhibits: ${agreementTitle}`,
 		wrap(`
 			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px">Upland Exhibits has prepared an agreement for your review:</p>
 			<p style="font-size:18px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
 			<p style="margin-bottom:24px">${btn(viewUrl, "Review Agreement")}</p>
+			${alsoSent ? `<p style="font-size:13px;color:#6b6560;margin-bottom:8px">${escHtml(alsoSent)}</p>` : ""}
 			<p style="font-size:13px;color:#6b6560">If you have questions, reply to this email or contact us directly.</p>
 		`),
-		`Upland Exhibits has prepared an agreement for your review.\n\n${agreementTitle}\n\nReview it here: ${viewUrl}`,
+		`Upland Exhibits has prepared an agreement for your review.\n\n${agreementTitle}\n\nReview it here: ${viewUrl}${alsoSent ? `\n\n${alsoSent}` : ""}`,
 	);
 }
 
