@@ -10,6 +10,7 @@ export interface AgreementData {
 	client_contact: string | null;
 	client_title: string | null;
 	client_email: string | null;
+	client_cc?: string | null;
 	effective_date: string | null;
 	end_date: string | null;
 	project_description: string | null;
@@ -127,15 +128,14 @@ function isMouType(type: string): boolean {
 	return type === "mou_concept" || type === "mou_small";
 }
 
-function renderSignedInfo(sig: Record<string, unknown>): string {
-	const name = esc(sig.name as string);
-	const title = sig.title ? `, ${esc(sig.title as string)}` : "";
-	const ts = sig.timestamp as string;
-	const date = new Date(ts);
+function renderSignedInfo(sig: Signature): string {
+	const name = esc(sig.name);
+	const title = sig.title ? `, ${esc(sig.title)}` : "";
+	const date = new Date(sig.timestamp);
 	const tz = "America/Chicago";
 	const dateStr = date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: tz });
 	const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: tz, timeZoneName: "short" });
-	const ip = sig.ip ? esc(sig.ip as string) : "";
+	const ip = sig.ip ? esc(sig.ip) : "";
 
 	return `<div class="signed-info">
 		<div class="signed-name">${name}${title}</div>
@@ -144,17 +144,43 @@ function renderSignedInfo(sig: Record<string, unknown>): string {
 	</div>`;
 }
 
-function parseSig(json: string | null): Record<string, unknown> | null {
+// === Signatures & recipients — the one definition, shared by the API, the editor, and the client view ===
+
+export interface Signature {
+	name: string;
+	timestamp: string;
+	ip: string;
+	title?: string;
+	email?: string; // the address the signer verified
+	consent?: { text: string; timestamp: string };
+}
+
+export function buildSignature(fields: Omit<Signature, "timestamp">): string {
+	return JSON.stringify({ timestamp: new Date().toISOString(), ...fields }); // undefineds drop out
+}
+
+export function parseSignature(json: string | null | undefined): Signature | null {
 	if (!json) return null;
 	try { return JSON.parse(json); } catch { return null; }
+}
+
+// Free-text address lists (any separator) → normalized, deduped emails.
+export function emailList(...raw: (string | null | undefined)[]): string[] {
+	const all = raw.flatMap((s) => (s || "").split(/[\s,;]+/)).map((e) => e.trim().toLowerCase()).filter((e) => e.includes("@"));
+	return [...new Set(all)];
+}
+
+// Everyone the agreement was sent to: the primary contact plus the cc list.
+export function recipientEmails(a: Pick<AgreementData, "client_email" | "client_cc">): string[] {
+	return emailList(a.client_email, a.client_cc);
 }
 
 // === Signature Block ===
 
 function renderMouSignatures(
 	agreement: AgreementData,
-	clientSig: Record<string, unknown> | null,
-	designerSig: Record<string, unknown> | null,
+	clientSig: Signature | null,
+	designerSig: Signature | null,
 	designerName: string,
 	designerTitle: string,
 ): string {
@@ -182,8 +208,8 @@ function renderSignatures(agreement: AgreementData, settings: SettingsData): str
 	const designerTitle = settings.designer_title || "CEO";
 	const isMou = isMouType(agreement.type);
 
-	const clientSig = parseSig(agreement.client_signature);
-	const designerSig = parseSig(agreement.designer_signature);
+	const clientSig = parseSignature(agreement.client_signature);
+	const designerSig = parseSignature(agreement.designer_signature);
 
 	return `
 		<div style="margin-bottom:16px;font-weight:600;font-size:15px">Agreed and accepted:</div>

@@ -1,5 +1,6 @@
 import { api, requireAuth } from "./api.js";
-import { esc, escHtml, TYPE_LABELS, formatCurrency, isMouType, startThinkingAnimation, stopThinkingAnimation } from "./utils.js";
+import { esc, escHtml, TYPE_LABELS, formatCurrency, formatDate, isMouType, startThinkingAnimation, stopThinkingAnimation } from "./utils.js";
+import { parseSignature, recipientEmails } from "../../lib/render-agreement.js";
 
 requireAuth();
 
@@ -98,15 +99,11 @@ function getDurationMonths(a: Record<string, unknown>): string {
 
 // Who signed, and whether they were on the list we sent to — the check happens here, at countersign time, not on the client.
 function renderSignedNote(): string {
-	if (!agreement?.client_signature) return "";
-	let sig: { name?: string; title?: string; email?: string; timestamp?: string } = {};
-	try { sig = JSON.parse(agreement.client_signature); } catch { return ""; }
-	const sent = [agreement.client_email || "", ...(agreement.client_cc || "").split(/[\s,;]+/)]
-		.map((e) => e.trim().toLowerCase()).filter((e) => e.includes("@"));
-	const offList = !!sig.email && !sent.includes(sig.email.toLowerCase());
-	const when = sig.timestamp ? new Date(sig.timestamp).toLocaleDateString() : "";
-	const who = [sig.name, sig.title].filter(Boolean).map((s) => esc(s!)).join(", ");
-	return `<div class="signed-note">Signed by ${who}${sig.email ? ` &middot; ${esc(sig.email)}` : ""}${when ? ` &middot; ${when}` : ""}${offList ? `<span class="signed-note-flag">not on the recipient list</span>` : ""}</div>`;
+	const sig = parseSignature(agreement?.client_signature);
+	if (!sig || !agreement) return "";
+	const offList = !!sig.email && !recipientEmails(agreement).includes(sig.email.toLowerCase());
+	const who = esc([sig.name, sig.title].filter(Boolean).join(", "));
+	return `<div class="signed-note">Signed by ${who}${sig.email ? ` &middot; ${esc(sig.email)}` : ""} &middot; ${formatDate(sig.timestamp)}${offList ? `<span class="signed-note-flag">not on the recipient list</span>` : ""}</div>`;
 }
 
 function renderForm() {
@@ -135,10 +132,6 @@ function renderForm() {
 							<label>Email</label>
 							<input type="email" data-field="client_email" value="${esc(agreement.client_email)}">
 						</div>
-					</div>
-					<div class="form-group">
-						<label>Also send to</label>
-						<input type="text" data-field="client_cc" value="${esc(agreement.client_cc)}" placeholder="cc emails, comma-separated">
 					</div>` : `
 					<div class="form-row">
 						<div class="form-group flex-2">
@@ -159,11 +152,11 @@ function renderForm() {
 							<label>Email</label>
 							<input type="email" data-field="client_email" value="${esc(agreement.client_email)}">
 						</div>
-					</div>
+					</div>`}
 					<div class="form-group">
 						<label>Also send to</label>
 						<input type="text" data-field="client_cc" value="${esc(agreement.client_cc)}" placeholder="cc emails, comma-separated">
-					</div>`}
+					</div>
 					</div>
 			</div>
 
@@ -813,11 +806,11 @@ document.getElementById("generateShareLink")!.addEventListener("click", async ()
 	const btn = document.getElementById("generateShareLink") as HTMLButtonElement;
 	btn.disabled = true;
 	btn.textContent = "Sending...";
-	const data = (await api.shareAgreement(agreementId!)) as { token: string; url: string; emailSent: boolean; recipients: string[] };
+	const data = (await api.shareAgreement(agreementId!)) as { token: string; url: string; recipients: string[] };
 	agreement!.share_token = data.token;
 	showShareState();
 	const status = document.getElementById("shareStatus")!;
-	status.textContent = data.emailSent ? `Link generated and sent to ${data.recipients.join(", ")}.` : "Link generated.";
+	status.textContent = data.recipients.length ? `Link generated and sent to ${data.recipients.join(", ")}.` : "Link generated.";
 	status.hidden = false;
 	btn.disabled = false;
 	btn.textContent = "Generate & Send Link";
@@ -827,9 +820,9 @@ document.getElementById("resendEmail")!.addEventListener("click", async () => {
 	const btn = document.getElementById("resendEmail") as HTMLButtonElement;
 	btn.disabled = true;
 	btn.textContent = "Sending...";
-	const data = (await api.shareAgreement(agreementId!, true)) as { emailSent: boolean; recipients: string[] };
+	const data = (await api.shareAgreement(agreementId!, true)) as { recipients: string[] };
 	const status = document.getElementById("shareStatus")!;
-	status.textContent = data.emailSent ? `Email resent to ${data.recipients.join(", ")}.` : "No client email on file.";
+	status.textContent = data.recipients.length ? `Email resent to ${data.recipients.join(", ")}.` : "No client email on file.";
 	status.hidden = false;
 	btn.textContent = "Resend Email";
 	btn.disabled = false;

@@ -30,6 +30,7 @@ export async function ensureSchema(): Promise<void> {
 			client_contact TEXT,
 			client_title TEXT,
 			client_email TEXT,
+			client_cc TEXT,
 			effective_date TEXT,
 			end_date TEXT,
 			project_description TEXT,
@@ -95,11 +96,9 @@ export async function ensureSchema(): Promise<void> {
 		)
 	`);
 
-	// Additive columns on existing tables (no migration runner — ALTER is a no-op once applied)
-	try { await db.execute("ALTER TABLE agreements ADD COLUMN client_cc TEXT"); } catch { /* already exists */ }
-
-	// Settings row + indexes (all independent, run in parallel)
+	// Settings row + indexes + additive columns for DBs created before them (all independent, run in parallel)
 	await Promise.all([
+		db.execute("ALTER TABLE agreements ADD COLUMN client_cc TEXT").catch(() => { /* already exists */ }),
 		db.execute("INSERT OR IGNORE INTO settings (id, data) VALUES (1, '{}')"),
 		db.execute("CREATE INDEX IF NOT EXISTS idx_agreements_status ON agreements(status)"),
 		db.execute("CREATE INDEX IF NOT EXISTS idx_agreements_share_token ON agreements(share_token)"),

@@ -5,6 +5,7 @@ import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgre
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { generateShareToken } from "../../lib/share-tokens.js";
 import { sendResetEmail, sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
+import { buildSignature, parseSignature, emailList, recipientEmails } from "../../lib/render-agreement.js";
 
 const APP_NAME = "agreements";
 let initPromise: Promise<void> | null = null;
@@ -24,19 +25,6 @@ const EDITABLE_FIELDS = new Set([
 	"client_responsibilities", "custom_terms", "designer_email", "notes", "valid_until",
 ]);
 
-function buildSignature(name: string, ip: string, title?: string, consent?: { text: string; timestamp: string }, email?: string): string {
-	const sig: Record<string, unknown> = { name, timestamp: new Date().toISOString(), ip };
-	if (title) sig.title = title;
-	if (email) sig.email = email;
-	if (consent) sig.consent = consent;
-	return JSON.stringify(sig);
-}
-
-// Everyone the agreement was sent to: the primary contact plus the cc list (free text, any separator).
-function recipientEmails(agreement: { client_email: string | null; client_cc: string | null }): string[] {
-	const raw = [agreement.client_email || "", ...(agreement.client_cc || "").split(/[\s,;]+/)];
-	return [...new Set(raw.map((e) => e.trim().toLowerCase()).filter((e) => e.includes("@")))];
-}
 
 // === Router ===
 
@@ -340,7 +328,7 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 	const recipients = isNew || send_email ? recipientEmails(agreement) : [];
 	await Promise.all(recipients.map((email) => sendAgreementSharedEmail(email, agreement.title, viewUrl)));
 
-	return json({ token, url: viewUrl, emailSent: recipients.length > 0, recipients });
+	return json({ token, url: viewUrl, recipients });
 });
 
 route("DELETE", "/api/agreements/:id/share", "user", async (_req, params) => {
@@ -416,7 +404,7 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	await deleteVerificationCode(params.token);
 
 	const consent = consent_text ? { text: consent_text, timestamp: new Date().toISOString() } : undefined;
-	const signature = buildSignature(name, getClientIp(req), title, consent, email);
+	const signature = buildSignature({ name, ip: getClientIp(req), title: title || undefined, email, consent });
 
 	// Update agreement: signature (carries the verified signer email) + client-confirmed org info + effective date if blank.
 	// The primary contact is kept as sent so the recipient list stays intact; it's only filled in if it was blank.
@@ -446,7 +434,7 @@ route("POST", "/api/agreements/:id/countersign", "user", async (req, params, use
 
 	const { name, title } = await req.json() as { name?: string; title?: string };
 
-	const signature = buildSignature(name || user!.email, getClientIp(req), title);
+	const signature = buildSignature({ name: name || user!.email, ip: getClientIp(req), title: title || undefined });
 
 	await updateAgreement(agreement.id, { designer_signature: signature, status: "countersigned" });
 
@@ -477,9 +465,7 @@ route("POST", "/api/agreements/:id/countersign", "user", async (req, params, use
 
 	if (viewUrl) {
 		// Everyone it was sent to, whoever signed it, and the designer
-		let signerEmail: string | null = null;
-		try { signerEmail = JSON.parse(agreement.client_signature).email || null; } catch { /* legacy signature without email */ }
-		const emails = [...new Set([...recipientEmails(agreement), signerEmail, agreement.designer_email].filter(Boolean) as string[])];
+		const emails = emailList(agreement.client_email, agreement.client_cc, parseSignature(agreement.client_signature)?.email, agreement.designer_email);
 		await Promise.all(emails.map((email) =>
 			sendAgreementCountersignedEmail(email, agreement.title, viewUrl, pdfBuffer)
 		));
