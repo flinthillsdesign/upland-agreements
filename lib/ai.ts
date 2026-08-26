@@ -187,6 +187,7 @@ function normalizeFields(fields: unknown): Partial<Agreement> | undefined {
   if (!fields || typeof fields !== "object") return undefined;
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(fields as Record<string, unknown>)) {
+    if (k === "service_rates") continue; // rates come from Settings; edit them in the Service Rates panel, never via AI
     out[k] = v !== null && typeof v === "object" ? JSON.stringify(v) : v;
   }
   return out as Partial<Agreement>;
