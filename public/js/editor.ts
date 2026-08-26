@@ -208,7 +208,6 @@ function renderForm() {
 				<div class="form-section-body">
 					${isMou ? `
 					<div class="cost-line cost-line-primary">
-						<label class="cost-line-label">Concept design</label>
 						<div class="form-row">
 							<div class="form-group">
 								<label>Hours</label>
