@@ -50,7 +50,7 @@ For Agreements for Services, draft:
 - project_description: Description of services paragraph
 - total_cost: NTE (not-to-exceed) amount
 - payment_structure: JSON with {initial_pct, initial_amount, progress_note, final_pct, final_amount}
-- service_rates: JSON with current rates {head_rate, design_rate, fab_rate, materials_markup, travel_rate}
+- Do NOT draft service_rates — they are pre-populated from Upland's current rate sheet. Only change them if the user explicitly asks.
 - Do NOT draft client_responsibilities — these are hardcoded in the agreement template. Only add to client_responsibilities if the user explicitly asks for project-specific additions.
 - end_date: Suggested end date (ISO format YYYY-MM-DD)
 - effective_date: Usually leave blank (defaults to date of signing), but set if the user specifies a start date
@@ -181,6 +181,17 @@ export interface AiResponse {
   references?: string[];
 }
 
+// JSON-typed columns (payment_structure, service_rates) must land as strings —
+// an object handed straight to the DB binds as "[object Object]".
+function normalizeFields(fields: unknown): Partial<Agreement> | undefined {
+  if (!fields || typeof fields !== "object") return undefined;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(fields as Record<string, unknown>)) {
+    out[k] = v !== null && typeof v === "object" ? JSON.stringify(v) : v;
+  }
+  return out as Partial<Agreement>;
+}
+
 function parseResponse(text: string): AiResponse {
   // Extract JSON from code block
   const jsonMatch = text.match(/```json\s*([\s\S]*?)```/);
@@ -189,7 +200,7 @@ function parseResponse(text: string): AiResponse {
       const parsed = JSON.parse(jsonMatch[1]);
       return {
         message: parsed.message || "Updated agreement fields.",
-        fields: parsed.fields || undefined,
+        fields: normalizeFields(parsed.fields),
         references: parsed.references || [],
       };
     } catch {
@@ -202,7 +213,7 @@ function parseResponse(text: string): AiResponse {
     const parsed = JSON.parse(text);
     return {
       message: parsed.message || "Updated agreement fields.",
-      fields: parsed.fields || undefined,
+      fields: normalizeFields(parsed.fields),
       references: parsed.references || [],
     };
   } catch {
@@ -283,10 +294,10 @@ function mockGenerate(prompt: string, agreement: Agreement): AiResponse {
           final_amount: 15000,
         }),
         service_rates: JSON.stringify({
-          head_rate: 95,
-          design_rate: 75,
-          fab_rate: 65,
-          materials_markup: 15,
+          head_rate: 125,
+          design_rate: 100,
+          fab_rate: 75,
+          materials_markup: 20,
           travel_rate: 55,
         }),
         client_responsibilities:

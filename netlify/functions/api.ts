@@ -147,10 +147,10 @@ route("POST", "/api/agreements", "user", async (req, _params, user) => {
 
 	if (body.type === "full_services") {
 		defaults.service_rates = JSON.stringify({
-			head_rate: settings.head_rate || 95,
-			design_rate: settings.design_rate || 75,
-			fab_rate: settings.fab_rate || 65,
-			materials_markup: settings.materials_markup || 15,
+			head_rate: settings.head_rate || 125,
+			design_rate: settings.design_rate || 100,
+			fab_rate: settings.fab_rate || 75,
+			materials_markup: settings.materials_markup || 20,
 			travel_rate: settings.travel_rate || 55,
 		});
 		defaults.payment_structure = JSON.stringify({

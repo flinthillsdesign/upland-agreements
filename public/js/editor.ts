@@ -208,7 +208,7 @@ function renderForm() {
 						<div class="calculated-field" id="totalCost">${agreement.total_cost ? formatCurrency(agreement.total_cost) : "—"}</div>
 					</div>` : (() => {
 					let ps = { initial_pct: 10, initial_amount: 0, final_pct: 10, final_amount: 0 };
-					let sr = { head_rate: 95, design_rate: 75, fab_rate: 65, materials_markup: 15, travel_rate: 55 };
+					let sr = { head_rate: 125, design_rate: 100, fab_rate: 75, materials_markup: 20, travel_rate: 55 };
 					try { if (agreement.payment_structure) ps = typeof agreement.payment_structure === "string" ? JSON.parse(agreement.payment_structure) : agreement.payment_structure; } catch {}
 					try { if (agreement.service_rates) sr = typeof agreement.service_rates === "string" ? JSON.parse(agreement.service_rates) : agreement.service_rates; } catch {}
 					return `
