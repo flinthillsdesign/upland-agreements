@@ -77,11 +77,13 @@ export async function sendAgreementSharedEmail(to: string, agreementTitle: strin
 	);
 }
 
-export async function sendAgreementViewedEmail(to: string, agreementTitle: string, clientName: string, editorUrl: string): Promise<boolean> {
+// `who` = the recipient whose link was opened (name + address when it's the named contact), or the client org for the generic link.
+export async function sendAgreementViewedEmail(to: string, agreementTitle: string, who: string, editorUrl: string): Promise<boolean> {
+	const clientName = who || "A client";
 	return send(to,
-		`Agreement viewed: ${agreementTitle}`,
+		`${clientName} opened: ${agreementTitle}`,
 		wrap(`
-			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px"><strong>${escHtml(clientName || "A client")}</strong> just opened your agreement:</p>
+			<p style="font-size:14px;color:#1a1a1a;margin-bottom:8px"><strong>${escHtml(clientName)}</strong> just opened your agreement:</p>
 			<p style="font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
 			<p style="margin-bottom:24px">${btn(editorUrl, "Open in Editor")}</p>
 		`),

@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import { extractToken, verifyToken, verifyPassword, createToken, hashPassword, type JwtPayload } from "../../lib/auth.js";
 import { ensureAuthSchema, getUserByLogin, getUserByEmail, getUserById, getUsers, createUser, updateUser, deleteUser, setResetToken, getUserByResetToken, clearResetToken, checkAppAccess } from "../../lib/auth-storage.js";
-import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, getAgreementByToken, recordView, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
+import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, recordView, tokenInUse, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { generateShareToken } from "../../lib/share-tokens.js";
 import { sendResetEmail, sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
@@ -72,6 +72,39 @@ function getBaseUrl(req: Request): string {
 
 function getClientIp(req: Request): string {
 	return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+}
+
+// Word-pair tokens are short, so check the two token namespaces before handing one out.
+async function newShareToken(): Promise<string> {
+	for (let i = 0; i < 8; i++) {
+		const token = generateShareToken();
+		if (!(await tokenInUse(token))) return token;
+	}
+	return `${generateShareToken()}-${nanoid(4).toLowerCase()}`;
+}
+
+function viewUrlFor(req: Request, token: string): string {
+	return `${getBaseUrl(req)}/view.html?token=${token}`;
+}
+
+// Who a recipient link belongs to, for the notification: the named contact when it's their address, else the address.
+function recipientLabel(agreement: { client_contact: string | null; client_email: string | null }, email: string): string {
+	const contact = agreement.client_contact?.trim();
+	const isContact = !!contact && emailList(agreement.client_email)[0] === email;
+	return isContact ? `${contact} (${email})` : email;
+}
+
+// Per-recipient links plus the opens that came through the generic link (or predate per-recipient links).
+async function shareSummary(req: Request, agreement: { id: string; share_token: string | null; view_count: number; client_email: string | null; client_cc: string | null }) {
+	const order = recipientEmails(agreement);
+	const links = (await listShareLinks(agreement.id)).sort((a, b) => order.indexOf(a.email) - order.indexOf(b.email));
+	const attributed = links.reduce((n, l) => n + l.view_count, 0);
+	return {
+		token: agreement.share_token,
+		url: agreement.share_token ? viewUrlFor(req, agreement.share_token) : null,
+		recipients: links.map((l) => ({ email: l.email, url: viewUrlFor(req, l.token), view_count: l.view_count, viewed_at: l.viewed_at })),
+		other_views: Math.max(0, agreement.view_count - attributed),
+	};
 }
 
 // === Auth Routes ===
@@ -309,6 +342,12 @@ route("GET", "/api/agreements/:id/preview", "user", async (_req, params) => {
 
 // === Sharing Routes ===
 
+route("GET", "/api/agreements/:id/share", "user", async (req, params) => {
+	const agreement = await getAgreement(params.id);
+	if (!agreement) return err("Not found", 404);
+	return json(await shareSummary(req, agreement));
+});
+
 route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 	const agreement = await getAgreement(params.id);
 	if (!agreement) return err("Not found", 404);
@@ -318,37 +357,42 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 	let token = agreement.share_token;
 	const isNew = !token;
 	if (!token) {
-		token = generateShareToken();
+		token = await newShareToken();
 		await updateAgreement(params.id, { share_token: token, status: "sent" });
 	}
 
-	const viewUrl = `${getBaseUrl(req)}/view.html?token=${token}`;
-
-	// Only send email on first share, or if explicitly requested
+	// Only send email on first share, or if explicitly requested. Each recipient gets their own link so opens map to a person.
 	const recipients = isNew || send_email ? recipientEmails(agreement) : [];
 	const signer = agreement.client_contact?.trim() || agreement.client_email || "your organization";
-	await Promise.all(recipients.map((email) => sendAgreementSharedEmail(email, agreement.title, viewUrl, signer, recipients.filter((r) => r !== email))));
+	for (const email of recipients) {
+		const link = await getOrCreateShareLink(agreement.id, email, await newShareToken());
+		await sendAgreementSharedEmail(email, agreement.title, viewUrlFor(req, link.token), signer, recipients.filter((r) => r !== email));
+	}
 
-	return json({ token, url: viewUrl, recipients });
+	return json({ ...(await shareSummary(req, { ...agreement, share_token: token })), sent: recipients });
 });
 
 route("DELETE", "/api/agreements/:id/share", "user", async (_req, params) => {
 	await updateAgreement(params.id, { share_token: null });
+	await deleteShareLinks(params.id);
 	return json({ ok: true });
 });
 
 // === Client View Routes (token auth) ===
 
 route("GET", "/api/agreements/view/:token", "none", async (req, params) => {
-	const agreement = await getAgreementByToken(params.token);
-	if (!agreement) return err("Not found", 404);
+	const found = await resolveShareToken(params.token);
+	if (!found) return err("Not found", 404);
+	const { agreement, link } = found;
 
-	await recordView(params.token);
+	await recordView(agreement.id, link?.token);
 
-	// Notify designer on first view
-	if (agreement.view_count === 0 && agreement.designer_email) {
+	// Notify designer on each recipient's first open; the generic link only on the agreement's first open ever.
+	const firstOpen = link ? link.view_count === 0 : agreement.view_count === 0;
+	if (firstOpen && agreement.designer_email) {
+		const who = link ? recipientLabel(agreement, link.email) : agreement.client_name || "A client";
 		const editorUrl = `${getBaseUrl(req)}/editor.html?id=${agreement.id}`;
-		await sendAgreementViewedEmail(agreement.designer_email, agreement.title, agreement.client_name || "A client", editorUrl);
+		await sendAgreementViewedEmail(agreement.designer_email, agreement.title, who, editorUrl);
 	}
 
 	// Get settings for boilerplate
@@ -358,7 +402,7 @@ route("GET", "/api/agreements/view/:token", "none", async (req, params) => {
 });
 
 route("POST", "/api/agreements/view/:token/send-code", "none", async (req, params) => {
-	const agreement = await getAgreementByToken(params.token);
+	const agreement = (await resolveShareToken(params.token))?.agreement;
 	if (!agreement) return err("Not found", 404);
 	if (agreement.client_signature) return err("Already signed");
 
@@ -389,7 +433,7 @@ route("POST", "/api/agreements/view/:token/verify-code", "none", async (req, par
 });
 
 route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) => {
-	const agreement = await getAgreementByToken(params.token);
+	const agreement = (await resolveShareToken(params.token))?.agreement;
 	if (!agreement) return err("Not found", 404);
 	if (agreement.client_signature) return err("Already signed");
 

@@ -780,24 +780,61 @@ document.getElementById("countersignBtn")!.addEventListener("click", async () =>
 // === Share modal ===
 const shareModal = document.getElementById("shareModal")!;
 
-function showShareState() {
+interface ShareSummary {
+	token: string | null;
+	url: string | null;
+	recipients: { email: string; url: string; view_count: number; viewed_at: string | null }[];
+	other_views: number;
+	sent?: string[];
+}
+
+function formatOpened(iso: string): string {
+	return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+// One row per recipient: opened when (and how many times), or not yet. Opens that can't be tied to a person show as one extra row.
+function renderShareRecipients(share: ShareSummary) {
+	const list = document.getElementById("shareRecipients")!;
+	const rows = share.recipients.map((r) => {
+		const when = r.viewed_at
+			? `<span class="when"><span class="opened">Opened</span> ${esc(formatOpened(r.viewed_at))}${r.view_count > 1 ? ` &middot; ${r.view_count}&times;` : ""}</span>`
+			: `<span class="when">Not opened</span>`;
+		return `<li><span class="who" title="${esc(r.email)}">${esc(r.email)}</span>${when}</li>`;
+	});
+	if (share.other_views > 0) {
+		rows.push(`<li><span class="who">Shared link</span><span class="when"><span class="opened">Opened</span> ${share.other_views}&times;</span></li>`);
+	}
+	list.innerHTML = rows.join("");
+	list.hidden = rows.length === 0;
+}
+
+function showShareState(share?: ShareSummary) {
 	const hasToken = !!agreement?.share_token;
 	document.getElementById("shareLinkField")!.hidden = !hasToken;
 	document.getElementById("shareActions")!.hidden = hasToken;
 	document.getElementById("shareManage")!.hidden = !hasToken;
 	document.getElementById("shareStatus")!.hidden = true;
+	document.getElementById("shareRecipients")!.hidden = true;
 	document.getElementById("shareDescription")!.textContent = hasToken
 		? "This agreement has been shared with your client."
 		: "Generate a shareable link for your client to review and sign.";
 	if (hasToken) {
 		(document.getElementById("shareLinkInput") as HTMLInputElement).value = `${window.location.origin}/view.html?token=${agreement!.share_token}`;
+		if (share) renderShareRecipients(share);
 	}
 }
 
-document.getElementById("shareBtn")!.addEventListener("click", () => {
+function setShareStatus(text: string) {
+	const status = document.getElementById("shareStatus")!;
+	status.textContent = text;
+	status.hidden = false;
+}
+
+document.getElementById("shareBtn")!.addEventListener("click", async () => {
 	if (!agreement) return;
 	showShareState();
 	shareModal.hidden = false;
+	if (agreement.share_token) showShareState((await api.getShare(agreementId!)) as ShareSummary);
 });
 document.getElementById("closeShare")!.addEventListener("click", () => { shareModal.hidden = true; });
 shareModal.querySelector(".modal-backdrop")!.addEventListener("click", () => { shareModal.hidden = true; });
@@ -806,12 +843,10 @@ document.getElementById("generateShareLink")!.addEventListener("click", async ()
 	const btn = document.getElementById("generateShareLink") as HTMLButtonElement;
 	btn.disabled = true;
 	btn.textContent = "Sending...";
-	const data = (await api.shareAgreement(agreementId!)) as { token: string; url: string; recipients: string[] };
+	const data = (await api.shareAgreement(agreementId!)) as ShareSummary;
 	agreement!.share_token = data.token;
-	showShareState();
-	const status = document.getElementById("shareStatus")!;
-	status.textContent = data.recipients.length ? `Link generated and sent to ${data.recipients.join(", ")}.` : "Link generated.";
-	status.hidden = false;
+	showShareState(data);
+	setShareStatus(data.sent?.length ? `Link generated and sent to ${data.sent.join(", ")}.` : "Link generated.");
 	btn.disabled = false;
 	btn.textContent = "Generate & Send Link";
 });
@@ -820,10 +855,9 @@ document.getElementById("resendEmail")!.addEventListener("click", async () => {
 	const btn = document.getElementById("resendEmail") as HTMLButtonElement;
 	btn.disabled = true;
 	btn.textContent = "Sending...";
-	const data = (await api.shareAgreement(agreementId!, true)) as { recipients: string[] };
-	const status = document.getElementById("shareStatus")!;
-	status.textContent = data.recipients.length ? `Email resent to ${data.recipients.join(", ")}.` : "No client email on file.";
-	status.hidden = false;
+	const data = (await api.shareAgreement(agreementId!, true)) as ShareSummary;
+	showShareState(data);
+	setShareStatus(data.sent?.length ? `Email resent to ${data.sent.join(", ")}.` : "No client email on file.");
 	btn.textContent = "Resend Email";
 	btn.disabled = false;
 });
@@ -831,9 +865,7 @@ document.getElementById("resendEmail")!.addEventListener("click", async () => {
 document.getElementById("copyShareLink")!.addEventListener("click", () => {
 	const input = document.getElementById("shareLinkInput") as HTMLInputElement;
 	navigator.clipboard.writeText(input.value);
-	const status = document.getElementById("shareStatus")!;
-	status.textContent = "Link copied to clipboard.";
-	status.hidden = false;
+	setShareStatus("Link copied to clipboard.");
 });
 
 document.getElementById("revokeShareLink")!.addEventListener("click", async () => {
