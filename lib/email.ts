@@ -87,7 +87,7 @@ export async function sendAgreementViewedEmail(to: string, agreementTitle: strin
 			<p style="font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:20px">${escHtml(agreementTitle)}</p>
 			<p style="margin-bottom:24px">${btn(editorUrl, "Open in Editor")}</p>
 		`),
-		`${clientName || "A client"} just opened your agreement: ${agreementTitle}\n\nOpen in editor: ${editorUrl}`,
+		`${clientName} just opened your agreement: ${agreementTitle}\n\nOpen in editor: ${editorUrl}`,
 	);
 }
 

@@ -1,9 +1,8 @@
 import { nanoid } from "nanoid";
 import { extractToken, verifyToken, verifyPassword, createToken, hashPassword, type JwtPayload } from "../../lib/auth.js";
 import { ensureAuthSchema, getUserByLogin, getUserByEmail, getUserById, getUsers, createUser, updateUser, deleteUser, setResetToken, getUserByResetToken, clearResetToken, checkAppAccess } from "../../lib/auth-storage.js";
-import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, recordView, tokenInUse, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
+import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, recordView, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
-import { generateShareToken } from "../../lib/share-tokens.js";
 import { sendResetEmail, sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
 import { buildSignature, parseSignature, emailList, recipientEmails } from "../../lib/render-agreement.js";
 
@@ -72,15 +71,6 @@ function getBaseUrl(req: Request): string {
 
 function getClientIp(req: Request): string {
 	return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
-}
-
-// Word-pair tokens are short, so check the two token namespaces before handing one out.
-async function newShareToken(): Promise<string> {
-	for (let i = 0; i < 8; i++) {
-		const token = generateShareToken();
-		if (!(await tokenInUse(token))) return token;
-	}
-	return `${generateShareToken()}-${nanoid(4).toLowerCase()}`;
 }
 
 function viewUrlFor(req: Request, token: string): string {
@@ -354,22 +344,21 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 
 	const { send_email } = await req.json().catch(() => ({ send_email: undefined })) as { send_email?: boolean };
 
-	let token = agreement.share_token;
-	const isNew = !token;
-	if (!token) {
-		token = await newShareToken();
-		await updateAgreement(params.id, { share_token: token, status: "sent" });
+	const isNew = !agreement.share_token;
+	if (isNew) {
+		agreement.share_token = await createShareToken();
+		await updateAgreement(params.id, { share_token: agreement.share_token, status: "sent" });
 	}
 
 	// Only send email on first share, or if explicitly requested. Each recipient gets their own link so opens map to a person.
 	const recipients = isNew || send_email ? recipientEmails(agreement) : [];
 	const signer = agreement.client_contact?.trim() || agreement.client_email || "your organization";
-	for (const email of recipients) {
-		const link = await getOrCreateShareLink(agreement.id, email, await newShareToken());
+	await Promise.all(recipients.map(async (email) => {
+		const link = await getOrCreateShareLink(agreement.id, email);
 		await sendAgreementSharedEmail(email, agreement.title, viewUrlFor(req, link.token), signer, recipients.filter((r) => r !== email));
-	}
+	}));
 
-	return json({ ...(await shareSummary(req, { ...agreement, share_token: token })), sent: recipients });
+	return json({ ...(await shareSummary(req, agreement)), sent: recipients });
 });
 
 route("DELETE", "/api/agreements/:id/share", "user", async (_req, params) => {

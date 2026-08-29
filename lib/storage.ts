@@ -1,5 +1,6 @@
 import type { Client } from "@libsql/client";
 import { nanoid } from "nanoid";
+import { generateShareToken } from "./share-tokens.js";
 
 let client: Client;
 
@@ -199,25 +200,36 @@ export interface ShareLink {
 	created_at: string;
 }
 
-// A client token is either a recipient's own link or the agreement's generic link.
+// A client token is either a recipient's own link or the agreement's generic link — one query answers both.
 export async function resolveShareToken(token: string): Promise<{ agreement: Agreement; link: ShareLink | null } | null> {
 	const db = getClient();
-	const linkResult = await db.execute({ sql: "SELECT * FROM share_links WHERE token = ?", args: [token] });
-	const link = (linkResult.rows[0] as unknown as ShareLink) || null;
-	const result = link
-		? await db.execute({ sql: "SELECT * FROM agreements WHERE id = ?", args: [link.agreement_id] })
-		: await db.execute({ sql: "SELECT * FROM agreements WHERE share_token = ?", args: [token] });
-	const agreement = (result.rows[0] as unknown as Agreement) || null;
-	return agreement ? { agreement, link } : null;
-}
-
-export async function tokenInUse(token: string): Promise<boolean> {
-	const db = getClient();
 	const result = await db.execute({
-		sql: "SELECT 1 FROM agreements WHERE share_token = ? UNION ALL SELECT 1 FROM share_links WHERE token = ?",
+		sql: `SELECT a.*, l.token AS link_token, l.email AS link_email, l.view_count AS link_view_count, l.viewed_at AS link_viewed_at, l.created_at AS link_created_at
+			FROM agreements a LEFT JOIN share_links l ON l.token = ? AND l.agreement_id = a.id
+			WHERE a.share_token = ? OR l.token IS NOT NULL`,
 		args: [token, token],
 	});
-	return result.rows.length > 0;
+	const row = result.rows[0] as Record<string, unknown> | undefined;
+	if (!row) return null;
+	const { link_token, link_email, link_view_count, link_viewed_at, link_created_at, ...agreement } = row;
+	const link = link_token
+		? { token: link_token, agreement_id: agreement.id, email: link_email, view_count: link_view_count, viewed_at: link_viewed_at, created_at: link_created_at } as ShareLink
+		: null;
+	return { agreement: agreement as unknown as Agreement, link };
+}
+
+// Word-pair tokens are short, so check both token namespaces before handing one out.
+export async function createShareToken(): Promise<string> {
+	const db = getClient();
+	for (let i = 0; i < 8; i++) {
+		const token = generateShareToken();
+		const result = await db.execute({
+			sql: "SELECT 1 FROM agreements WHERE share_token = ? UNION ALL SELECT 1 FROM share_links WHERE token = ?",
+			args: [token, token],
+		});
+		if (result.rows.length === 0) return token;
+	}
+	return `${generateShareToken()}-${nanoid(4).toLowerCase()}`;
 }
 
 export async function listShareLinks(agreementId: string): Promise<ShareLink[]> {
@@ -226,14 +238,18 @@ export async function listShareLinks(agreementId: string): Promise<ShareLink[]> 
 	return result.rows as unknown as ShareLink[];
 }
 
-// Returns the recipient's existing link, or creates one with the given token.
-export async function getOrCreateShareLink(agreementId: string, email: string, token: string): Promise<ShareLink> {
+// The recipient's existing link, or a fresh one — a token is only minted when there's nothing to reuse.
+export async function getOrCreateShareLink(agreementId: string, email: string): Promise<ShareLink> {
 	const db = getClient();
-	await db.execute({
-		sql: "INSERT OR IGNORE INTO share_links (token, agreement_id, email) VALUES (?, ?, ?)",
-		args: [token, agreementId, email],
-	});
-	const result = await db.execute({ sql: "SELECT * FROM share_links WHERE agreement_id = ? AND email = ?", args: [agreementId, email] });
+	const find = () => db.execute({ sql: "SELECT * FROM share_links WHERE agreement_id = ? AND email = ?", args: [agreementId, email] });
+	let result = await find();
+	if (result.rows.length === 0) {
+		await db.execute({
+			sql: "INSERT OR IGNORE INTO share_links (token, agreement_id, email) VALUES (?, ?, ?)",
+			args: [await createShareToken(), agreementId, email],
+		});
+		result = await find();
+	}
 	return result.rows[0] as unknown as ShareLink;
 }
 
@@ -308,21 +324,23 @@ export async function duplicateAgreement(id: string, userId: string): Promise<Ag
 export async function recordView(agreementId: string, linkToken?: string | null): Promise<void> {
 	const db = getClient();
 	const now = new Date().toISOString();
-	await db.execute({
-		sql: `UPDATE agreements SET
-			view_count = view_count + 1,
-			viewed_at = COALESCE(viewed_at, ?),
-			status = CASE WHEN status = 'sent' THEN 'viewed' ELSE status END,
-			updated_at = ?
-			WHERE id = ?`,
-		args: [now, now, agreementId],
-	});
-	if (linkToken) {
-		await db.execute({
-			sql: "UPDATE share_links SET view_count = view_count + 1, viewed_at = COALESCE(viewed_at, ?) WHERE token = ?",
-			args: [now, linkToken],
-		});
-	}
+	await Promise.all([
+		db.execute({
+			sql: `UPDATE agreements SET
+				view_count = view_count + 1,
+				viewed_at = COALESCE(viewed_at, ?),
+				status = CASE WHEN status = 'sent' THEN 'viewed' ELSE status END,
+				updated_at = ?
+				WHERE id = ?`,
+			args: [now, now, agreementId],
+		}),
+		linkToken
+			? db.execute({
+				sql: "UPDATE share_links SET view_count = view_count + 1, viewed_at = COALESCE(viewed_at, ?) WHERE token = ?",
+				args: [now, linkToken],
+			})
+			: null,
+	]);
 }
 
 // === Conversations ===

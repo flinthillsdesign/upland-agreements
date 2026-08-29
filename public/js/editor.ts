@@ -788,16 +788,12 @@ interface ShareSummary {
 	sent?: string[];
 }
 
-function formatOpened(iso: string): string {
-	return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-}
-
 // One row per recipient: opened when (and how many times), or not yet. Opens that can't be tied to a person show as one extra row.
 function renderShareRecipients(share: ShareSummary) {
 	const list = document.getElementById("shareRecipients")!;
 	const rows = share.recipients.map((r) => {
 		const when = r.viewed_at
-			? `<span class="when"><span class="opened">Opened</span> ${esc(formatOpened(r.viewed_at))}${r.view_count > 1 ? ` &middot; ${r.view_count}&times;` : ""}</span>`
+			? `<span class="when"><span class="opened">Opened</span> ${esc(formatDate(r.viewed_at, "time"))}${r.view_count > 1 ? ` &middot; ${r.view_count}&times;` : ""}</span>`
 			: `<span class="when">Not opened</span>`;
 		return `<li><span class="who" title="${esc(r.email)}">${esc(r.email)}</span>${when}</li>`;
 	});
@@ -818,10 +814,8 @@ function showShareState(share?: ShareSummary) {
 	document.getElementById("shareDescription")!.textContent = hasToken
 		? "This agreement has been shared with your client."
 		: "Generate a shareable link for your client to review and sign.";
-	if (hasToken) {
-		(document.getElementById("shareLinkInput") as HTMLInputElement).value = `${window.location.origin}/view.html?token=${agreement!.share_token}`;
-		if (share) renderShareRecipients(share);
-	}
+	(document.getElementById("shareLinkInput") as HTMLInputElement).value = share?.url || "";
+	if (share) renderShareRecipients(share);
 }
 
 function setShareStatus(text: string) {
