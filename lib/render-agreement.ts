@@ -25,6 +25,9 @@ export interface AgreementData {
 	designer_email: string | null;
 	client_signature: string | null;
 	designer_signature: string | null;
+	// The terms as rendered the moment the client signed. Set once, never edited; a signed
+	// document keeps its wording even after the template changes.
+	signed_terms?: string | null;
 }
 
 export interface SettingsData {
@@ -263,7 +266,7 @@ function renderSignatures(agreement: AgreementData, settings: SettingsData): str
 
 // === MoU Template ===
 
-function renderMouBody(agreement: AgreementData, settings: SettingsData): string {
+function renderMouTerms(agreement: AgreementData): string {
 	const isSmall = agreement.type === "mou_small";
 
 	return `
@@ -321,16 +324,12 @@ function renderMouBody(agreement: AgreementData, settings: SettingsData): string
 			<div class="doc-term-title">FINAL APPROVAL.</div>
 			<div class="doc-term-body">Client shall provide final proofreading and approval of all Final Art before its release for production. If the Client approves work containing errors or omissions, such as, by way of example, not limitation, typographic errors or misspellings, Client shall incur the cost of correcting such errors.</div>
 		</div>` : ""}
-
-		<div class="doc-signature-area">
-			${renderSignatures(agreement, settings)}
-		</div>
 	`;
 }
 
 // === Full Agreement Template ===
 
-function renderFullAgreementBody(agreement: AgreementData, settings: SettingsData): string {
+function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsData): string {
 	const companyName = settings.legal_name || "Flint Hills Design, LLC dba Upland Exhibits";
 	const companyAddress = settings.company_address || "507 SE 36th St., Newton, Kansas 67114";
 
@@ -467,20 +466,28 @@ function renderFullAgreementBody(agreement: AgreementData, settings: SettingsDat
 				<div class="doc-term-sub">(e) <strong>Applicable Law.</strong> This Agreement shall be governed by and construed in accordance with the laws of the State of Kansas.</div>
 			</div>
 		</div>
-
-		<div class="doc-signature-area">
-			${renderSignatures(agreement, settings)}
-		</div>
 	`;
 }
 
 // === Main Export ===
 
-export function renderAgreementBody(agreement: AgreementData, settings: SettingsData): string {
+// Everything above the signatures, rendered live from the current template.
+export function renderAgreementTerms(agreement: AgreementData, settings: SettingsData): string {
 	if (isMouType(agreement.type)) {
-		return renderMouBody(agreement, settings);
+		return renderMouTerms(agreement);
 	}
-	return renderFullAgreementBody(agreement, settings);
+	return renderFullAgreementTerms(agreement, settings);
+}
+
+// A signed agreement shows the terms it was signed with; an unsigned one shows the live template.
+// Signatures always render live so the countersignature can land after the freeze.
+export function renderAgreementBody(agreement: AgreementData, settings: SettingsData): string {
+	const terms = agreement.signed_terms || renderAgreementTerms(agreement, settings);
+	return `${terms}
+		<div class="doc-signature-area">
+			${renderSignatures(agreement, settings)}
+		</div>
+	`;
 }
 
 export function renderAgreementHtml(agreement: AgreementData, settings: SettingsData): string {

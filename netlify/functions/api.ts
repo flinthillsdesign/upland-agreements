@@ -4,7 +4,7 @@ import { ensureAuthSchema, getUserByLogin, getUserByEmail, getUserById, getUsers
 import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, recordView, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { sendResetEmail, sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
-import { buildSignature, parseSignature, emailList, recipientEmails } from "../../lib/render-agreement.js";
+import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms } from "../../lib/render-agreement.js";
 
 const APP_NAME = "agreements";
 let initPromise: Promise<void> | null = null;
@@ -447,6 +447,9 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	if (client_address !== undefined) updates.client_address = client_address;
 	if (email && !agreement.client_email) updates.client_email = email;
 	if (!agreement.effective_date) updates.effective_date = new Date().toISOString().split("T")[0];
+	// Freeze the terms as the client saw them when they signed, org info and effective date included.
+	// From here on the document renders this text, not the live template.
+	updates.signed_terms = renderAgreementTerms({ ...agreement, ...updates } as any, (await getSettings()) as any);
 	await updateAgreement(agreement.id, updates);
 
 	// Notify designer

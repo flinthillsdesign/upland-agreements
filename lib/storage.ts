@@ -114,6 +114,7 @@ export async function ensureSchema(): Promise<void> {
 	// Settings row + indexes + additive columns for DBs created before them (all independent, run in parallel)
 	await Promise.all([
 		db.execute("ALTER TABLE agreements ADD COLUMN client_cc TEXT").catch(() => { /* already exists */ }),
+		db.execute("ALTER TABLE agreements ADD COLUMN signed_terms TEXT").catch(() => { /* already exists */ }),
 		db.execute("INSERT OR IGNORE INTO settings (id, data) VALUES (1, '{}')"),
 		db.execute("CREATE INDEX IF NOT EXISTS idx_agreements_status ON agreements(status)"),
 		db.execute("CREATE INDEX IF NOT EXISTS idx_agreements_share_token ON agreements(share_token)"),
@@ -154,6 +155,7 @@ export interface Agreement {
 	view_count: number;
 	client_signature: string | null;
 	designer_signature: string | null;
+	signed_terms: string | null;
 	valid_until: string | null;
 	created_by: string | null;
 	created_at: string;
