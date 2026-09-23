@@ -182,6 +182,10 @@ function renderForm() {
 						${!isMou ? `<div class="form-group">
 							<label>Effective Date (blank = date of signing)</label>
 							<input type="date" data-field="effective_date" value="${agreement.effective_date || ""}">
+						</div>
+						<div class="form-group">
+							<label>Sign by (blank = 30 days from sending)</label>
+							<input type="date" id="signByDate" data-field="valid_until" value="${agreement.valid_until || ""}">
 						</div>` : ""}
 						<div class="form-group">
 							<label>${isMou ? "Target Delivery Date" : "Completion Date"}</label>
@@ -785,6 +789,7 @@ interface ShareSummary {
 	recipients: { email: string; url: string; view_count: number; viewed_at: string | null }[];
 	other_views: number;
 	sent?: string[];
+	valid_until?: string | null;
 }
 
 // One row per recipient: opened when (and how many times), or not yet. Opens that can't be tied to a person show as one extra row.
@@ -838,6 +843,12 @@ document.getElementById("generateShareLink")!.addEventListener("click", async ()
 	btn.textContent = "Sending...";
 	const data = (await api.shareAgreement(agreementId!)) as ShareSummary;
 	agreement!.share_token = data.token;
+	// Sending sets the sign-by date when none was chosen; show it in the form without a reload.
+	if (data.valid_until && !agreement!.valid_until) {
+		agreement!.valid_until = data.valid_until;
+		const signBy = document.getElementById("signByDate") as HTMLInputElement | null;
+		if (signBy) signBy.value = data.valid_until;
+	}
 	showShareState(data);
 	setShareStatus(data.sent?.length ? `Link generated and sent to ${data.sent.join(", ")}.` : "Link generated.");
 	btn.disabled = false;

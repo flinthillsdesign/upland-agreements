@@ -1,5 +1,5 @@
 import { api } from "./api.js";
-import { esc } from "./utils.js";
+import { esc, formatDate } from "./utils.js";
 import { renderAgreementBody, renderAgreementHtml, type AgreementData, type SettingsData } from "../../lib/render-agreement.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -48,7 +48,11 @@ async function load() {
 		if (isPreview) {
 			document.getElementById("statusText")!.textContent = "Preview — this is how the client will see it.";
 		} else {
-			document.getElementById("statusText")!.textContent = STATUS_TEXT[(agreement as any).status] || "";
+			const status = (agreement as any).status as string;
+			const signBy = !agreement.client_signature && agreement.valid_until && (status === "sent" || status === "viewed")
+				? ` Please sign by ${formatDate(agreement.valid_until, "long")}.`
+				: "";
+			document.getElementById("statusText")!.textContent = (STATUS_TEXT[status] || "") + signBy;
 		}
 
 		// Render document using shared template

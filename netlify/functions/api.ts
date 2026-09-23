@@ -4,7 +4,7 @@ import { ensureAuthSchema, getUserByLogin, getUserByEmail, getUserById, getUsers
 import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, recordView, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { sendResetEmail, sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
-import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms } from "../../lib/render-agreement.js";
+import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, formatDate } from "../../lib/render-agreement.js";
 
 const APP_NAME = "agreements";
 let initPromise: Promise<void> | null = null;
@@ -85,13 +85,20 @@ function recipientLabel(agreement: { client_contact: string | null; client_email
 }
 
 // Per-recipient links plus the opens that came through the generic link (or predate per-recipient links).
-async function shareSummary(req: Request, agreement: { id: string; share_token: string | null; view_count: number; client_email: string | null; client_cc: string | null }) {
+function daysFromToday(days: number): string {
+	const d = new Date();
+	d.setDate(d.getDate() + days);
+	return d.toISOString().split("T")[0];
+}
+
+async function shareSummary(req: Request, agreement: { id: string; share_token: string | null; view_count: number; client_email: string | null; client_cc: string | null; valid_until: string | null }) {
 	const order = recipientEmails(agreement);
 	const links = (await listShareLinks(agreement.id)).sort((a, b) => order.indexOf(a.email) - order.indexOf(b.email));
 	const attributed = links.reduce((n, l) => n + l.view_count, 0);
 	return {
 		token: agreement.share_token,
 		url: agreement.share_token ? viewUrlFor(req, agreement.share_token) : null,
+		valid_until: agreement.valid_until,
 		recipients: links.map((l) => ({ email: l.email, url: viewUrlFor(req, l.token), view_count: l.view_count, viewed_at: l.viewed_at })),
 		other_views: Math.max(0, agreement.view_count - attributed),
 	};
@@ -347,15 +354,18 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 	const isNew = !agreement.share_token;
 	if (isNew) {
 		agreement.share_token = await createShareToken();
-		await updateAgreement(params.id, { share_token: agreement.share_token, status: "sent" });
+		// The clock for signing starts the day the agreement goes out: 30 days unless a date was set by hand.
+		if (!agreement.valid_until) agreement.valid_until = daysFromToday(30);
+		await updateAgreement(params.id, { share_token: agreement.share_token, status: "sent", valid_until: agreement.valid_until });
 	}
 
 	// Only send email on first share, or if explicitly requested. Each recipient gets their own link so opens map to a person.
 	const recipients = isNew || send_email ? recipientEmails(agreement) : [];
 	const signer = agreement.client_contact?.trim() || agreement.client_email || "your organization";
+	const signBy = agreement.valid_until ? formatDate(agreement.valid_until, "long") : "";
 	await Promise.all(recipients.map(async (email) => {
 		const link = await getOrCreateShareLink(agreement.id, email);
-		await sendAgreementSharedEmail(email, agreement.title, viewUrlFor(req, link.token), signer, recipients.filter((r) => r !== email));
+		await sendAgreementSharedEmail(email, agreement.title, viewUrlFor(req, link.token), signer, recipients.filter((r) => r !== email), signBy);
 	}));
 
 	return json({ ...(await shareSummary(req, agreement)), sent: recipients });
