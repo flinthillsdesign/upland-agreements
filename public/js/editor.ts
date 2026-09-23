@@ -184,7 +184,7 @@ function renderForm() {
 							<input type="date" data-field="effective_date" value="${agreement.effective_date || ""}">
 						</div>` : ""}
 						<div class="form-group">
-							<label>${isMou ? "Target Delivery Date" : "End Date"}</label>
+							<label>${isMou ? "Target Delivery Date" : "Completion Date"}</label>
 							<input type="date" id="targetDate" data-field="end_date" value="${agreement.end_date || ""}">
 						</div>
 						<div class="form-group" style="flex:0 0 100px">
@@ -480,7 +480,6 @@ function renderForm() {
 			const data = {
 				initial_pct: iPct,
 				initial_amount: iAmt,
-				progress_note: "Progress billings will be invoiced on a percentage of completion basis, not to exceed 90% of the NTE Amount.",
 				final_pct: fPct,
 				final_amount: fAmt,
 			};

@@ -48,11 +48,11 @@ For MoUs, draft:
 
 For Agreements for Services, draft:
 - project_description: Description of services paragraph
-- total_cost: NTE (not-to-exceed) amount
+- total_cost: The fixed Project Cost
 - payment_structure: JSON with {initial_pct, initial_amount, progress_note, final_pct, final_amount}
 - Do NOT draft service_rates — they are pre-populated from Upland's current rate sheet. Only change them if the user explicitly asks.
 - Do NOT draft client_responsibilities — these are hardcoded in the agreement template. Only add to client_responsibilities if the user explicitly asks for project-specific additions.
-- end_date: Suggested end date (ISO format YYYY-MM-DD)
+- end_date: The Substantial Completion date — when the exhibit is installed and open to the public (ISO format YYYY-MM-DD)
 - effective_date: Usually leave blank (defaults to date of signing), but set if the user specifies a start date
 
 ## Output Format
