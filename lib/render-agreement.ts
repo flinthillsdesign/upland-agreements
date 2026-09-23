@@ -60,6 +60,14 @@ export function formatDate(dateStr: string | null | undefined, style: "short" | 
 	});
 }
 
+// The sign-by date a send would set today. Sending stores the real one; until then the
+// preview shows this so the document never reads with a blank.
+export function daysFromToday(days: number): string {
+	const d = new Date();
+	d.setDate(d.getDate() + days);
+	return d.toISOString().split("T")[0];
+}
+
 export function formatCurrency(amount: number | null | undefined): string {
 	if (amount === null || amount === undefined) return "";
 	return "$" + amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -360,7 +368,7 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 
 		<div class="doc-section"><span class="doc-section-number">1. </span><span class="doc-section-title">TERM.</span> <span class="doc-section-body">This Agreement begins on the Effective Date and continues until Substantial Completion and payment of all amounts due, unless earlier terminated. Sections 8, 15, 17, 18, 21, and 22 survive completion or termination.</span></div>
 
-		<div class="doc-section"><span class="doc-section-number">2. </span><span class="doc-section-title">COMPLETION DATE.</span> <span class="doc-section-body">Upland will reach Substantial Completion by <strong>${formatDate(agreement.end_date, "long")}</strong>. Substantial Completion means the exhibit is installed and open to the public, with only minor punch list items remaining. This date assumes the Agreement is signed by ${formatDate(agreement.valid_until, "long")}, the Initial Payment is paid on time, and Client provides content, decisions, and approvals on time. A delay in any of these moves the date by the same number of days.</span></div>
+		<div class="doc-section"><span class="doc-section-number">2. </span><span class="doc-section-title">COMPLETION DATE.</span> <span class="doc-section-body">Upland will reach Substantial Completion by <strong>${formatDate(agreement.end_date, "long")}</strong>. Substantial Completion means the exhibit is installed and open to the public, with only minor punch list items remaining. This date assumes the Agreement is signed by ${formatDate(agreement.valid_until || daysFromToday(30), "long")}, the Initial Payment is paid on time, and Client provides content, decisions, and approvals on time. A delay in any of these moves the date by the same number of days.</span></div>
 
 		<div class="doc-section"><span class="doc-section-number">3. </span><span class="doc-section-title">DESCRIPTION OF SERVICES.</span> <span class="doc-section-body">${escLines(agreement.project_description) || "—"}</span></div>
 

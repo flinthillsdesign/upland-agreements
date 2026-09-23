@@ -4,7 +4,7 @@ import { ensureAuthSchema, getUserByLogin, getUserByEmail, getUserById, getUsers
 import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, recordView, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { sendResetEmail, sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
-import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, formatDate } from "../../lib/render-agreement.js";
+import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, formatDate, daysFromToday } from "../../lib/render-agreement.js";
 
 const APP_NAME = "agreements";
 let initPromise: Promise<void> | null = null;
@@ -85,12 +85,6 @@ function recipientLabel(agreement: { client_contact: string | null; client_email
 }
 
 // Per-recipient links plus the opens that came through the generic link (or predate per-recipient links).
-function daysFromToday(days: number): string {
-	const d = new Date();
-	d.setDate(d.getDate() + days);
-	return d.toISOString().split("T")[0];
-}
-
 async function shareSummary(req: Request, agreement: { id: string; share_token: string | null; view_count: number; client_email: string | null; client_cc: string | null; valid_until: string | null }) {
 	const order = recipientEmails(agreement);
 	const links = (await listShareLinks(agreement.id)).sort((a, b) => order.indexOf(a.email) - order.indexOf(b.email));
