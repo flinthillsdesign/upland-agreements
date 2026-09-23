@@ -366,7 +366,7 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 			This Agreement ("Agreement") is made effective as of ${agreement.effective_date ? formatDate(agreement.effective_date, "long") : "the date of signing"} (the "Effective Date") by and between <strong>${esc(companyName)}</strong>, of ${esc(companyAddress)}, ("Upland" or "Designer"), and <strong>${esc(agreement.client_name) || "_______________"}</strong>, ${esc(agreement.client_address) || "_______________"} ("Client").
 		</div>
 
-		<div class="doc-section"><span class="doc-section-number">1. </span><span class="doc-section-title">TERM.</span> <span class="doc-section-body">This Agreement begins on the Effective Date and continues until Substantial Completion and payment of all amounts due, unless earlier terminated. Sections 8, 15, 17, 18, 21, and 22 survive completion or termination.</span></div>
+		<div class="doc-section"><span class="doc-section-number">1. </span><span class="doc-section-title">TERM.</span> <span class="doc-section-body">This Agreement begins on the Effective Date and continues until Substantial Completion and payment of all amounts due, unless earlier terminated.</span></div>
 
 		<div class="doc-section"><span class="doc-section-number">2. </span><span class="doc-section-title">COMPLETION DATE.</span> <span class="doc-section-body">Upland will reach Substantial Completion by <strong>${formatDate(agreement.end_date, "long")}</strong>. Substantial Completion means the exhibit is installed and open to the public, with only minor punch list items remaining. This date assumes the Agreement is signed by ${formatDate(agreement.valid_until || daysFromToday(30), "long")}, the Initial Payment is paid on time, and Client provides content, decisions, and approvals on time. A delay in any of these moves the date by the same number of days.</span></div>
 
@@ -483,6 +483,7 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 				<div class="doc-term-sub">(c) <strong>Severability.</strong> If any provision is held invalid or unenforceable, the remaining provisions remain in effect, and any invalid provision shall be modified to the minimum extent necessary to make it enforceable.</div>
 				<div class="doc-term-sub">(d) <strong>Waiver.</strong> The failure of either party to enforce any provision of this Agreement shall not constitute a waiver of such provision or the right to enforce it at a later time.</div>
 				<div class="doc-term-sub">(e) <strong>Applicable Law.</strong> This Agreement shall be governed by and construed in accordance with the laws of the State of Kansas.</div>
+				<div class="doc-term-sub">(f) <strong>Survival.</strong> Obligations that by their nature continue after completion or termination, including payment, warranties, ownership of work, confidentiality, indemnification, and limitation of liability, remain in effect.</div>
 			</div>
 		</div>
 	`;
