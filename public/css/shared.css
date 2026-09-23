@@ -72,7 +72,8 @@ a:hover { text-decoration: underline; }
 
 /* === Form Elements === */
 .form-group { display: flex; flex-direction: column; gap: 2px; }
-.form-group label { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); }
+.form-group label { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); white-space: nowrap; }
+.form-hint { font-size: 0.72rem; color: var(--text-muted); }
 .form-row {
 	display: flex;
 	gap: 12px;

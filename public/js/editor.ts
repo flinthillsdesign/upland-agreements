@@ -180,12 +180,14 @@ function renderForm() {
 					</div>` : ""}
 					<div class="form-row">
 						${!isMou ? `<div class="form-group">
-							<label>Effective Date (blank = date of signing)</label>
+							<label>Effective Date</label>
 							<input type="date" data-field="effective_date" value="${agreement.effective_date || ""}">
+							<span class="form-hint">Blank = date of signing</span>
 						</div>
 						<div class="form-group">
-							<label>Sign by (blank = 30 days from sending)</label>
+							<label>Sign by</label>
 							<input type="date" id="signByDate" data-field="valid_until" value="${agreement.valid_until || ""}">
+							<span class="form-hint">Blank = 30 days from sending</span>
 						</div>` : ""}
 						<div class="form-group">
 							<label>${isMou ? "Target Delivery Date" : "Completion Date"}</label>
