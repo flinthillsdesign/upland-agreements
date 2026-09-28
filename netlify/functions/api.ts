@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import { extractToken, verifyToken, verifyPassword, createToken, hashPassword, type JwtPayload } from "../../lib/auth.js";
 import { ensureAuthSchema, getUserByLogin, getUserByEmail, getUserById, getUsers, createUser, updateUser, deleteUser, setResetToken, getUserByResetToken, clearResetToken, checkAppAccess } from "../../lib/auth-storage.js";
-import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, recordView, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
+import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, linksLocked, recordLinkMiss, recordView, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { sendResetEmail, sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
 import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, formatDate, daysFromToday } from "../../lib/render-agreement.js";
@@ -71,6 +71,20 @@ function getBaseUrl(req: Request): string {
 
 function getClientIp(req: Request): string {
 	return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+}
+
+const TOO_MANY = "Too many attempts. Try again in an hour.";
+
+// A share link, looked up behind the limit on tries. A wrong link counts as a try.
+async function openShareToken(req: Request, token: string) {
+	const ip = getClientIp(req);
+	if (await linksLocked(ip)) return { found: null, refused: err(TOO_MANY, 429) };
+	const found = await resolveShareToken(token);
+	if (!found) {
+		await recordLinkMiss(ip);
+		return { found: null, refused: err("Not found", 404) };
+	}
+	return { found, refused: null };
 }
 
 function viewUrlFor(req: Request, token: string): string {
@@ -374,8 +388,8 @@ route("DELETE", "/api/agreements/:id/share", "user", async (_req, params) => {
 // === Client View Routes (token auth) ===
 
 route("GET", "/api/agreements/view/:token", "none", async (req, params) => {
-	const found = await resolveShareToken(params.token);
-	if (!found) return err("Not found", 404);
+	const { found, refused } = await openShareToken(req, params.token);
+	if (!found) return refused!;
 	const { agreement, link } = found;
 
 	await recordView(agreement.id, link?.token);
@@ -395,8 +409,9 @@ route("GET", "/api/agreements/view/:token", "none", async (req, params) => {
 });
 
 route("POST", "/api/agreements/view/:token/send-code", "none", async (req, params) => {
-	const agreement = (await resolveShareToken(params.token))?.agreement;
-	if (!agreement) return err("Not found", 404);
+	const opened = await openShareToken(req, params.token);
+	if (!opened.found) return opened.refused!;
+	const agreement = opened.found.agreement;
 	if (agreement.client_signature) return err("Already signed");
 
 	const { email } = await req.json() as { email?: string };
@@ -417,8 +432,11 @@ route("POST", "/api/agreements/view/:token/verify-code", "none", async (req, par
 	const { email, code } = await req.json() as { email?: string; code?: string };
 	if (!email || !code) return err("Email and code required");
 
+	// A wrong code is a try, the same as a wrong link.
+	if (await linksLocked(getClientIp(req))) return err(TOO_MANY, 429);
 	const stored = await getVerificationCode(params.token);
 	if (!stored || stored.code !== code || stored.email !== email || new Date(stored.expires) < new Date()) {
+		await recordLinkMiss(getClientIp(req));
 		return err("Invalid or expired verification code", 400);
 	}
 	// Don't delete — code stays valid for the actual sign step
@@ -426,8 +444,9 @@ route("POST", "/api/agreements/view/:token/verify-code", "none", async (req, par
 });
 
 route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) => {
-	const agreement = (await resolveShareToken(params.token))?.agreement;
-	if (!agreement) return err("Not found", 404);
+	const opened = await openShareToken(req, params.token);
+	if (!opened.found) return opened.refused!;
+	const agreement = opened.found.agreement;
 	if (agreement.client_signature) return err("Already signed");
 
 	const { name, title, client_name, client_address, consent_text, email, code } = await req.json() as { name?: string; title?: string; client_name?: string; client_address?: string; consent_text?: string; email?: string; code?: string };
@@ -437,6 +456,7 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	// Verify the code from database
 	const stored = await getVerificationCode(params.token);
 	if (!stored || stored.code !== code || stored.email !== email || new Date(stored.expires) < new Date()) {
+		await recordLinkMiss(getClientIp(req));
 		return err("Invalid or expired verification code", 400);
 	}
 	await deleteVerificationCode(params.token);

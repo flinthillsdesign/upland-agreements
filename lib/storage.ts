@@ -111,6 +111,17 @@ export async function ensureSchema(): Promise<void> {
 		)
 	`);
 
+	// Wrong guesses at a share link or a signing code, by address. The links are short on purpose
+	// (a person can read one aloud), so the limit on tries is what keeps them from being walked.
+	await db.execute(`
+		CREATE TABLE IF NOT EXISTS link_misses (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			ip TEXT NOT NULL,
+			at TEXT NOT NULL
+		)
+	`);
+	await db.execute("CREATE INDEX IF NOT EXISTS idx_link_misses_at ON link_misses(at)");
+
 	// Settings row + indexes + additive columns for DBs created before them (all independent, run in parallel)
 	await Promise.all([
 		db.execute("ALTER TABLE agreements ADD COLUMN client_cc TEXT").catch(() => { /* already exists */ }),
@@ -218,6 +229,35 @@ export async function resolveShareToken(token: string): Promise<{ agreement: Agr
 		? { token: link_token, agreement_id: agreement.id, email: link_email, view_count: link_view_count, viewed_at: link_viewed_at, created_at: link_created_at } as ShareLink
 		: null;
 	return { agreement: agreement as unknown as Agreement, link };
+}
+
+// === The limit on tries ===
+// One address gets a few wrong guesses an hour. Guesses spread over many addresses trip the
+// second limit, which closes every share link for the rest of the hour — a client may have to
+// wait, and nobody gets to walk the list.
+const MISSES_PER_IP = 5;
+const MISSES_OVERALL = 60;
+const MISS_WINDOW_MS = 60 * 60 * 1000;
+
+export async function linksLocked(ip: string): Promise<boolean> {
+	const db = getClient();
+	const since = new Date(Date.now() - MISS_WINDOW_MS).toISOString();
+	const r = await db.execute({
+		sql: "SELECT COUNT(*) AS overall, SUM(CASE WHEN ip = ? THEN 1 ELSE 0 END) AS mine FROM link_misses WHERE at > ?",
+		args: [ip, since],
+	});
+	const row = r.rows[0] as Record<string, unknown> | undefined;
+	return Number(row?.mine || 0) >= MISSES_PER_IP || Number(row?.overall || 0) >= MISSES_OVERALL;
+}
+
+export async function recordLinkMiss(ip: string): Promise<void> {
+	const db = getClient();
+	const now = Date.now();
+	await db.execute({ sql: "INSERT INTO link_misses (ip, at) VALUES (?, ?)", args: [ip, new Date(now).toISOString()] });
+	await db.execute({ sql: "DELETE FROM link_misses WHERE at < ?", args: [new Date(now - 24 * MISS_WINDOW_MS).toISOString()] });
+	const r = await db.execute({ sql: "SELECT COUNT(*) AS n FROM link_misses WHERE at > ?", args: [new Date(now - MISS_WINDOW_MS).toISOString()] });
+	const n = Number((r.rows[0] as Record<string, unknown> | undefined)?.n || 0);
+	if (n === MISSES_OVERALL) console.warn(`share links locked for the hour: ${n} wrong guesses`);
 }
 
 // Word-pair tokens are short, so check both token namespaces before handing one out.
