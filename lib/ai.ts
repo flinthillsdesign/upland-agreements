@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Agreement, KnowledgeEntry, ChatMessage } from "./storage.js";
+import { mouRate, type RateSettings } from "./rates.js";
 
 const MODEL = "claude-opus-5";
 
@@ -15,6 +16,10 @@ function getClient(): Anthropic | null {
   }
   return anthropic;
 }
+
+// The prompt names Upland's current MoU rate, read from Settings (lib/rates.ts)
+// each time — never a rate typed here.
+const systemPromptFor = (settings: RateSettings | null | undefined) => SYSTEM_PROMPT.replaceAll("{{MOU_RATE}}", String(mouRate(settings))).replaceAll("{{MOU_EXAMPLE_TOTAL}}", String(160 * mouRate(settings)));
 
 const SYSTEM_PROMPT = `You are an agreement drafting assistant for Upland Exhibits (Flint Hills Design, LLC dba Upland Exhibits), located at 507 SE 36th St., Newton, Kansas 67114. You help draft professional contracts and memoranda of understanding for exhibit design, fabrication, and installation projects.
 
@@ -40,7 +45,7 @@ When the user describes a project, draft the VARIABLE sections. Do NOT draft boi
 For MoUs, draft:
 - project_description: Scope of work / deliverable description
 - hours: Suggested hours based on project complexity
-- hourly_rate: Current rate ($100/hr unless knowledge base shows otherwise)
+- hourly_rate: Upland's current rate is \${{MOU_RATE}}/hr. Use it unless the user gives a different rate; rates in older knowledge base entries are out of date.
 - total_cost: hours × rate
 - end_date: Suggested target delivery date (ISO format YYYY-MM-DD). Consider Upland's current workload and project complexity — typically 6-12 weeks out from today.
 - effective_date: Usually leave blank (defaults to date of signing), but set if the user specifies a start date
@@ -68,8 +73,8 @@ Example:
   "fields": {
     "project_description": "Upland Exhibits will dedicate 160 hours to developing...",
     "hours": 160,
-    "hourly_rate": 100,
-    "total_cost": 16000,
+    "hourly_rate": {{MOU_RATE}},
+    "total_cost": {{MOU_EXAMPLE_TOTAL}},
     "end_date": "2026-06-15"
   }
 }
@@ -82,7 +87,7 @@ Example:
 - **Prioritize recent agreements** (last 1-2 years) for pricing, scope language, and structure. Older entries may have outdated rates and include specific project schedules/milestones that Upland no longer puts in agreements. Use older entries for general scope patterns only, not pricing or process details.
 - For pricing, base suggestions on comparable past work and current rates
 - Client responsibilities should be specific to the project type
-- Payment schedules: ~10% initial, progress billings to 90% of NTE, ~10% final
+- Payment schedules: ~10% initial, progress billings up to 90% of the Project Cost, ~10% final. Leave progress_note empty: the contract prints its standard wording.
 - Kansas law governs all agreements
 - Always explain your reasoning in the message field`;
 
@@ -227,14 +232,15 @@ export async function generateAgreement(
   prompt: string,
   agreement: Agreement,
   knowledge: KnowledgeEntry[],
+  settings: RateSettings | null | undefined,
 ): Promise<AiResponse> {
   const client = getClient();
   if (!client) {
-    return mockGenerate(prompt, agreement);
+    return mockGenerate(prompt, agreement, settings);
   }
 
   const systemPrompt =
-    SYSTEM_PROMPT + buildKnowledgeContext(knowledge) + buildAgreementContext(agreement);
+    systemPromptFor(settings) + buildKnowledgeContext(knowledge) + buildAgreementContext(agreement);
 
   const response = await client.messages.create({
     model: MODEL,
@@ -252,6 +258,7 @@ export async function chat(
   messages: ChatMessage[],
   agreement: Agreement,
   knowledge: KnowledgeEntry[],
+  settings: RateSettings | null | undefined,
 ): Promise<AiResponse> {
   const client = getClient();
   if (!client) {
@@ -259,7 +266,7 @@ export async function chat(
   }
 
   const systemPrompt =
-    SYSTEM_PROMPT + buildKnowledgeContext(knowledge) + buildAgreementContext(agreement);
+    systemPromptFor(settings) + buildKnowledgeContext(knowledge) + buildAgreementContext(agreement);
 
   const apiMessages = messages.map((m) => ({
     role: m.role as "user" | "assistant",
@@ -278,7 +285,11 @@ export async function chat(
   return parseResponse(text);
 }
 
-function mockGenerate(prompt: string, agreement: Agreement): AiResponse {
+function mockGenerate(
+  prompt: string,
+  agreement: Agreement,
+  settings: RateSettings | null | undefined,
+): AiResponse {
   if (agreement.type === "full_services") {
     return {
       message:
@@ -289,17 +300,9 @@ function mockGenerate(prompt: string, agreement: Agreement): AiResponse {
         payment_structure: JSON.stringify({
           initial_pct: 10,
           initial_amount: 15000,
-          progress_note:
-            "Progress billings invoiced on percentage of completion, not to exceed 90% of NTE",
+          progress_note: "",
           final_pct: 10,
           final_amount: 15000,
-        }),
-        service_rates: JSON.stringify({
-          head_rate: 125,
-          design_rate: 100,
-          fab_rate: 75,
-          materials_markup: 20,
-          travel_rate: 55,
         }),
         client_responsibilities:
           "- Coordinate internal decision-making and provide timely approvals\n- Provide all text content, photographs, and artifacts\n- Provide architectural drawings and site plans\n- Arrange for electrical and structural work\n- Prepare installation site\n- Provide final proofreading and approval",
@@ -316,8 +319,8 @@ function mockGenerate(prompt: string, agreement: Agreement): AiResponse {
     fields: {
       project_description: `Upland Exhibits will dedicate hours to developing a design concept for ${agreement.client_name || "the Client"}'s project: ${prompt}`,
       hours: 120,
-      hourly_rate: 100,
-      total_cost: 12000,
+      hourly_rate: mouRate(settings),
+      total_cost: 120 * mouRate(settings),
       end_date: endDate.toISOString().split("T")[0],
     },
     references: [],

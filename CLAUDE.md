@@ -43,4 +43,10 @@ npm run fmt          # oxfmt
   password reset were removed 2026-10-01 (they wrote columns the shared table
   no longer has); "Forgot password?" goes to ODIN. `npm run bootstrap` seeds
   the LOCAL file DB only.
+- **One rate card: the Settings row, read through `lib/rates.ts`**
+  (`currentRates`, `mouRate`, `ratesFor`). New-agreement defaults, the editor,
+  the printed contract and the AI drafting prompt all ask there. Never type a
+  rate anywhere else: the print used to fall back to $95 / $75 / $65 and 15%
+  while the editor showed $125 / $100 / $75 and 20%. A stored rate on an
+  agreement always wins over Settings (a stored 0 is a real 0).
 - Postmark sends signature and countersignature emails.

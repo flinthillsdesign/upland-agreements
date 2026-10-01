@@ -1,6 +1,7 @@
 import { api, requireAuth } from "./api.js";
 import { esc, escHtml, TYPE_LABELS, formatCurrency, formatDate, isMouType, startThinkingAnimation, stopThinkingAnimation } from "./utils.js";
 import { parseSignature, recipientEmails } from "../../lib/render-agreement.js";
+import { ratesFor, type RateSettings } from "../../lib/rates.js";
 
 requireAuth();
 
@@ -77,8 +78,11 @@ async function flushSave() {
 	}
 }
 
+// Today's rate card (Settings), for an agreement with no rates stored yet.
+let rateSettings: RateSettings = {};
+
 async function load() {
-	agreement = (await api.getAgreement(agreementId!)) as Agreement;
+	[agreement, rateSettings] = (await Promise.all([api.getAgreement(agreementId!), api.getSettings()])) as [Agreement, RateSettings];
 	document.getElementById("navTitle")!.textContent = agreement.title;
 	document.getElementById("statusBadge")!.textContent = agreement.status;
 	document.getElementById("statusBadge")!.className = `status-badge status-${agreement.status}`;
@@ -229,9 +233,8 @@ function renderForm() {
 						<div class="calculated-field" id="totalCost">${agreement.total_cost ? formatCurrency(agreement.total_cost) : "—"}</div>
 					</div>` : (() => {
 					let ps = { initial_pct: 10, initial_amount: 0, final_pct: 10, final_amount: 0 };
-					let sr = { head_rate: 125, design_rate: 100, fab_rate: 75, materials_markup: 20, travel_rate: 55 };
+					const sr = ratesFor(agreement, rateSettings);
 					try { if (agreement.payment_structure) ps = typeof agreement.payment_structure === "string" ? JSON.parse(agreement.payment_structure) : agreement.payment_structure; } catch {}
-					try { if (agreement.service_rates) sr = typeof agreement.service_rates === "string" ? JSON.parse(agreement.service_rates) : agreement.service_rates; } catch {}
 					return `
 					<div class="form-row">
 						<div class="form-group">

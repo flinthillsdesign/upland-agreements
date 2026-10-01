@@ -2,6 +2,7 @@ import { verifyPassword, createToken, checkAccess, type JwtPayload } from "../..
 import { getUserByLogin, authStorage } from "../../lib/auth-storage.js";
 import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, linksLocked, recordLinkMiss, recordView, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
+import { currentRates, mouRate } from "../../lib/rates.js";
 import { sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
 import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, renderAgreementHtml, formatDate, daysFromToday } from "../../lib/render-agreement.js";
 
@@ -160,22 +161,18 @@ route("POST", "/api/agreements", "user", async (req, _params, user) => {
 	if (settings.designer_email) defaults.designer_email = settings.designer_email;
 
 	if (body.type === "full_services") {
-		defaults.service_rates = JSON.stringify({
-			head_rate: settings.head_rate || 125,
-			design_rate: settings.design_rate || 100,
-			fab_rate: settings.fab_rate || 75,
-			materials_markup: settings.materials_markup || 20,
-			travel_rate: settings.travel_rate || 55,
-		});
+		// A new agreement takes today's rate card and keeps it (lib/rates.ts).
+		defaults.service_rates = JSON.stringify(currentRates(settings));
+		// No progress_note: the contract prints its standard wording unless one is written.
 		defaults.payment_structure = JSON.stringify({
 			initial_pct: 10,
 			initial_amount: 0,
-			progress_note: "Progress billings will be invoiced on a percentage of completion basis, not to exceed 90% of the NTE Amount.",
+			progress_note: "",
 			final_pct: 10,
 			final_amount: 0,
 		});
 	} else {
-		defaults.hourly_rate = settings.mou_rate || 100;
+		defaults.hourly_rate = mouRate(settings);
 		if (body.type === "mou_concept") {
 			defaults.deliverable = "The concept PDF may include input on:\n- Exhibit content / themes\n- Loose thematic floorplan\n- Early sketches or renderings of interior exhibits\n- Suggestion of interactive display options\n- Examples of casework / display hardware\n- Graphic design sample\n- Project implementation schedule & budget";
 		}
@@ -224,10 +221,10 @@ route("POST", "/api/agreements/:id/generate", "user", async (req, params) => {
 	const { prompt } = await req.json() as { prompt?: string };
 	if (!prompt) return err("prompt required");
 
-	const [agreement, knowledge] = await Promise.all([getAgreement(params.id), listKnowledge()]);
+	const [agreement, knowledge, settings] = await Promise.all([getAgreement(params.id), listKnowledge(), getSettings()]);
 	if (!agreement) return err("Not found", 404);
 
-	const result = await generateAgreement(prompt, agreement, knowledge);
+	const result = await generateAgreement(prompt, agreement, knowledge, settings);
 
 	// Apply fields and save conversation in parallel
 	const messages: ChatMessage[] = [
@@ -247,17 +244,18 @@ route("POST", "/api/agreements/:id/chat", "user", async (req, params) => {
 	const { message } = await req.json() as { message?: string };
 	if (!message) return err("message required");
 
-	const [agreement, knowledge, existing] = await Promise.all([
+	const [agreement, knowledge, existing, settings] = await Promise.all([
 		getAgreement(params.id),
 		listKnowledge(),
 		getConversation(params.id),
+		getSettings(),
 	]);
 	if (!agreement) return err("Not found", 404);
 
 	const messages: ChatMessage[] = existing?.messages || [];
 	messages.push({ role: "user", content: message, timestamp: new Date().toISOString() });
 
-	const result = await aiChat(messages, agreement, knowledge);
+	const result = await aiChat(messages, agreement, knowledge, settings);
 
 	messages.push({ role: "assistant", content: result.message, timestamp: new Date().toISOString() });
 

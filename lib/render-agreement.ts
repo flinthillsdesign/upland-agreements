@@ -1,6 +1,8 @@
 // Shared agreement rendering — used by both client-side view and server-side PDF generation.
 // Pure functions, no DOM dependencies.
 
+import { ratesFor, type RateSettings } from "./rates.js";
+
 export interface AgreementData {
 	type: string;
 	title: string;
@@ -31,7 +33,7 @@ export interface AgreementData {
 	signed_terms?: string | null;
 }
 
-export interface SettingsData {
+export interface SettingsData extends RateSettings {
 	legal_name?: string;
 	company_address?: string;
 	designer_name?: string;
@@ -353,8 +355,8 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 	let ps = { initial_pct: 10, initial_amount: 0, progress_note: "", final_pct: 10, final_amount: 0 };
 	try { if (agreement.payment_structure) ps = JSON.parse(agreement.payment_structure); } catch {}
 
-	let rates = { head_rate: 95, design_rate: 75, fab_rate: 65, materials_markup: 15, travel_rate: 55 };
-	try { if (agreement.service_rates) rates = JSON.parse(agreement.service_rates); } catch {}
+	// The rates stored on the agreement, else today's rate card (lib/rates.ts).
+	const rates = ratesFor(agreement, settings);
 
 	return `
 		<div class="doc-header">
