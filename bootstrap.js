@@ -18,24 +18,43 @@ if (existsSync(".env")) {
 	}
 }
 
-const authDb = createClient({
-	url: process.env.TURSO_AUTH_URL || "file:./data/auth.db",
-	authToken: process.env.TURSO_AUTH_TOKEN || undefined,
-});
+// LOCAL ONLY. This seeds a known password, so it never follows TURSO_AUTH_URL
+// — the app itself creates no auth tables (ODIN owns that database), so local
+// dev gets them here, in ODIN's shape.
+const authDb = createClient({ url: "file:./data/auth.db" });
 
 await authDb.execute(`
 	CREATE TABLE IF NOT EXISTS users (
 		id TEXT PRIMARY KEY,
-		email TEXT NOT NULL UNIQUE,
-		name TEXT NOT NULL,
+		username TEXT UNIQUE NOT NULL,
 		password_hash TEXT NOT NULL,
-		role TEXT NOT NULL DEFAULT 'user',
+		role TEXT NOT NULL CHECK(role IN ('superadmin','staff')),
+		name TEXT NOT NULL,
+		email TEXT,
+		token_invalid_before TEXT,
 		reset_token TEXT,
-		reset_expires TEXT,
-		created_at TEXT NOT NULL DEFAULT (datetime('now')),
-		updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+		reset_token_expires TEXT
 	)
 `);
+await authDb.execute(`
+	CREATE TABLE IF NOT EXISTS user_app_access (
+		user_id TEXT NOT NULL,
+		app TEXT NOT NULL,
+		role TEXT NOT NULL DEFAULT 'viewer',
+		permissions TEXT,
+		created_at TEXT NOT NULL DEFAULT (datetime('now')),
+		PRIMARY KEY (user_id, app),
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+	)
+`);
+// A local DB made by the old in-app schema lacks these two columns.
+for (const col of ["username TEXT", "token_invalid_before TEXT"]) {
+	try {
+		await authDb.execute(`ALTER TABLE users ADD COLUMN ${col}`);
+	} catch {
+		// column already exists
+	}
+}
 
 // Check if admin exists
 const existing = await authDb.execute({
@@ -47,11 +66,12 @@ if (existing.rows.length === 0) {
 	const id = nanoid();
 	const hash = hashSync("admin123", 10);
 	await authDb.execute({
-		sql: "INSERT INTO users (id, email, name, password_hash, role) VALUES (?, ?, ?, ?, ?)",
-		args: [id, "admin@uplandexhibits.com", "Admin", hash, "superadmin"],
+		sql: "INSERT INTO users (id, username, email, name, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)",
+		args: [id, "admin", "admin@uplandexhibits.com", "Admin", hash, "superadmin"],
 	});
-	console.log("Created admin user: admin@uplandexhibits.com / admin123");
+	console.log("Created local admin user: admin@uplandexhibits.com / admin123");
 } else {
+	await authDb.execute({ sql: "UPDATE users SET username = COALESCE(username, 'admin') WHERE email = ?", args: ["admin@uplandexhibits.com"] });
 	console.log("Admin user already exists.");
 }
 

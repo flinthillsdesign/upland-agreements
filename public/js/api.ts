@@ -111,10 +111,4 @@ export const api = {
 	// Settings
 	getSettings: () => request("GET", "/api/settings"),
 	updateSettings: (data: Record<string, unknown>) => request("PUT", "/api/settings", data),
-
-	// Users
-	listUsers: () => request("GET", "/api/users"),
-	createUser: (data: Record<string, unknown>) => request("POST", "/api/users", data),
-	updateUser: (id: string, data: Record<string, unknown>) => request("PUT", `/api/users/${id}`, data),
-	deleteUser: (id: string) => request("DELETE", `/api/users/${id}`),
 };

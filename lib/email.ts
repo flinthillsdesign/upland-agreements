@@ -45,19 +45,6 @@ async function send(to: string, subject: string, html: string, text: string, att
 	}
 }
 
-export async function sendResetEmail(to: string, token: string, baseUrl: string): Promise<boolean> {
-	const url = `${baseUrl}/reset.html?token=${encodeURIComponent(token)}`;
-	return send(to,
-		"Password Reset — Upland Agreements",
-		wrap(`
-			<p style="font-size:14px;color:#1a1a1a;margin-bottom:16px">You requested a password reset for your Upland Agreements account.</p>
-			<p style="margin-bottom:24px">${btn(url, "Reset Password")}</p>
-			<p style="font-size:12px;color:#6b6560">This link expires in 1 hour. If you didn't request this, ignore this email.</p>
-		`),
-		`You requested a password reset.\n\nReset your password: ${url}\n\nThis link expires in 1 hour.`,
-	);
-}
-
 // Same email to everyone on the send. `signer` = who we assume will sign (a soft assumption — anyone
 // with the link can sign); `others` = the rest of the recipient list, so each person sees who else has it.
 export async function sendAgreementSharedEmail(to: string, agreementTitle: string, viewUrl: string, signer: string, others: string[] = [], signBy = ""): Promise<boolean> {

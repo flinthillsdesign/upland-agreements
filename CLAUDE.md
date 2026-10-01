@@ -30,4 +30,17 @@ npm run fmt          # oxfmt
 - `lib/render-agreement.ts` renders agreement HTML for both the client view and
   the PDF.
 - DocRaptor generates PDFs (`DOCRAPTOR_API_KEY`; runs in test mode when unset).
+  `POST /api/pdf` renders the agreement on the server and never takes HTML
+  from the caller: a client names it by share link (through `openShareToken`),
+  a signed-in preview by id.
+- **Who gets in is decided by the shared library**: staff routes go through
+  `@upland/auth`'s `checkAccess` (`staffGate` in the router) — valid token,
+  the person still exists, not logged out since it was minted, holds an
+  `agreements` grant. Don't hand-write those checks. The four client routes
+  under `/api/agreements/view/:token` are deliberately outside it.
+- **No users or passwords here.** `lib/auth-storage.ts` is read-only — ODIN
+  owns the auth DB's schema and writes. This app's own user admin and
+  password reset were removed 2026-10-01 (they wrote columns the shared table
+  no longer has); "Forgot password?" goes to ODIN. `npm run bootstrap` seeds
+  the LOCAL file DB only.
 - Postmark sends signature and countersignature emails.

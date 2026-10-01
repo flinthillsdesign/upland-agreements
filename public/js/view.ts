@@ -1,6 +1,6 @@
-import { api } from "./api.js";
+import { api, getToken } from "./api.js";
 import { esc, formatDate } from "./utils.js";
-import { renderAgreementBody, renderAgreementHtml, type AgreementData, type SettingsData } from "../../lib/render-agreement.js";
+import { renderAgreementBody, type AgreementData, type SettingsData } from "../../lib/render-agreement.js";
 
 const params = new URLSearchParams(window.location.search);
 const token = params.get("token");
@@ -21,10 +21,6 @@ const STATUS_TEXT: Record<string, string> = {
 	expired: "This agreement has expired.",
 };
 
-// Store agreement data for PDF generation
-let currentAgreement: AgreementData | null = null;
-let currentSettings: SettingsData | null = null;
-
 async function load() {
 	if (!token && !previewId) return;
 
@@ -40,8 +36,6 @@ async function load() {
 
 		const agreement = data.agreement;
 		const settings = data.settings || {};
-		currentAgreement = agreement;
-		currentSettings = settings;
 
 		document.title = `${agreement.title} — Upland Exhibits`;
 
@@ -270,26 +264,13 @@ document.getElementById("pdfBtn")?.addEventListener("click", async () => {
 	document.body.appendChild(overlay);
 
 	try {
-		// Use server-side rendered HTML from shared module if we have the data,
-		// otherwise fall back to DOM scraping
-		let html: string;
-		if (currentAgreement && currentSettings) {
-			html = renderAgreementHtml(currentAgreement, currentSettings);
-		} else {
-			const element = document.getElementById("documentContent")!;
-			const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style')).map((el) => el.outerHTML).join("\n");
-			const fonts = Array.from(document.querySelectorAll('link[href*="fonts"]')).map((el) => el.outerHTML).join("\n");
-			html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${fonts}${styles}
-				<style>@page { size: letter; margin: 1in 1in 1.2in 1in; @bottom-center { content: "Page " counter(page) " of " counter(pages); font-size: 9px; color: #999; } }
-				body { background: white; margin: 0; padding: 0; } .document { border: none; border-radius: 0; box-shadow: none; padding: 0; max-width: none; }
-				.view-status-bar, .view-actions, .sign-area, .pdf-overlay, #verifyStep, #confirmStep { display: none !important; }</style>
-				</head><body><div class="document">${element.innerHTML}</div></body></html>`;
-		}
-
+		// The server renders the agreement; this only says which one. A client
+		// names it by their link, a signed-in preview by id.
+		const staffToken = isPreview ? getToken() : null;
 		const response = await fetch("/api/pdf", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ html, filename }),
+			headers: { "Content-Type": "application/json", ...(staffToken ? { Authorization: `Bearer ${staffToken}` } : {}) },
+			body: JSON.stringify(isPreview ? { id: previewId, filename } : { token, filename }),
 		});
 
 		if (!response.ok) throw new Error("PDF generation failed");

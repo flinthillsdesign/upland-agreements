@@ -1,17 +1,18 @@
-import { nanoid } from "nanoid";
-import { extractToken, verifyToken, verifyPassword, createToken, hashPassword, type JwtPayload } from "../../lib/auth.js";
-import { ensureAuthSchema, getUserByLogin, getUserByEmail, getUserById, getUsers, createUser, updateUser, deleteUser, setResetToken, getUserByResetToken, clearResetToken, checkAppAccess } from "../../lib/auth-storage.js";
+import { verifyPassword, createToken, checkAccess, type JwtPayload } from "../../lib/auth.js";
+import { getUserByLogin, authStorage } from "../../lib/auth-storage.js";
 import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, linksLocked, recordLinkMiss, recordView, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
-import { sendResetEmail, sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
-import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, formatDate, daysFromToday } from "../../lib/render-agreement.js";
+import { sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
+import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, renderAgreementHtml, formatDate, daysFromToday } from "../../lib/render-agreement.js";
 
 const APP_NAME = "agreements";
 let initPromise: Promise<void> | null = null;
 
 async function init() {
 	if (!initPromise) {
-		initPromise = Promise.all([ensureAuthSchema(), ensureSchema()]).then(() => {});
+		// A failed first try (one Turso blip at cold start) must not be kept:
+		// clear it so the next request tries again.
+		initPromise = ensureSchema().catch((e) => { initPromise = null; throw e; });
 	}
 	return initPromise;
 }
@@ -33,13 +34,13 @@ interface Route {
 	method: string;
 	pattern: RegExp;
 	paramNames: string[];
-	auth: "none" | "user" | "superadmin";
+	auth: "none" | "user";
 	handler: RouteHandler;
 }
 
 const routes: Route[] = [];
 
-function route(method: string, path: string, auth: "none" | "user" | "superadmin", handler: RouteHandler) {
+function route(method: string, path: string, auth: "none" | "user", handler: RouteHandler) {
 	const paramNames: string[] = [];
 	const pattern = new RegExp(
 		"^" + path.replace(/:(\w+)/g, (_, name) => { paramNames.push(name); return "([^/]+)"; }) + "$"
@@ -58,10 +59,12 @@ function err(message: string, status = 400): Response {
 	return json({ error: message }, status);
 }
 
-async function requireAuth(req: Request): Promise<JwtPayload | null> {
-	const token = extractToken(req.headers.get("authorization") || undefined);
-	if (!token) return null;
-	return verifyToken(token);
+// The signed-in staff member behind a request, or the gate's refusal.
+async function staffGate(req: Request): Promise<{ user: JwtPayload } | { refused: Response }> {
+	const decision = await checkAccess(req.headers.get("authorization"), APP_NAME, authStorage);
+	if (!decision.ok) return { refused: err(decision.status === 401 ? "Unauthorized" : "Forbidden", decision.status) };
+	const a = decision.auth;
+	return { user: { sub: a.sub, email: "name" in a ? a.name : "", role: "role" in a ? a.role : "staff" } };
 }
 
 function getBaseUrl(req: Request): string {
@@ -122,38 +125,16 @@ route("POST", "/api/login", "none", async (req) => {
 	const user = await getUserByLogin(username);
 	if (!user || !verifyPassword(password, user.password_hash)) return err("Invalid credentials", 401);
 
-	// Check app access for non-superadmins
-	if (user.role !== "superadmin") {
-		const access = await checkAppAccess(user.id, APP_NAME);
-		if (!access) return err("No access to this application", 403);
-	}
-
 	const token = createToken({ sub: user.id, email: user.email || user.username, role: user.role });
+	const decision = await checkAccess(`Bearer ${token}`, APP_NAME, authStorage);
+	if (!decision.ok) return err("No access to this application", 403);
+
 	return json({ token, user: { id: user.id, email: user.email || user.username, name: user.name, role: user.role } });
 });
 
-route("POST", "/api/forgot-password", "none", async (req) => {
-	const { email } = await req.json() as { email?: string };
-	if (!email) return err("Email required");
-
-	const token = nanoid(32);
-	const expires = new Date(Date.now() + 3600000).toISOString();
-	await setResetToken(email, token, expires);
-	await sendResetEmail(email, token, getBaseUrl(req));
-	return json({ ok: true });
-});
-
-route("POST", "/api/reset-password", "none", async (req) => {
-	const { token, password } = await req.json() as { token?: string; password?: string };
-	if (!token || !password) return err("Token and password required");
-
-	const user = await getUserByResetToken(token);
-	if (!user) return err("Invalid or expired reset token", 400);
-
-	await updateUser(user.id, { password_hash: hashPassword(password) });
-	await clearResetToken(user.id);
-	return json({ ok: true });
-});
+// Passwords are reset in ODIN (odin.uplandexhibits.com) — one login for the
+// whole suite, one reset flow. The copy that lived here wrote columns the
+// shared users table no longer has.
 
 // === Agreement Routes ===
 
@@ -297,10 +278,29 @@ route("GET", "/api/agreements/:id/conversation", "user", async (_req, params) =>
 
 // === PDF Generation via DocRaptor ===
 
+// The server renders the agreement itself and never takes HTML from the
+// caller. (It used to: anyone could post any HTML and get a PDF back on
+// Upland's DocRaptor account.) Two ways in — a client's share link, behind
+// the same limit on tries as every other token route, or a signed-in staff
+// member naming the agreement.
 route("POST", "/api/pdf", "none", async (req) => {
-	const { html, filename } = await req.json() as { html?: string; filename?: string };
-	if (!html) return err("html required");
+	const { token, id, filename } = await req.json() as { token?: string; id?: string; filename?: string };
 
+	let agreement: Awaited<ReturnType<typeof getAgreement>> = null;
+	if (token) {
+		const { found, refused } = await openShareToken(req, token);
+		if (!found) return refused!;
+		agreement = found.agreement;
+	} else if (id) {
+		const gate = await staffGate(req);
+		if ("refused" in gate) return gate.refused;
+		agreement = await getAgreement(id);
+		if (!agreement) return err("Not found", 404);
+	} else {
+		return err("Unauthorized", 401);
+	}
+
+	const html = renderAgreementHtml(agreement as any, (await getSettings()) as any);
 	const apiKey = process.env.DOCRAPTOR_API_KEY || "YOUR_API_KEY_HERE";
 
 	const response = await fetch("https://docraptor.com/docs", {
@@ -327,11 +327,12 @@ route("POST", "/api/pdf", "none", async (req) => {
 	}
 
 	const pdfBuffer = await response.arrayBuffer();
+	const safeName = String(filename || "document").replace(/[^\w .()-]+/g, "").trim().slice(0, 120) || "document";
 	return new Response(pdfBuffer, {
 		status: 200,
 		headers: {
 			"Content-Type": "application/pdf",
-			"Content-Disposition": `attachment; filename="${filename || "document"}.pdf"`,
+			"Content-Disposition": `attachment; filename="${safeName}.pdf"`,
 		},
 	});
 });
@@ -507,7 +508,6 @@ route("POST", "/api/agreements/:id/countersign", "user", async (req, params, use
 	const docRaptorKey = process.env.DOCRAPTOR_API_KEY;
 	if (docRaptorKey && updatedAgreement) {
 		try {
-			const { renderAgreementHtml } = await import("../../lib/render-agreement.js");
 			const settings = await getSettings();
 			const html = renderAgreementHtml(updatedAgreement as any, settings as any);
 			const pdfResp = await fetch("https://docraptor.com/docs", {
@@ -574,38 +574,8 @@ route("PUT", "/api/settings", "user", async (req) => {
 	return json(settings);
 });
 
-// === Users ===
-
-route("GET", "/api/users", "superadmin", async () => {
-	const users = await getUsers();
-	return json(users.map((u) => ({ id: u.id, email: u.email, name: u.name, role: u.role, created_at: u.created_at })));
-});
-
-route("POST", "/api/users", "superadmin", async (req) => {
-	const body = await req.json() as { email: string; name: string; password: string; role?: string };
-	if (!body.email || !body.name || !body.password) return err("email, name, and password required");
-	const id = nanoid();
-	await createUser({ id, email: body.email, name: body.name, password_hash: hashPassword(body.password), role: body.role || "user" });
-	return json({ id, email: body.email, name: body.name, role: body.role || "user" }, 201);
-});
-
-route("PUT", "/api/users/:id", "superadmin", async (req, params) => {
-	const body = await req.json() as Record<string, string>;
-	const fields: Record<string, string> = {};
-	if (body.email) fields.email = body.email;
-	if (body.name) fields.name = body.name;
-	if (body.role) fields.role = body.role;
-	if (body.password) fields.password_hash = hashPassword(body.password);
-	await updateUser(params.id, fields);
-	const user = await getUserById(params.id);
-	if (!user) return err("Not found", 404);
-	return json({ id: user.id, email: user.email, name: user.name, role: user.role });
-});
-
-route("DELETE", "/api/users/:id", "superadmin", async (_req, params) => {
-	await deleteUser(params.id);
-	return json({ ok: true });
-});
+// Users are managed in ODIN. This app used to carry its own create, edit and
+// delete against the shared users table; they are gone.
 
 // === Main Handler ===
 
@@ -634,18 +604,15 @@ export default async function handler(req: Request): Promise<Response> {
 		const params: Record<string, string> = {};
 		r.paramNames.forEach((name, i) => { params[name] = match[i + 1]; });
 
-		// Auth check
+		// Staff routes go through the suite's one gate (@upland/auth): valid
+		// token, the person still exists, not logged out since, holds an
+		// Agreements grant. Client routes ("none") carry a share token instead
+		// and go through openShareToken.
 		let user: JwtPayload | null = null;
 		if (r.auth !== "none") {
-			user = await requireAuth(req);
-			if (!user) return err("Unauthorized", 401);
-
-			if (r.auth === "superadmin") {
-				if (user.role !== "superadmin") return err("Forbidden", 403);
-			} else if (r.auth === "user" && user.role !== "superadmin") {
-				const access = await checkAppAccess(user.sub, APP_NAME);
-				if (!access) return err("Forbidden", 403);
-			}
+			const gate = await staffGate(req);
+			if ("refused" in gate) return gate.refused;
+			user = gate.user;
 		}
 
 		try {

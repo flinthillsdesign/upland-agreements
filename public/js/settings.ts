@@ -1,10 +1,8 @@
-import { api, requireAuth, getUser } from "./api.js";
-import { esc, setupLogout } from "./utils.js";
+import { api, requireAuth } from "./api.js";
+import { setupLogout } from "./utils.js";
 
 requireAuth();
 setupLogout();
-
-const user = getUser();
 
 // Load settings
 async function loadSettings() {
@@ -81,34 +79,5 @@ document.getElementById("ratesForm")!.addEventListener("submit", async (e) => {
 
 	alert("Rates saved.");
 });
-
-// Users section (read-only — managed via ODIN)
-const usersSection = document.getElementById("usersSection")!;
-if (user?.role !== "superadmin") {
-	usersSection.style.display = "none";
-} else {
-	loadUsers();
-}
-
-async function loadUsers() {
-	try {
-		const users = (await api.listUsers()) as { id: string; email: string; name: string; role: string }[];
-		const container = document.getElementById("usersList")!;
-		container.innerHTML = users
-			.map(
-				(u) => `
-			<div class="user-row">
-				<div class="user-info">
-					<strong>${esc(u.name)}</strong>
-					<span>${esc(u.email)} &middot; ${u.role}</span>
-				</div>
-			</div>
-		`
-			)
-			.join("");
-	} catch {
-		// Non-admin or no access
-	}
-}
 
 loadSettings();
