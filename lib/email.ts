@@ -13,9 +13,11 @@ function escHtml(val: string): string {
 	return val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// The logo is a PNG on this app's own site: Gmail and Outlook won't show an SVG.
+// Master: upland-workshop/brand/logos/upland-exhibits-logo-dark.png (copy out, don't redraw).
 function wrap(content: string): string {
 	return `<div style="font-family:'Instrument Sans',system-ui,-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:32px 0">
-	<div style="margin-bottom:24px"><img src="https://assets.uplandexhibits.com/media/img/logos/Upland-Exhibits-logo-dark.svg" alt="Upland Exhibits" style="height:32px;width:auto"></div>
+	<div style="margin-bottom:24px"><img src="https://agreements.uplandexhibits.com/upland-logo.png" alt="Upland Exhibits" width="109" height="32" style="height:32px;width:auto"></div>
 	${content}
 	<div style="margin-top:32px;padding-top:16px;border-top:1px solid #e2dfd9;font-size:12px;color:#6b6560">Upland Exhibits &mdash; info@uplandexhibits.com</div>
 </div>`;
