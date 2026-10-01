@@ -1,20 +1,38 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Agreement, KnowledgeEntry, ChatMessage } from "./storage.js";
 import { mouRate, type RateSettings } from "./rates.js";
+import { createAi, firstText, wasTruncated, wasRefused, type Ai } from "@upland/shared/ai";
 
 const MODEL = "claude-opus-5";
 
-// Opus 5 runs adaptive thinking by default; low effort keeps drafting calls
-// close to the old (no-thinking) latency and cost.
-const OUTPUT_CONFIG = { effort: "low" as const };
+// Opus 5 thinks by default, and max_tokens covers thinking + answer together.
+const MAX_TOKENS = 8192;
 
-let anthropic: Anthropic | null = null;
-function getClient(): Anthropic | null {
+// Calls go through the suite's one wrapper (@upland/shared/ai): low effort by
+// default, retries on a transient upstream failure, and a reply cut off at
+// the cap is reported instead of parsed as if it were whole.
+let ai: Ai | null = null;
+function getClient(): Ai | null {
   if (!process.env.CLAUDE_API_KEY) return null;
-  if (!anthropic) {
-    anthropic = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
+  if (!ai) {
+    ai = createAi({ anthropic: new Anthropic({ apiKey: process.env.CLAUDE_API_KEY }) });
   }
-  return anthropic;
+  return ai;
+}
+
+// A reply that stopped at the cap is half a JSON object; a refusal is none.
+// Either way nothing is applied to the agreement, and the person is told.
+function readReply(response: unknown): AiResponse {
+  if (wasTruncated(response)) {
+    return {
+      message:
+        "That draft ran longer than one reply can hold, so it was cut off and nothing was changed. Ask for one part at a time (the scope, then the payment terms), or try again.",
+    };
+  }
+  if (wasRefused(response)) {
+    return { message: "The assistant declined that request, so nothing was changed. Try rewording it." };
+  }
+  return parseResponse(firstText(response));
 }
 
 // The prompt names Upland's current MoU rate, read from Settings (lib/rates.ts)
@@ -242,16 +260,14 @@ export async function generateAgreement(
   const systemPrompt =
     systemPromptFor(settings) + buildKnowledgeContext(knowledge) + buildAgreementContext(agreement);
 
-  const response = await client.messages.create({
+  const response = await client.callWithRetry({
     model: MODEL,
-    max_tokens: 4096,
-    output_config: OUTPUT_CONFIG,
+    max_tokens: MAX_TOKENS,
     system: systemPrompt,
     messages: [{ role: "user", content: prompt }],
   });
 
-  const text = response.content.map((b) => (b.type === "text" ? b.text : "")).join("");
-  return parseResponse(text);
+  return readReply(response);
 }
 
 export async function chat(
@@ -273,16 +289,14 @@ export async function chat(
     content: m.content,
   }));
 
-  const response = await client.messages.create({
+  const response = await client.callWithRetry({
     model: MODEL,
-    max_tokens: 4096,
-    output_config: OUTPUT_CONFIG,
+    max_tokens: MAX_TOKENS,
     system: systemPrompt,
     messages: apiMessages,
   });
 
-  const text = response.content.map((b) => (b.type === "text" ? b.text : "")).join("");
-  return parseResponse(text);
+  return readReply(response);
 }
 
 function mockGenerate(

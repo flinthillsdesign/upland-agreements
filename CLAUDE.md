@@ -49,6 +49,10 @@ npm run fmt          # oxfmt
   rate anywhere else: the print used to fall back to $95 / $75 / $65 and 15%
   while the editor showed $125 / $100 / $75 and 20%. A stored rate on an
   agreement always wins over Settings (a stored 0 is a real 0).
+- AI drafting calls go through `@upland/shared/ai` (`createAi`): retries on
+  a transient failure, and a reply cut off at the token cap or refused
+  changes nothing on the agreement and tells the person, instead of showing
+  half a JSON object. Read replies with `firstText`, never `content[0]`.
 - Mail (share links, signing codes, countersigned PDFs) goes out through
   `@upland/shared/mail`'s `sendMail` — link tracking off, so a signing link is
   the link we wrote. `lib/email.ts` holds only the words. A send that fails
