@@ -3,6 +3,7 @@ import { getUserByLogin, authStorage } from "../../lib/auth-storage.js";
 import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, linksLocked, recordLinkMiss, recordView, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { currentRates, mouRate } from "../../lib/rates.js";
+import { centralToday } from "@upland/shared/dates";
 import { sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
 import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, renderAgreementHtml, formatDate, daysFromToday } from "../../lib/render-agreement.js";
 
@@ -370,12 +371,18 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 	const recipients = isNew || send_email ? recipientEmails(agreement) : [];
 	const signer = agreement.client_contact?.trim() || agreement.client_email || "your organization";
 	const signBy = agreement.valid_until ? formatDate(agreement.valid_until, "long") : "";
-	await Promise.all(recipients.map(async (email) => {
+	// `sent` is who the email actually went to; `failed` is who it didn't reach.
+	const outcome = await Promise.all(recipients.map(async (email) => {
 		const link = await getOrCreateShareLink(agreement.id, email);
-		await sendAgreementSharedEmail(email, agreement.title, viewUrlFor(req, link.token), signer, recipients.filter((r) => r !== email), signBy);
+		const ok = await sendAgreementSharedEmail(email, agreement.title, viewUrlFor(req, link.token), signer, recipients.filter((r) => r !== email), signBy);
+		return { email, ok };
 	}));
 
-	return json({ ...(await shareSummary(req, agreement)), sent: recipients });
+	return json({
+		...(await shareSummary(req, agreement)),
+		sent: outcome.filter((o) => o.ok).map((o) => o.email),
+		failed: outcome.filter((o) => !o.ok).map((o) => o.email),
+	});
 });
 
 route("DELETE", "/api/agreements/:id/share", "user", async (_req, params) => {
@@ -422,7 +429,9 @@ route("POST", "/api/agreements/view/:token/send-code", "none", async (req, param
 	await saveVerificationCode(params.token, code, email, expiresAt);
 
 	const { sendVerificationCode } = await import("../../lib/email.js");
-	await sendVerificationCode(email, code, agreement.title);
+	const sent = await sendVerificationCode(email, code, agreement.title);
+	// Never tell someone a code is on its way when it isn't.
+	if (!sent) return err("We couldn't send the code just now. Please try again in a minute.", 502);
 
 	return json({ ok: true });
 });
@@ -469,7 +478,8 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	if (client_name !== undefined) updates.client_name = client_name;
 	if (client_address !== undefined) updates.client_address = client_address;
 	if (email && !agreement.client_email) updates.client_email = email;
-	if (!agreement.effective_date) updates.effective_date = new Date().toISOString().split("T")[0];
+	// The Kansas day, not the UTC one: signed after about 7 pm Central, the UTC date is tomorrow.
+	if (!agreement.effective_date) updates.effective_date = centralToday();
 	// Freeze the terms as the client saw them when they signed, org info and effective date included.
 	// From here on the document renders this text, not the live template.
 	updates.signed_terms = renderAgreementTerms({ ...agreement, ...updates } as any, (await getSettings()) as any);

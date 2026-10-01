@@ -1,16 +1,13 @@
-import postmark from "postmark";
+// Mail goes out through the suite's one sender (@upland/shared/mail): links
+// are never rewritten (a signing link must be the link we wrote), From has one
+// shape, and a send that didn't happen is never reported as sent. This file
+// holds only Agreements' words and layout.
+import { sendMail, mailConfigured, type MailAttachment } from "@upland/shared/mail";
 
-let client: postmark.ServerClient | null = null;
-
-function getClient(): postmark.ServerClient | null {
-	if (!process.env.POSTMARK_API_TOKEN) return null;
-	if (!client) {
-		client = new postmark.ServerClient(process.env.POSTMARK_API_TOKEN);
-	}
-	return client;
-}
-
-const FROM = process.env.POSTMARK_FROM_EMAIL || "Upland Exhibits <info@uplandexhibits.com>";
+// A local machine with no mail set up: say what would have gone and carry on,
+// so the flows can be tried without an inbox. Deployed with no token, nothing
+// is sent and the caller hears so.
+const localWithoutMail = () => !mailConfigured() && !process.env.AWS_LAMBDA_FUNCTION_NAME && !process.env.NETLIFY;
 
 function escHtml(val: string): string {
 	return val.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -28,21 +25,12 @@ function btn(href: string, label: string): string {
 	return `<a href="${href}" style="display:inline-block;padding:12px 24px;background:#2c5530;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:14px">${label}</a>`;
 }
 
-async function send(to: string, subject: string, html: string, text: string, attachments?: { Name: string; Content: string; ContentType: string }[]): Promise<boolean> {
-	const pm = getClient();
-	if (!pm) {
-		console.log(`[email] Would send to ${to}: ${subject}`);
+async function send(to: string, subject: string, html: string, text: string, attachments?: MailAttachment[]): Promise<boolean> {
+	if (localWithoutMail()) {
+		console.log(`[email] Would send to ${to}: ${subject}\n${text}`);
 		return true;
 	}
-	try {
-		const msg: Record<string, unknown> = { From: FROM, To: to, Subject: subject, HtmlBody: html, TextBody: text, MessageStream: "outbound" };
-		if (attachments?.length) msg.Attachments = attachments;
-		await pm.sendEmail(msg as any);
-		return true;
-	} catch (err) {
-		console.error("[email] Send failed:", err);
-		return false;
-	}
+	return (await sendMail({ to, subject, html, text, attachments })).sent;
 }
 
 // Same email to everyone on the send. `signer` = who we assume will sign (a soft assumption — anyone

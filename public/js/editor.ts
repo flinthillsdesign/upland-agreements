@@ -794,6 +794,7 @@ interface ShareSummary {
 	recipients: { email: string; url: string; view_count: number; viewed_at: string | null }[];
 	other_views: number;
 	sent?: string[];
+	failed?: string[];
 	valid_until?: string | null;
 }
 
@@ -827,6 +828,11 @@ function showShareState(share?: ShareSummary) {
 	if (share) renderShareRecipients(share);
 }
 
+// Who the email did not reach, said plainly (the server reports it; it used to say "sent" regardless).
+function notSent(data: { failed?: string[] }): string {
+	return data.failed?.length ? ` The email to ${data.failed.join(", ")} did not go out. Copy the link and send it yourself, or try again.` : "";
+}
+
 function setShareStatus(text: string) {
 	const status = document.getElementById("shareStatus")!;
 	status.textContent = text;
@@ -855,7 +861,7 @@ document.getElementById("generateShareLink")!.addEventListener("click", async ()
 		if (signBy) signBy.value = data.valid_until;
 	}
 	showShareState(data);
-	setShareStatus(data.sent?.length ? `Link generated and sent to ${data.sent.join(", ")}.` : "Link generated.");
+	setShareStatus((data.sent?.length ? `Link generated and sent to ${data.sent.join(", ")}.` : "Link generated.") + notSent(data));
 	btn.disabled = false;
 	btn.textContent = "Generate & Send Link";
 });
@@ -866,7 +872,7 @@ document.getElementById("resendEmail")!.addEventListener("click", async () => {
 	btn.textContent = "Sending...";
 	const data = (await api.shareAgreement(agreementId!, true)) as ShareSummary;
 	showShareState(data);
-	setShareStatus(data.sent?.length ? `Email resent to ${data.sent.join(", ")}.` : "No client email on file.");
+	setShareStatus((data.sent?.length ? `Email resent to ${data.sent.join(", ")}.` : data.failed?.length ? "" : "No client email on file.") + notSent(data));
 	btn.textContent = "Resend Email";
 	btn.disabled = false;
 });

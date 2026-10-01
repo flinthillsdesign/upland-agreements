@@ -2,6 +2,7 @@
 // Pure functions, no DOM dependencies.
 
 import { ratesFor, type RateSettings } from "./rates.js";
+import { centralDayPlus, formatCentral } from "@upland/shared/dates";
 
 export interface AgreementData {
 	type: string;
@@ -55,19 +56,14 @@ export function escLines(val: string | null | undefined): string {
 
 export function formatDate(dateStr: string | null | undefined, style: "short" | "long" = "short"): string {
 	if (!dateStr) return style === "long" ? "_______________" : "";
-	return new Date(dateStr + (dateStr.length === 10 ? "T00:00:00" : "")).toLocaleDateString("en-US", {
-		month: style === "long" ? "long" : "short",
-		day: "numeric",
-		year: "numeric",
-	});
+	// A bare date is that calendar day; a stored timestamp is UTC and reads in Kansas time.
+	return formatCentral(dateStr, { month: style === "long" ? "long" : "short", day: "numeric", year: "numeric" });
 }
 
 // The sign-by date a send would set today. Sending stores the real one; until then the
 // preview shows this so the document never reads with a blank.
 export function daysFromToday(days: number): string {
-	const d = new Date();
-	d.setDate(d.getDate() + days);
-	return d.toISOString().split("T")[0];
+	return centralDayPlus(days); // Kansas days, not UTC ones
 }
 
 export function formatCurrency(amount: number | null | undefined): string {

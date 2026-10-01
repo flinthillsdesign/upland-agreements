@@ -1,3 +1,4 @@
+import { formatCentral } from "@upland/shared/dates";
 import { clearAuth } from "./api.js";
 
 // === HTML escaping ===
@@ -42,9 +43,9 @@ export function formatCurrency(amount: number | null | undefined): string {
 // "short" = Aug 26, 2026 · "long" = August 26, 2026 · "time" = Aug 26, 6:28 PM
 export function formatDate(dateStr: string | null | undefined, style: "short" | "long" | "time" = "short"): string {
 	if (!dateStr) return style === "long" ? "_______________" : "";
-	const date = new Date(dateStr + (dateStr.length === 10 ? "T00:00:00" : ""));
-	if (style === "time") return date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-	return date.toLocaleDateString("en-US", { month: style === "long" ? "long" : "short", day: "numeric", year: "numeric" });
+	// A bare date is that calendar day; a stored timestamp is UTC (parseStamp), shown in Kansas time.
+	if (style === "time") return formatCentral(dateStr, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+	return formatCentral(dateStr, { month: style === "long" ? "long" : "short", day: "numeric", year: "numeric" });
 }
 
 export function isMouType(type: string): boolean {

@@ -14,11 +14,11 @@
     "@anthropic-ai/sdk": "^0.80.0",
     "@libsql/client": "^0.14.0",
     "@upland/auth": "github:flinthillsdesign/upland-auth#v0.2.0",
+    "@upland/shared": "github:flinthillsdesign/upland-shared#v0.4.0",
     "bcryptjs": "^2.4.3",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
-    "nanoid": "^5.0.9",
-    "postmark": "^4.0.5"
+    "nanoid": "^5.0.9"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

@@ -49,4 +49,11 @@ npm run fmt          # oxfmt
   rate anywhere else: the print used to fall back to $95 / $75 / $65 and 15%
   while the editor showed $125 / $100 / $75 and 20%. A stored rate on an
   agreement always wins over Settings (a stored 0 is a real 0).
-- Postmark sends signature and countersignature emails.
+- Mail (share links, signing codes, countersigned PDFs) goes out through
+  `@upland/shared/mail`'s `sendMail` — link tracking off, so a signing link is
+  the link we wrote. `lib/email.ts` holds only the words. A send that fails
+  is reported: the share route returns `failed`, and a signing code that
+  can't be mailed is an error to the client, never a silent "sent".
+- **Days are Kansas days** (`@upland/shared/dates`): the effective date
+  stamped at signing, the 30-day sign-by date and every printed date. Never
+  take a day from `toISOString()` — after about 7 pm Central that is tomorrow.
