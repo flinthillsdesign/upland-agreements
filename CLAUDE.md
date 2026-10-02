@@ -38,6 +38,12 @@ npm run fmt          # oxfmt
   the person still exists, not logged out since it was minted, holds an
   `agreements` grant. Don't hand-write those checks. The four client routes
   under `/api/agreements/view/:token` are deliberately outside it.
+- **`GET /api/summary` and `/api/summary/:id` are what another Upland tool
+  may be told** (ODIN's Ask reads them as the person asking, through
+  `staffGate` like any staff route). `lib/summary.ts` is an allow-list: the
+  facts, who opened and signed, and the wording. Never a share link, a
+  signing code or a signature's IP. A new column reaches a reader only when
+  it is added there.
 - **No users or passwords here.** `lib/auth-storage.ts` is read-only — ODIN
   owns the auth DB's schema and writes. This app's own user admin and
   password reset were removed 2026-10-01 (they wrote columns the shared table

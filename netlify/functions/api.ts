@@ -5,6 +5,7 @@ import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { currentRates, mouRate } from "../../lib/rates.js";
 import { centralToday } from "@upland/shared/dates";
 import { sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
+import { agreementFacts, agreementDetail } from "../../lib/summary.js";
 import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, renderAgreementHtml, formatDate, daysFromToday } from "../../lib/render-agreement.js";
 
 const APP_NAME = "agreements";
@@ -541,6 +542,26 @@ route("POST", "/api/agreements/:id/countersign", "user", async (req, params, use
 	}
 
 	return json({ ok: true, signature: JSON.parse(signature) });
+});
+
+// === Summary (what another Upland tool may be told) ===
+// ODIN's Ask reads these as the person asking. The shapes are an allow-list
+// (lib/summary.ts): no share link, signing code or signature IP leaves here.
+
+route("GET", "/api/summary", "user", async (req) => {
+	const url = new URL(req.url);
+	const agreements = await listAgreements({
+		status: url.searchParams.get("status") || undefined,
+		search: url.searchParams.get("search") || undefined,
+	});
+	return json({ agreements: agreements.map(agreementFacts) });
+});
+
+route("GET", "/api/summary/:id", "user", async (_req, params) => {
+	const agreement = await getAgreement(params.id);
+	if (!agreement) return err("Not found", 404);
+	const [links, settings] = await Promise.all([listShareLinks(agreement.id), getSettings()]);
+	return json(agreementDetail(agreement, links, settings as any));
 });
 
 // === Knowledge Base ===
