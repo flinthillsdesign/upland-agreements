@@ -75,8 +75,15 @@ function getBaseUrl(req: Request): string {
 	return `${url.protocol}//${url.host}`;
 }
 
+// Netlify's own header first: Netlify sets it and a caller cannot. The first
+// x-forwarded-for entry is whatever the caller sent, so it only stands in off
+// Netlify (local dev). The lockout on tries and the signature record use this.
 function getClientIp(req: Request): string {
-	return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "unknown";
+	return (
+		req.headers.get("x-nf-client-connection-ip") ||
+		req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+		"unknown"
+	);
 }
 
 const TOO_MANY = "Too many attempts. Try again in an hour.";
