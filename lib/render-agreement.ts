@@ -470,7 +470,7 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 			<div class="doc-section-body">
 				<div>Any notice or communication required or permitted under this Agreement shall be sent via email. A notice shall be deemed received when the recipient confirms receipt by reply, or if no reply is received, on the third business day after sending. All notices shall be sent to:</div>
 				<div class="doc-term-sub">Designer: ${esc(agreement.designer_email) || "joel@uplandexhibits.com"}</div>
-				<div class="doc-term-sub">Client: ${esc(agreement.client_email) || "_______________"}</div>
+				<div class="doc-term-sub">Client: ${esc(recipientEmails(agreement).join(", ")) || "_______________"}</div>
 			</div>
 		</div>
 
