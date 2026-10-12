@@ -24,6 +24,10 @@ export function createToken(payload: JwtPayload): string {
 // gets in only if the token is valid, the person still exists, they haven't
 // been logged out since it was minted, and they hold a grant for `app` (a
 // superadmin, read from the database rather than the token, needs none).
-export function checkAccess(authHeader: string | null | undefined, app: string, storage: upland.AuthStorage): Promise<upland.Decision> {
-	return upland.checkAccess(upland.getAuth({ authorization: authHeader || undefined }), { app, storage });
+// `allowService` admits a service token (no person behind it) — the caller
+// then decides by name what that service may do.
+export function checkAccess(authHeader: string | null | undefined, app: string, storage: upland.AuthStorage, allowService = false): Promise<upland.Decision> {
+	return upland.checkAccess(upland.getAuth({ authorization: authHeader || undefined }), { app, storage, allowService });
 }
+
+export { isService } from "@upland/auth";

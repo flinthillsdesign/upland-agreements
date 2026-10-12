@@ -1,4 +1,4 @@
-import { verifyPassword, createToken, checkAccess, type JwtPayload } from "../../lib/auth.js";
+import { verifyPassword, createToken, checkAccess, isService, type JwtPayload } from "../../lib/auth.js";
 import { getUserByLogin, authStorage } from "../../lib/auth-storage.js";
 import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, linksLocked, recordLinkMiss, recordView, recordEvent, listEvents, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
@@ -63,11 +63,31 @@ function err(message: string, status = 400): Response {
 	return json({ error: message }, status);
 }
 
-// The signed-in staff member behind a request, or the gate's refusal.
-async function staffGate(req: Request): Promise<{ user: JwtPayload } | { refused: Response }> {
-	const decision = await checkAccess(req.headers.get("authorization"), APP_NAME, authStorage);
+// Claude Code at Joel's Mac. Not a person and no login: it carries the
+// @upland/auth service identity "service-claude-code" (ODIN's
+// scripts/claude-code-auth.ts mints it, five minutes a token) and may call
+// the routes named here — the facts, who opened and signed, and the wording;
+// never a share link or a signing code — and nothing else (Joel, 2026-10-12).
+// Any other service name is refused everywhere. Add a line only on Joel's
+// ruling, and write it onto upland-ops/data-tiers.html in the same session.
+const CLAUDE_CODE_SUB = "service-claude-code";
+const CLAUDE_CODE_MAY: Array<[string, RegExp]> = [
+	["GET", /^\/api\/summary$/], // the list
+	["GET", /^\/api\/summary\/[^/]+$/], // one agreement in full
+	["GET", /^\/api\/agreements\/[^/]+\/history$/], // what happened to it
+];
+
+// The signed-in staff member behind a request, or the gate's refusal. A
+// service token gets in only as Claude Code, on its named routes.
+async function staffGate(req: Request, method: string, path: string): Promise<{ user: JwtPayload } | { refused: Response }> {
+	const decision = await checkAccess(req.headers.get("authorization"), APP_NAME, authStorage, true);
 	if (!decision.ok) return { refused: err(decision.status === 401 ? "Unauthorized" : "Forbidden", decision.status) };
 	const a = decision.auth;
+	if (isService(a)) {
+		const may = a.sub === CLAUDE_CODE_SUB && CLAUDE_CODE_MAY.some(([m, re]) => m === method && re.test(path));
+		if (!may) return { refused: err("Forbidden", 403) };
+		return { user: { sub: a.sub, email: "", role: "service" } };
+	}
 	return { user: { sub: a.sub, email: "name" in a ? a.name : "", role: "role" in a ? a.role : "staff" } };
 }
 
@@ -300,7 +320,7 @@ route("POST", "/api/pdf", "none", async (req) => {
 		if (!found) return refused!;
 		agreement = found.agreement;
 	} else if (id) {
-		const gate = await staffGate(req);
+		const gate = await staffGate(req, req.method, new URL(req.url).pathname);
 		if ("refused" in gate) return gate.refused;
 		agreement = await getAgreement(id);
 		if (!agreement) return err("Not found", 404);
@@ -659,7 +679,7 @@ export default async function handler(req: Request): Promise<Response> {
 		// and go through openShareToken.
 		let user: JwtPayload | null = null;
 		if (r.auth !== "none") {
-			const gate = await staffGate(req);
+			const gate = await staffGate(req, req.method, path);
 			if ("refused" in gate) return gate.refused;
 			user = gate.user;
 		}
