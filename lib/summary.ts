@@ -6,6 +6,7 @@
 
 import { parseSignature, renderAgreementTerms, type SettingsData } from "./render-agreement.js";
 import type { Agreement, ShareLink } from "./storage.js";
+import type { HistoryEntry } from "./history.js";
 
 function signer(json: string | null) {
 	const s = parseSignature(json);
@@ -35,14 +36,16 @@ export function agreementFacts(a: Agreement) {
 	};
 }
 
-// One agreement in full. `terms_html` is what the document says: the wording
-// frozen at signing, or the live template for one not yet signed.
-export function agreementDetail(a: Agreement, links: ShareLink[], settings: SettingsData) {
+// One agreement in full. `history` is what happened to it, oldest first.
+// `terms_html` is what the document says: the wording frozen at signing, or
+// the live template for one not yet signed.
+export function agreementDetail(a: Agreement, links: ShareLink[], history: HistoryEntry[], settings: SettingsData) {
 	return {
 		...agreementFacts(a),
 		contact_title: a.client_title,
 		client_address: a.client_address,
 		sent_to: links.map((l) => ({ email: l.email, times_opened: l.view_count, last_opened: l.viewed_at })),
+		history,
 		upland_contact: a.designer_email,
 		notes: a.notes,
 		terms_html: a.signed_terms || renderAgreementTerms(a, settings),

@@ -122,6 +122,19 @@ export async function ensureSchema(): Promise<void> {
 	`);
 	await db.execute("CREATE INDEX IF NOT EXISTS idx_link_misses_at ON link_misses(at)");
 
+	// What happened to an agreement, one row per happening: sent, opened, signed, countersigned.
+	// `who` is the person it concerns (an address, a name), never where they came from.
+	await db.execute(`
+		CREATE TABLE IF NOT EXISTS events (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			agreement_id TEXT NOT NULL,
+			at TEXT NOT NULL,
+			kind TEXT NOT NULL,
+			who TEXT
+		)
+	`);
+	await db.execute("CREATE INDEX IF NOT EXISTS idx_events_agreement ON events(agreement_id, at)");
+
 	// Settings row + indexes + additive columns for DBs created before them (all independent, run in parallel)
 	await Promise.all([
 		db.execute("ALTER TABLE agreements ADD COLUMN client_cc TEXT").catch(() => { /* already exists */ }),
@@ -336,6 +349,7 @@ export async function updateAgreement(id: string, fields: Partial<Agreement>): P
 export async function deleteAgreement(id: string): Promise<void> {
 	const db = getClient();
 	await db.execute({ sql: "DELETE FROM share_links WHERE agreement_id = ?", args: [id] });
+	await db.execute({ sql: "DELETE FROM events WHERE agreement_id = ?", args: [id] });
 	await db.execute({ sql: "DELETE FROM agreements WHERE id = ?", args: [id] });
 }
 
@@ -362,11 +376,33 @@ export async function duplicateAgreement(id: string, userId: string): Promise<Ag
 	return getAgreement(newId);
 }
 
-// Counts the open on the agreement (the aggregate) and, when it came through a recipient's link, on that link too.
-export async function recordView(agreementId: string, linkToken?: string | null): Promise<void> {
+// === Events ===
+
+export type EventKind = "sent" | "opened" | "signed" | "countersigned";
+
+export interface AgreementEvent {
+	at: string;
+	kind: EventKind;
+	who: string | null;
+}
+
+export async function recordEvent(agreementId: string, kind: EventKind, who?: string | null, at = new Date().toISOString()): Promise<void> {
+	await getClient().execute({ sql: "INSERT INTO events (agreement_id, at, kind, who) VALUES (?, ?, ?, ?)", args: [agreementId, at, kind, who || null] });
+}
+
+export async function listEvents(agreementId: string): Promise<AgreementEvent[]> {
+	const result = await getClient().execute({ sql: "SELECT at, kind, who FROM events WHERE agreement_id = ? ORDER BY at, id", args: [agreementId] });
+	return result.rows as unknown as AgreementEvent[];
+}
+
+// Counts the open on the agreement (the aggregate) and, when it came through a recipient's link, on that link too;
+// and logs it, by the recipient's address when the link names one.
+export async function recordView(agreementId: string, link?: ShareLink | null): Promise<void> {
 	const db = getClient();
 	const now = new Date().toISOString();
+	const linkToken = link?.token;
 	await Promise.all([
+		recordEvent(agreementId, "opened", link?.email, now),
 		db.execute({
 			sql: `UPDATE agreements SET
 				view_count = view_count + 1,

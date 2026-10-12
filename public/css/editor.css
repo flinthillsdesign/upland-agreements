@@ -67,6 +67,24 @@
 .share-recipients .when { color: var(--text-muted); white-space: nowrap; }
 .share-recipients .opened { color: var(--success); font-weight: 600; }
 
+.history {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	font-size: 0.85rem;
+}
+
+.history li {
+	display: flex;
+	gap: 16px;
+	padding: 6px 0;
+	border-top: 1px solid var(--border);
+}
+
+.history li:first-child { border-top: 0; }
+.history .when { flex: 0 0 9.5em; color: var(--text-muted); white-space: nowrap; }
+.history .who { color: var(--text-muted); }
+
 .form-section {
 	background: var(--surface);
 	border: 1px solid var(--border);

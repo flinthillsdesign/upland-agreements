@@ -89,6 +89,7 @@ async function load() {
 	document.getElementById("typeBadge")!.textContent = TYPE_LABELS[agreement.type as keyof typeof TYPE_LABELS] || agreement.type;
 	document.title = `${agreement.title} — Agreements`;
 	renderForm();
+	loadHistory().catch((err) => console.error("Failed to load history:", err));
 	loadConversation().catch((err) => console.error("Failed to load conversation:", err));
 }
 
@@ -108,6 +109,26 @@ function renderSignedNote(): string {
 	const offList = !!sig.email && !recipientEmails(agreement).includes(sig.email.toLowerCase());
 	const who = esc([sig.name, sig.title].filter(Boolean).join(", "));
 	return `<div class="signed-note">Signed by ${who}${sig.email ? ` &middot; ${esc(sig.email)}` : ""} &middot; ${formatDate(sig.timestamp)}${offList ? `<span class="signed-note-flag">not on the recipient list</span>` : ""}</div>`;
+}
+
+// What happened to the agreement, oldest first — created, sent, each open, signed, countersigned.
+interface HistoryEntry { at: string; kind: "created" | "sent" | "opened" | "signed" | "countersigned"; who: string | null; count?: number }
+let history: HistoryEntry[] = [];
+const HISTORY_LABELS: Record<HistoryEntry["kind"], string> = { created: "Created", sent: "Sent to", opened: "Opened", signed: "Signed", countersigned: "Countersigned" };
+
+function renderHistory() {
+	const list = document.getElementById("history");
+	if (!list) return;
+	list.innerHTML = history.map((h) => {
+		// An open counted before the log keeps its count: "first of 3".
+		const who = [h.who, h.count && h.count > 1 ? `first of ${h.count}` : ""].filter(Boolean).map(esc).join(" &middot; ");
+		return `<li><span class="when">${esc(formatDate(h.at, "time"))}</span><span class="what">${HISTORY_LABELS[h.kind]}${who ? ` <span class="who">${who}</span>` : ""}</span></li>`;
+	}).join("");
+}
+
+async function loadHistory() {
+	history = (await api.getHistory(agreementId!)) as HistoryEntry[];
+	renderHistory();
 }
 
 function renderForm() {
@@ -318,8 +339,15 @@ function renderForm() {
 					</div>
 				</div>
 			</div>
+
+			<!-- History -->
+			<div class="form-section">
+				<div class="form-section-header"><h2>History</h2></div>
+				<div class="form-section-body"><ol class="history" id="history"></ol></div>
+			</div>
 		</div>
 	`;
+	renderHistory();
 
 	// Auto-save on input changes (batched)
 	main.querySelectorAll("[data-field]").forEach((el) => {
@@ -862,6 +890,7 @@ document.getElementById("generateShareLink")!.addEventListener("click", async ()
 	}
 	showShareState(data);
 	setShareStatus((data.sent?.length ? `Link generated and sent to ${data.sent.join(", ")}.` : "Link generated.") + notSent(data));
+	if (data.sent?.length) loadHistory();
 	btn.disabled = false;
 	btn.textContent = "Generate & Send Link";
 });
@@ -873,6 +902,7 @@ document.getElementById("resendEmail")!.addEventListener("click", async () => {
 	const data = (await api.shareAgreement(agreementId!, true)) as ShareSummary;
 	showShareState(data);
 	setShareStatus((data.sent?.length ? `Email resent to ${data.sent.join(", ")}.` : data.failed?.length ? "" : "No client email on file.") + notSent(data));
+	if (data.sent?.length) loadHistory();
 	btn.textContent = "Resend Email";
 	btn.disabled = false;
 });

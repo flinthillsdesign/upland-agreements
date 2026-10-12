@@ -1,11 +1,12 @@
 import { verifyPassword, createToken, checkAccess, type JwtPayload } from "../../lib/auth.js";
 import { getUserByLogin, authStorage } from "../../lib/auth-storage.js";
-import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, linksLocked, recordLinkMiss, recordView, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
+import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, linksLocked, recordLinkMiss, recordView, recordEvent, listEvents, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { currentRates, mouRate } from "../../lib/rates.js";
 import { centralToday } from "@upland/shared/dates";
 import { sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
 import { agreementFacts, agreementDetail } from "../../lib/summary.js";
+import { agreementHistory } from "../../lib/history.js";
 import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, renderAgreementHtml, formatDate, daysFromToday } from "../../lib/render-agreement.js";
 
 const APP_NAME = "agreements";
@@ -361,6 +362,14 @@ route("GET", "/api/agreements/:id/share", "user", async (req, params) => {
 	return json(await shareSummary(req, agreement));
 });
 
+// What happened to it, oldest first (lib/history.ts).
+route("GET", "/api/agreements/:id/history", "user", async (_req, params) => {
+	const agreement = await getAgreement(params.id);
+	if (!agreement) return err("Not found", 404);
+	const [links, events] = await Promise.all([listShareLinks(agreement.id), listEvents(agreement.id)]);
+	return json(agreementHistory(agreement, links, events));
+});
+
 route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 	const agreement = await getAgreement(params.id);
 	if (!agreement) return err("Not found", 404);
@@ -385,10 +394,12 @@ route("POST", "/api/agreements/:id/share", "user", async (req, params) => {
 		const ok = await sendAgreementSharedEmail(email, agreement.title, viewUrlFor(req, link.token), signer, recipients.filter((r) => r !== email), signBy);
 		return { email, ok };
 	}));
+	const sent = outcome.filter((o) => o.ok).map((o) => o.email);
+	if (sent.length) await recordEvent(agreement.id, "sent", sent.join(", "));
 
 	return json({
 		...(await shareSummary(req, agreement)),
-		sent: outcome.filter((o) => o.ok).map((o) => o.email),
+		sent,
 		failed: outcome.filter((o) => !o.ok).map((o) => o.email),
 	});
 });
@@ -406,7 +417,7 @@ route("GET", "/api/agreements/view/:token", "none", async (req, params) => {
 	if (!found) return refused!;
 	const { agreement, link } = found;
 
-	await recordView(agreement.id, link?.token);
+	await recordView(agreement.id, link);
 
 	// Notify designer on each recipient's first open; the generic link only on the agreement's first open ever.
 	const firstOpen = link ? link.view_count === 0 : agreement.view_count === 0;
@@ -492,6 +503,7 @@ route("POST", "/api/agreements/view/:token/sign", "none", async (req, params) =>
 	// From here on the document renders this text, not the live template.
 	updates.signed_terms = renderAgreementTerms({ ...agreement, ...updates } as any, (await getSettings()) as any);
 	await updateAgreement(agreement.id, updates);
+	await recordEvent(agreement.id, "signed", [name, email].filter(Boolean).join(" · "));
 
 	// Notify designer
 	if (agreement.designer_email) {
@@ -515,6 +527,7 @@ route("POST", "/api/agreements/:id/countersign", "user", async (req, params, use
 	const signature = buildSignature({ name: name || user!.email, ip: getClientIp(req), title: title || undefined });
 
 	await updateAgreement(agreement.id, { designer_signature: signature, status: "countersigned" });
+	await recordEvent(agreement.id, "countersigned", name || user!.email);
 
 	// Generate PDF and notify client + designer
 	const viewUrl = agreement.share_token ? `${getBaseUrl(req)}/view.html?token=${agreement.share_token}` : "";
@@ -567,8 +580,8 @@ route("GET", "/api/summary", "user", async (req) => {
 route("GET", "/api/summary/:id", "user", async (_req, params) => {
 	const agreement = await getAgreement(params.id);
 	if (!agreement) return err("Not found", 404);
-	const [links, settings] = await Promise.all([listShareLinks(agreement.id), getSettings()]);
-	return json(agreementDetail(agreement, links, settings as any));
+	const [links, events, settings] = await Promise.all([listShareLinks(agreement.id), listEvents(agreement.id), getSettings()]);
+	return json(agreementDetail(agreement, links, agreementHistory(agreement, links, events), settings as any));
 });
 
 // === Knowledge Base ===
