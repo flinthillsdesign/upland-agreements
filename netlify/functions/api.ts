@@ -7,7 +7,7 @@ import { centralToday } from "@upland/shared/dates";
 import { sendAgreementSharedEmail, sendAgreementViewedEmail, sendAgreementSignedEmail, sendAgreementCountersignedEmail } from "../../lib/email.js";
 import { agreementFacts, agreementDetail } from "../../lib/summary.js";
 import { agreementHistory } from "../../lib/history.js";
-import { buildSignature, parseSignature, emailList, recipientEmails, renderAgreementTerms, renderAgreementHtml, formatDate, daysFromToday } from "../../lib/render-agreement.js";
+import { buildSignature, clientView, parseSignature, emailList, recipientEmails, renderAgreementTerms, renderAgreementHtml, formatDate, daysFromToday } from "../../lib/render-agreement.js";
 
 const APP_NAME = "agreements";
 let initPromise: Promise<void> | null = null;
@@ -28,6 +28,15 @@ const EDITABLE_FIELDS = new Set([
 	"hours", "hourly_rate", "total_cost", "payment_structure", "service_rates",
 	"client_responsibilities", "custom_terms", "designer_email", "notes", "valid_until",
 ]);
+
+// Keep only the keys a route allows. Status, signatures, the frozen terms and the
+// share link are set by their own routes, never by a request body.
+function pick(body: Record<string, unknown>, allowed: Set<string>): Record<string, unknown> {
+	return Object.fromEntries(Object.entries(body).filter(([k]) => allowed.has(k)));
+}
+
+const CREATE_FIELDS = new Set([...EDITABLE_FIELDS, "type", "title"]);
+const KNOWLEDGE_FIELDS = new Set(["type", "title", "content", "metadata"]);
 
 
 // === Router ===
@@ -210,7 +219,7 @@ route("POST", "/api/agreements", "user", async (req, _params, user) => {
 
 	const agreement = await createAgreement({
 		...defaults,
-		...body as { type: string; title: string },
+		...pick(body, CREATE_FIELDS) as { type: string; title: string },
 		created_by: user!.sub,
 	});
 	return json(agreement, 201);
@@ -224,12 +233,7 @@ route("GET", "/api/agreements/:id", "user", async (_req, params) => {
 
 route("PUT", "/api/agreements/:id", "user", async (req, params) => {
 	const body = await req.json() as Record<string, unknown>;
-	// Only allow editable fields through the generic update endpoint
-	const filtered: Record<string, unknown> = {};
-	for (const [key, val] of Object.entries(body)) {
-		if (EDITABLE_FIELDS.has(key)) filtered[key] = val;
-	}
-	const agreement = await updateAgreement(params.id, filtered);
+	const agreement = await updateAgreement(params.id, pick(body, EDITABLE_FIELDS));
 	if (!agreement) return err("Not found", 404);
 	return json(agreement);
 });
@@ -255,6 +259,7 @@ route("POST", "/api/agreements/:id/generate", "user", async (req, params) => {
 	if (!agreement) return err("Not found", 404);
 
 	const result = await generateAgreement(prompt, agreement, knowledge, settings);
+	if (agreement.client_signature) result.fields = undefined; // signed terms are frozen; the AI only talks
 
 	// Apply fields and save conversation in parallel
 	const messages: ChatMessage[] = [
@@ -286,6 +291,7 @@ route("POST", "/api/agreements/:id/chat", "user", async (req, params) => {
 	messages.push({ role: "user", content: message, timestamp: new Date().toISOString() });
 
 	const result = await aiChat(messages, agreement, knowledge, settings);
+	if (agreement.client_signature) result.fields = undefined; // signed terms are frozen; the AI only talks
 
 	messages.push({ role: "assistant", content: result.message, timestamp: new Date().toISOString() });
 
@@ -447,10 +453,10 @@ route("GET", "/api/agreements/view/:token", "none", async (req, params) => {
 		await sendAgreementViewedEmail(agreement.designer_email, agreement.title, who, editorUrl);
 	}
 
-	// Get settings for boilerplate
+	// Only what the document and signing form read (lib/render-agreement.ts clientView).
 	const settings = await getSettings();
 
-	return json({ agreement, settings });
+	return json(clientView(agreement as unknown as Record<string, unknown>, settings as Record<string, unknown>));
 });
 
 route("POST", "/api/agreements/view/:token/send-code", "none", async (req, params) => {
@@ -620,7 +626,7 @@ route("POST", "/api/knowledge", "user", async (req) => {
 
 route("PUT", "/api/knowledge/:id", "user", async (req, params) => {
 	const body = await req.json() as Record<string, unknown>;
-	const entry = await updateKB(params.id, body);
+	const entry = await updateKB(params.id, pick(body, KNOWLEDGE_FIELDS));
 	if (!entry) return err("Not found", 404);
 	return json(entry);
 });

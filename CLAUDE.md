@@ -44,6 +44,14 @@ npm run fmt          # oxfmt
   facts, who opened and signed, and the wording. Never a share link, a
   signing code or a signature's IP. A new column reaches a reader only when
   it is added there.
+- **A share-link holder gets an allow-list too**: `clientView` in
+  `lib/render-agreement.ts` — the fields the document and signing form read,
+  never notes, the AI prompt, the link, who created it, or the signer's
+  verified address. **Writes are allow-listed the same way**: a request body
+  passes `EDITABLE_FIELDS` / `CREATE_FIELDS` / `KNOWLEDGE_FIELDS` in the router,
+  storage refuses any key that is not a real column (keys become SQL
+  identifiers), and the AI may write only the drafting fields in `lib/ai.ts`,
+  and nothing once the client has signed.
 - **No users or passwords here.** `lib/auth-storage.ts` is read-only — ODIN
   owns the auth DB's schema and writes. This app's own user admin and
   password reset were removed 2026-10-01 (they wrote columns the shared table

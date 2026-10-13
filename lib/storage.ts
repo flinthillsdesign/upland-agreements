@@ -313,9 +313,25 @@ export async function deleteShareLinks(agreementId: string): Promise<void> {
 	await db.execute({ sql: "DELETE FROM share_links WHERE agreement_id = ?", args: [agreementId] });
 }
 
+// Every agreements column a write may name. Keys become SQL identifiers, so a
+// key that is not one of these is refused rather than spliced into the statement.
+const AGREEMENT_COLUMNS = new Set([
+	"type", "title", "status", "client_name", "client_address", "client_contact", "client_title", "client_email", "client_cc",
+	"effective_date", "end_date", "project_description", "deliverable", "timeframe", "hours", "hourly_rate", "total_cost",
+	"payment_structure", "service_rates", "client_responsibilities", "custom_terms", "designer_email", "prompt", "notes",
+	"share_token", "viewed_at", "view_count", "client_signature", "designer_signature", "valid_until", "created_by", "signed_terms",
+]);
+const KNOWLEDGE_COLUMNS = new Set(["type", "title", "content", "metadata"]);
+
+function assertColumns(keys: string[], allowed: Set<string>): void {
+	const bad = keys.filter((k) => !allowed.has(k));
+	if (bad.length) throw new Error(`Unknown column: ${bad.join(", ")}`);
+}
+
 export async function createAgreement(data: Partial<Agreement> & { type: string; title: string; created_by: string }): Promise<Agreement> {
 	const db = getClient();
 	const id = nanoid();
+	assertColumns(Object.keys(data), AGREEMENT_COLUMNS);
 	const fields = { id, status: "draft", ...data };
 
 	const cols = Object.keys(fields);
@@ -330,9 +346,9 @@ export async function updateAgreement(id: string, fields: Partial<Agreement>): P
 	const db = getClient();
 	const sets: string[] = [];
 	const args: unknown[] = [];
+	assertColumns(Object.keys(fields), AGREEMENT_COLUMNS);
 
 	for (const [key, val] of Object.entries(fields)) {
-		if (key === "id" || key === "created_at") continue;
 		if (val !== undefined) {
 			sets.push(`${key} = ?`);
 			args.push(val);
@@ -485,6 +501,7 @@ export async function updateKnowledge(id: string, fields: Partial<Pick<Knowledge
 	const db = getClient();
 	const sets: string[] = [];
 	const args: unknown[] = [];
+	assertColumns(Object.keys(fields), KNOWLEDGE_COLUMNS);
 	for (const [key, val] of Object.entries(fields)) {
 		if (val !== undefined) {
 			sets.push(`${key} = ?`);

@@ -204,16 +204,29 @@ export interface AiResponse {
   references?: string[];
 }
 
-// JSON-typed columns (payment_structure, service_rates) must land as strings —
+// The drafting fields the model may write, and nothing else. Its context holds
+// text a client typed at signing, so its reply is untrusted: never a signature,
+// status, link, recipient address, note or rate (rates come from Settings).
+const AI_TEXT_FIELDS = new Set(["project_description", "deliverable", "timeframe", "client_responsibilities", "payment_structure"]);
+const AI_NUMBER_FIELDS = new Set(["hours", "hourly_rate", "total_cost"]);
+const AI_DATE_FIELDS = new Set(["effective_date", "end_date"]);
+
+// JSON-typed columns (payment_structure) must land as strings —
 // an object handed straight to the DB binds as "[object Object]".
 function normalizeFields(fields: unknown): Partial<Agreement> | undefined {
   if (!fields || typeof fields !== "object") return undefined;
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(fields as Record<string, unknown>)) {
-    if (k === "service_rates") continue; // rates come from Settings; edit them in the Service Rates panel, never via AI
-    out[k] = v !== null && typeof v === "object" ? JSON.stringify(v) : v;
+    if (AI_NUMBER_FIELDS.has(k)) {
+      const n = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
+      if (Number.isFinite(n)) out[k] = n;
+    } else if (AI_DATE_FIELDS.has(k)) {
+      if (v === null || v === "" || (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v))) out[k] = v || null;
+    } else if (AI_TEXT_FIELDS.has(k)) {
+      out[k] = v !== null && typeof v === "object" ? JSON.stringify(v) : v;
+    }
   }
-  return out as Partial<Agreement>;
+  return Object.keys(out).length ? (out as Partial<Agreement>) : undefined;
 }
 
 function parseResponse(text: string): AiResponse {

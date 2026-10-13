@@ -41,6 +41,38 @@ export interface SettingsData extends RateSettings {
 	designer_title?: string;
 }
 
+// What a share-link holder is sent: the fields the document and the signing
+// form read, and nothing else. Notes, the AI prompt, the link itself, who
+// created it and view counts are Upland's, not the client's (data-tiers: a
+// client's link is Customer tier). A new column reaches the client only when
+// it is added here.
+const CLIENT_AGREEMENT_FIELDS: (keyof AgreementData)[] = [
+	"type", "title", "status", "client_name", "client_address", "client_contact", "client_title", "client_email", "client_cc",
+	"effective_date", "end_date", "valid_until", "project_description", "deliverable", "timeframe", "hours", "hourly_rate",
+	"total_cost", "payment_structure", "service_rates", "client_responsibilities", "designer_email",
+	"client_signature", "designer_signature", "signed_terms",
+];
+const CLIENT_SETTINGS_FIELDS: (keyof SettingsData)[] = [
+	"legal_name", "company_address", "designer_name", "designer_title",
+	"mou_rate", "head_rate", "design_rate", "fab_rate", "materials_markup", "travel_rate",
+];
+
+// A signature as the document prints it: who, when, from where. The address
+// the signer verified and the consent record stay on the server.
+function clientSignature(json: string | null | undefined): string | null {
+	const sig = parseSignature(json);
+	if (!sig) return json ?? null;
+	return JSON.stringify({ name: sig.name, title: sig.title, timestamp: sig.timestamp, ip: sig.ip });
+}
+
+export function clientView(agreement: Record<string, unknown>, settings: Record<string, unknown>): { agreement: AgreementData; settings: SettingsData } {
+	const a = Object.fromEntries(CLIENT_AGREEMENT_FIELDS.map((k) => [k, agreement[k] ?? null])) as unknown as AgreementData;
+	a.client_signature = clientSignature(a.client_signature);
+	a.designer_signature = clientSignature(a.designer_signature);
+	const s = Object.fromEntries(CLIENT_SETTINGS_FIELDS.filter((k) => k in settings).map((k) => [k, settings[k]])) as SettingsData;
+	return { agreement: a, settings: s };
+}
+
 // === Helpers ===
 
 export function esc(val: string | null | undefined): string {
