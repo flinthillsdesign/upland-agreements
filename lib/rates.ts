@@ -24,8 +24,11 @@ export interface RateSettings {
 }
 
 // What a fresh install uses until Settings is saved once. The only typed
-// rates in the app; production reads the Settings row.
-const STARTING_RATES: ServiceRates = { head_rate: 125, design_rate: 100, fab_rate: 75, materials_markup: 20, travel_rate: 55 };
+// rates in the app; production reads the Settings row. Two tiers since
+// 2026-10-15 (Joel; upland-ops/labor-cost.html): staff $100 whether design
+// or fabrication, heads $125, travel $75 for anyone. Fab was $75 and travel
+// $55 before that; signed agreements keep the rates stored on them.
+const STARTING_RATES: ServiceRates = { head_rate: 125, design_rate: 100, fab_rate: 100, materials_markup: 20, travel_rate: 75 };
 const STARTING_MOU_RATE = 100;
 
 // Settings: blank or 0 means "not set". On an agreement, a stored 0 is a
