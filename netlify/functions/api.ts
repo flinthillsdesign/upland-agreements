@@ -1,6 +1,6 @@
 import { verifyPassword, createToken, checkAccess, isService, type JwtPayload } from "../../lib/auth.js";
 import { getUserByLogin, authStorage } from "../../lib/auth-storage.js";
-import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, deleteAgreement, duplicateAgreement, resolveShareToken, linksLocked, recordLinkMiss, recordView, recordEvent, listEvents, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
+import { ensureSchema, listAgreements, getAgreement, createAgreement, updateAgreement, updateAgreementContent, changedSinceSent, deleteAgreement, duplicateAgreement, resolveShareToken, linksLocked, recordLinkMiss, recordView, recordEvent, listEvents, createShareToken, listShareLinks, getOrCreateShareLink, deleteShareLinks, getConversation, saveConversation, listKnowledge, getKnowledge, createKnowledge, updateKnowledge as updateKB, deleteKnowledge as deleteKB, getSettings, updateSettings, saveVerificationCode, getVerificationCode, deleteVerificationCode, type ChatMessage } from "../../lib/storage.js";
 import { generateAgreement, chat as aiChat } from "../../lib/ai.js";
 import { currentRates, mouRate } from "../../lib/rates.js";
 import { centralToday } from "@upland/shared/dates";
@@ -92,7 +92,10 @@ const CLAUDE_CODE_MAY: Array<[string, RegExp]> = [
 // signed total (Joel, 2026-10-20: the agreement is the budget's home). No
 // wording, contact, link or signing code. Written onto data-tiers.html.
 const ODIN_SUB = "service-odin";
-const ODIN_MAY: Array<[string, RegExp]> = [["GET", /^\/api\/project-totals$/]];
+const ODIN_MAY: Array<[string, RegExp]> = [
+	["GET", /^\/api\/project-totals$/],
+	["GET", /^\/api\/changed-since-sent$/], // the briefing's "re-send this" line
+];
 
 // The signed-in staff member behind a request, or the gate's refusal. A
 // service token gets in only as Claude Code or ODIN, on its named routes.
@@ -243,7 +246,7 @@ route("GET", "/api/agreements/:id", "user", async (_req, params) => {
 
 route("PUT", "/api/agreements/:id", "user", async (req, params) => {
 	const body = await req.json() as Record<string, unknown>;
-	const agreement = await updateAgreement(params.id, pick(body, EDITABLE_FIELDS));
+	const agreement = await updateAgreementContent(params.id, pick(body, EDITABLE_FIELDS));
 	if (!agreement) return err("Not found", 404);
 	return json(agreement);
 });
@@ -277,7 +280,7 @@ route("POST", "/api/agreements/:id/generate", "user", async (req, params) => {
 		{ role: "assistant", content: result.message, timestamp: new Date().toISOString() },
 	];
 	await Promise.all([
-		result.fields ? updateAgreement(params.id, { ...result.fields, prompt }) : Promise.resolve(null),
+		result.fields ? updateAgreementContent(params.id, { ...result.fields, prompt }) : Promise.resolve(null),
 		saveConversation(params.id, messages),
 	]);
 
@@ -308,7 +311,7 @@ route("POST", "/api/agreements/:id/chat", "user", async (req, params) => {
 	// Save conversation and apply fields in parallel
 	await Promise.all([
 		saveConversation(params.id, messages),
-		result.fields ? updateAgreement(params.id, result.fields) : Promise.resolve(null),
+		result.fields ? updateAgreementContent(params.id, result.fields) : Promise.resolve(null),
 	]);
 
 	const updated = result.fields ? await getAgreement(params.id) : agreement;
@@ -609,6 +612,15 @@ route("GET", "/api/project-totals", "user", async () => {
 	const signed = (await listAgreements({})).filter((a) => a.status === "signed" || a.status === "countersigned");
 	return json({
 		agreements: signed.map((a) => ({ id: a.id, title: a.title, client: a.client_name, status: a.status, total_cost: a.total_cost })),
+	});
+});
+
+// Agreements changed after they went out and not re-sent: id, title, client
+// and the two dates (ODIN's morning briefing; see ODIN_MAY).
+route("GET", "/api/changed-since-sent", "user", async () => {
+	const rows = (await listAgreements({})).filter(changedSinceSent);
+	return json({
+		agreements: rows.map((a) => ({ id: a.id, title: a.title, client: a.client_name, edited_at: a.edited_at, last_sent_at: a.last_sent_at })),
 	});
 });
 

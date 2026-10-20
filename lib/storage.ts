@@ -139,6 +139,8 @@ export async function ensureSchema(): Promise<void> {
 	await Promise.all([
 		db.execute("ALTER TABLE agreements ADD COLUMN client_cc TEXT").catch(() => { /* already exists */ }),
 		db.execute("ALTER TABLE agreements ADD COLUMN signed_terms TEXT").catch(() => { /* already exists */ }),
+		// When something the client reads last changed (updateAgreementContent).
+		db.execute("ALTER TABLE agreements ADD COLUMN edited_at TEXT").catch(() => { /* already exists */ }),
 		db.execute("INSERT OR IGNORE INTO settings (id, data) VALUES (1, '{}')"),
 		db.execute("CREATE INDEX IF NOT EXISTS idx_agreements_status ON agreements(status)"),
 		db.execute("CREATE INDEX IF NOT EXISTS idx_agreements_share_token ON agreements(share_token)"),
@@ -180,6 +182,8 @@ export interface Agreement {
 	client_signature: string | null;
 	designer_signature: string | null;
 	signed_terms: string | null;
+	edited_at?: string | null;
+	last_sent_at?: string | null; // from events, on listAgreements rows only
 	valid_until: string | null;
 	created_by: string | null;
 	created_at: string;
@@ -205,8 +209,37 @@ export async function listAgreements(filters?: { type?: string; status?: string;
 	}
 
 	const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-	const result = await db.execute({ sql: `SELECT * FROM agreements ${where} ORDER BY updated_at DESC`, args });
+	const result = await db.execute({
+		sql: `SELECT a.*, (SELECT MAX(e.at) FROM events e WHERE e.agreement_id = a.id AND e.kind = 'sent') AS last_sent_at
+			FROM agreements a ${where} ORDER BY updated_at DESC`,
+		args,
+	});
 	return result.rows as unknown as Agreement[];
+}
+
+// What the client reads. An edit to one of these after the agreement went
+// out means the client's link now shows something they were never told
+// about — Pavelka sat three months that way (2026-10-20).
+const CLIENT_FIELDS = new Set([
+	"title", "client_name", "client_address", "client_contact", "client_title", "client_email", "client_cc",
+	"effective_date", "end_date", "project_description", "deliverable", "timeframe", "hours", "hourly_rate",
+	"total_cost", "payment_structure", "service_rates", "client_responsibilities", "custom_terms", "valid_until",
+]);
+
+// An edit from the editor or the AI: stamps edited_at only when a field the
+// client reads actually changed (the editor saves unchanged values too).
+export async function updateAgreementContent(id: string, fields: Partial<Agreement>): Promise<Agreement | null> {
+	const current = (await getAgreement(id)) as unknown as Record<string, unknown> | null;
+	if (!current) return null;
+	const changed = Object.entries(fields).some(
+		([k, v]) => v !== undefined && CLIENT_FIELDS.has(k) && String(v ?? "") !== String(current[k] ?? ""),
+	);
+	return updateAgreement(id, changed ? { ...fields, edited_at: new Date().toISOString() } : fields);
+}
+
+// Sent (or opened), then changed, and not sent again since.
+export function changedSinceSent(a: { status?: string; edited_at?: string | null; last_sent_at?: string | null }): boolean {
+	return (a.status === "sent" || a.status === "viewed") && !!a.edited_at && !!a.last_sent_at && a.edited_at > a.last_sent_at;
 }
 
 export async function getAgreement(id: string): Promise<Agreement | null> {
@@ -319,7 +352,7 @@ const AGREEMENT_COLUMNS = new Set([
 	"type", "title", "status", "client_name", "client_address", "client_contact", "client_title", "client_email", "client_cc",
 	"effective_date", "end_date", "project_description", "deliverable", "timeframe", "hours", "hourly_rate", "total_cost",
 	"payment_structure", "service_rates", "client_responsibilities", "custom_terms", "designer_email", "prompt", "notes",
-	"share_token", "viewed_at", "view_count", "client_signature", "designer_signature", "valid_until", "created_by", "signed_terms",
+	"share_token", "viewed_at", "view_count", "client_signature", "designer_signature", "valid_until", "created_by", "signed_terms", "edited_at",
 ]);
 const KNOWLEDGE_COLUMNS = new Set(["type", "title", "content", "metadata"]);
 

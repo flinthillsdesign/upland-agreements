@@ -12,7 +12,14 @@ interface Agreement {
 	client_name: string | null;
 	total_cost: number | null;
 	updated_at: string;
+	edited_at?: string | null;
+	last_sent_at?: string | null;
 }
+
+// Sent, then changed, and not sent again: the client's link shows terms they
+// were never told about (same rule as changedSinceSent in lib/storage.ts).
+const changedSinceSent = (a: Agreement) =>
+	(a.status === "sent" || a.status === "viewed") && !!a.edited_at && !!a.last_sent_at && a.edited_at > a.last_sent_at;
 
 let currentType = "";
 let currentStatus = "";
@@ -88,6 +95,7 @@ function renderAgreements(agreements: Agreement[]) {
 			</div>
 			<div class="agreement-card-right">
 				<span class="agreement-card-total">${formatCurrency(a.total_cost)}</span>
+				${changedSinceSent(a) ? `<span class="status-badge status-changed" title="Edited after it was sent. Share it again so the client hears about it.">Changed, not re-sent</span>` : ""}
 				<span class="status-badge status-${a.status}">${STATUS_LABELS[a.status as keyof typeof STATUS_LABELS] || a.status}</span>
 			</div>
 		</div>

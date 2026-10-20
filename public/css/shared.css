@@ -274,6 +274,7 @@ textarea { resize: vertical; }
 .status-draft { background: var(--bg); color: var(--text-muted); }
 .status-sent { background: #eff6ff; color: #1d4ed8; }
 .status-viewed { background: #faf5ff; color: #7c3aed; }
+.status-changed { background: #fef3c7; color: #92400e; text-transform: none; }
 .status-signed { background: #fef3c7; color: #d97706; }
 .status-countersigned { background: var(--success-light); color: var(--success); }
 .status-declined { background: var(--danger-light); color: var(--danger); }
