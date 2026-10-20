@@ -39,7 +39,7 @@ export async function getUserByUsername(username: string): Promise<User | null> 
 
 export async function getUserByEmail(email: string): Promise<User | null> {
 	const db = getClient();
-	const result = await db.execute({ sql: "SELECT * FROM users WHERE email = ?", args: [email] });
+	const result = await db.execute({ sql: "SELECT * FROM users WHERE email = ? COLLATE NOCASE", args: [email] });
 	return (result.rows[0] as unknown as User) || null;
 }
 
