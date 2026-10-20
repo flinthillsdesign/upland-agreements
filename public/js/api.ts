@@ -1,3 +1,11 @@
+// A page left open comes back current (@upland/shared/fresh): on return to
+// the foreground, a new deploy reloads the page and a page hidden ten
+// minutes reloads unless it has unsaved edits. Every page imports this
+// module, so every page gets it. The reload button shows only in
+// installed-app windows.
+import { watchFresh } from "@upland/shared/fresh";
+if (typeof document !== "undefined") watchFresh();
+
 const TOKEN_KEY = "agreements_token";
 const USER_KEY = "agreements_user";
 

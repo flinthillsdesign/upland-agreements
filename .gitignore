@@ -7,3 +7,4 @@ data/
 netlify/functions/*.mjs
 netlify/functions/*.mjs.map
 .netlify/
+public/build.json

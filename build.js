@@ -1,9 +1,18 @@
 import { build } from "esbuild";
-import { readdirSync } from "fs";
+import { readdirSync, writeFileSync } from "fs";
 
 const frontendEntries = readdirSync("public/js")
 	.filter((f) => f.endsWith(".ts"))
 	.map((f) => `public/js/${f}`);
+
+// public/build.json: the moment this build happened. Every page's watcher
+// (@upland/shared/fresh, started from public/js/api.ts) re-reads it when the
+// window comes back and reloads the page when a deploy has changed it.
+// Gitignored. COMMIT_REF exists only during the Netlify build.
+writeFileSync(
+	"public/build.json",
+	JSON.stringify({ built_at: new Date().toISOString(), ref: process.env.COMMIT_REF || process.env.FLY_IMAGE_REF || null }) + "\n",
+);
 
 // Frontend bundles
 await build({
