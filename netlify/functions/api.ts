@@ -86,14 +86,24 @@ const CLAUDE_CODE_MAY: Array<[string, RegExp]> = [
 	["GET", /^\/api\/agreements\/[^/]+\/history$/], // what happened to it
 ];
 
+// ODIN's own service identity ("service-odin", minted per request) may read
+// one thing: each signed agreement's id, title, client and total, so a
+// project in ODIN that carries an agreement's id takes its budget from the
+// signed total (Joel, 2026-10-20: the agreement is the budget's home). No
+// wording, contact, link or signing code. Written onto data-tiers.html.
+const ODIN_SUB = "service-odin";
+const ODIN_MAY: Array<[string, RegExp]> = [["GET", /^\/api\/project-totals$/]];
+
 // The signed-in staff member behind a request, or the gate's refusal. A
-// service token gets in only as Claude Code, on its named routes.
+// service token gets in only as Claude Code or ODIN, on its named routes.
 async function staffGate(req: Request, method: string, path: string): Promise<{ user: JwtPayload } | { refused: Response }> {
 	const decision = await checkAccess(req.headers.get("authorization"), APP_NAME, authStorage, true);
 	if (!decision.ok) return { refused: err(decision.status === 401 ? "Unauthorized" : "Forbidden", decision.status) };
 	const a = decision.auth;
 	if (isService(a)) {
-		const may = a.sub === CLAUDE_CODE_SUB && CLAUDE_CODE_MAY.some(([m, re]) => m === method && re.test(path));
+		const may =
+			(a.sub === CLAUDE_CODE_SUB && CLAUDE_CODE_MAY.some(([m, re]) => m === method && re.test(path))) ||
+			(a.sub === ODIN_SUB && ODIN_MAY.some(([m, re]) => m === method && re.test(path)));
 		if (!may) return { refused: err("Forbidden", 403) };
 		return { user: { sub: a.sub, email: "", role: "service" } };
 	}
@@ -593,6 +603,14 @@ route("POST", "/api/agreements/:id/countersign", "user", async (req, params, use
 // === Summary (what another Upland tool may be told) ===
 // ODIN's Ask reads these as the person asking. The shapes are an allow-list
 // (lib/summary.ts): no share link, signing code or signature IP leaves here.
+
+// Signed agreements' totals, for ODIN's project budgets (see ODIN_MAY).
+route("GET", "/api/project-totals", "user", async () => {
+	const signed = (await listAgreements({})).filter((a) => a.status === "signed" || a.status === "countersigned");
+	return json({
+		agreements: signed.map((a) => ({ id: a.id, title: a.title, client: a.client_name, status: a.status, total_cost: a.total_cost })),
+	});
+});
 
 route("GET", "/api/summary", "user", async (req) => {
 	const url = new URL(req.url);
