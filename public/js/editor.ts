@@ -643,7 +643,7 @@ ACCREDITATION/PROMOTIONS. Either party may reproduce, publish and display photog
 
 8. BEST EFFORTS BASIS. Designs based on training, experience, and professional judgment. Non-acceptance of designs shall not constitute reason for non-payment.
 
-9. CHANGES. Out-of-scope changes billed T&M at Service Rates, in addition to the Project Cost. Schedule may extend. Approved by signed writing or email. Rework of previously approved work is Additional Services.
+9. CHANGES. Out-of-scope changes by written change order (email suffices), billed at Service Rates, increasing the Project Cost. Rework of approved work is a change. Schedule may extend. Approved by signed writing or email. Rework of previously approved work is Additional Services.
 
 11. CLIENT RESPONSIBILITIES. Standard list (a-i): decision-making, Client Content, site info, naming approvals, electrical/structural, existing displays, space prep, final approval, ADA compliance.
 
