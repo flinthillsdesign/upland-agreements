@@ -253,7 +253,7 @@ function renderForm() {
 						<label>Total</label>
 						<div class="calculated-field" id="totalCost">${agreement.total_cost ? formatCurrency(agreement.total_cost) : "—"}</div>
 					</div>` : (() => {
-					let ps = { initial_pct: 10, initial_amount: 0, final_pct: 10, final_amount: 0 };
+					let ps = { initial_pct: 10, initial_amount: 0, final_pct: 10, final_amount: 0, pricing: "" };
 					const sr = ratesFor(agreement, rateSettings);
 					try { if (agreement.payment_structure) ps = typeof agreement.payment_structure === "string" ? JSON.parse(agreement.payment_structure) : agreement.payment_structure; } catch {}
 					return `
@@ -261,6 +261,13 @@ function renderForm() {
 						<div class="form-group">
 							<label>Project Cost ($)</label>
 							<input type="number" data-field="total_cost" value="${agreement.total_cost || ""}" step="1000">
+						</div>
+						<div class="form-group">
+							<label>Pricing</label>
+							<select id="ps_pricing">
+								<option value="fixed"${ps.pricing === "nte" ? "" : " selected"}>Fixed fee</option>
+								<option value="nte"${ps.pricing === "nte" ? " selected" : ""}>Not to exceed</option>
+							</select>
 						</div>
 					</div>
 					<div style="margin-bottom:12px">
@@ -505,7 +512,7 @@ function renderForm() {
 
 	// Payment structure + service rates (full agreements) — sync individual fields to JSON
 	if (!isMou) {
-		const psFields = ["ps_initial_pct", "ps_final_pct"];
+		const psFields = ["ps_initial_pct", "ps_final_pct", "ps_pricing"];
 		const srFields = ["sr_head", "sr_design", "sr_fab", "sr_travel", "sr_materials"];
 
 		function savePaymentStructure() {
@@ -514,11 +521,13 @@ function renderForm() {
 			const fPct = parseFloat((document.getElementById("ps_final_pct") as HTMLInputElement)?.value) || 0;
 			const iAmt = Math.round(cost * iPct / 100);
 			const fAmt = Math.round(cost * fPct / 100);
+			const pricing = (document.getElementById("ps_pricing") as HTMLSelectElement)?.value === "nte" ? "nte" : "fixed";
 			const data = {
 				initial_pct: iPct,
 				initial_amount: iAmt,
 				final_pct: fPct,
 				final_amount: fAmt,
+				pricing,
 			};
 			(agreement as Record<string, unknown>).payment_structure = JSON.stringify(data);
 			markDirty("payment_structure", JSON.stringify(data));
@@ -545,7 +554,7 @@ function renderForm() {
 			markDirty("service_rates", JSON.stringify(data));
 		}
 
-		psFields.forEach((id) => document.getElementById(id)?.addEventListener("input", savePaymentStructure));
+		psFields.forEach((id) => document.getElementById(id)?.addEventListener(id === "ps_pricing" ? "change" : "input", savePaymentStructure));
 		savePaymentStructure(); // initial calculation
 		srFields.forEach((id) => document.getElementById(id)?.addEventListener("input", saveServiceRates));
 

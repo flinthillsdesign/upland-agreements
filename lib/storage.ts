@@ -226,11 +226,26 @@ const CLIENT_FIELDS = new Set([
 	"total_cost", "payment_structure", "service_rates", "client_responsibilities", "custom_terms", "valid_until",
 ]);
 
+// The pricing choice (fixed / nte) rides in payment_structure. The editor always
+// sends it; an AI redraft of the payment numbers doesn't, so carry it over.
+function keepPricing(currentJson: unknown, fields: Partial<Agreement>): Partial<Agreement> {
+	if (typeof fields.payment_structure !== "string") return fields;
+	try {
+		const next = JSON.parse(fields.payment_structure);
+		const cur = typeof currentJson === "string" ? JSON.parse(currentJson) : null;
+		if (next && typeof next === "object" && !Array.isArray(next) && !("pricing" in next) && cur?.pricing) {
+			return { ...fields, payment_structure: JSON.stringify({ ...next, pricing: cur.pricing }) };
+		}
+	} catch { /* not JSON: leave it */ }
+	return fields;
+}
+
 // An edit from the editor or the AI: stamps edited_at only when a field the
 // client reads actually changed (the editor saves unchanged values too).
 export async function updateAgreementContent(id: string, fields: Partial<Agreement>): Promise<Agreement | null> {
 	const current = (await getAgreement(id)) as unknown as Record<string, unknown> | null;
 	if (!current) return null;
+	fields = keepPricing(current.payment_structure, fields);
 	const changed = Object.entries(fields).some(
 		([k, v]) => v !== undefined && CLIENT_FIELDS.has(k) && String(v ?? "") !== String(current[k] ?? ""),
 	);

@@ -371,7 +371,8 @@ function renderMouTerms(agreement: AgreementData): string {
 const PROGRESS_NOTE = "Progress billings will be invoiced on a percentage-of-completion basis, up to 90% of the Project Cost including the Initial Payment.";
 // The editor used to save the not-to-exceed wording into every payment_structure; treat it as "use the default".
 const OLD_PROGRESS_NOTE = "Progress billings will be invoiced on a percentage of completion basis, not to exceed 90% of the NTE Amount.";
-function progressNote(saved: string | null | undefined): string {
+function progressNote(saved: string | null | undefined, nte: boolean): string {
+	if (nte) return !saved || saved === PROGRESS_NOTE ? OLD_PROGRESS_NOTE : esc(saved);
 	if (!saved || saved === OLD_PROGRESS_NOTE) return PROGRESS_NOTE;
 	return esc(saved);
 }
@@ -380,8 +381,12 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 	const companyName = settings.legal_name || "Flint Hills Design, LLC dba Upland Exhibits";
 	const companyAddress = settings.company_address || "507 SE 36th St., Newton, Kansas 67114";
 
-	let ps = { initial_pct: 10, initial_amount: 0, progress_note: "", final_pct: 10, final_amount: 0 };
+	let ps = { initial_pct: 10, initial_amount: 0, progress_note: "", final_pct: 10, final_amount: 0, pricing: "" };
 	try { if (agreement.payment_structure) ps = JSON.parse(agreement.payment_structure); } catch {}
+
+	// Fixed fee is the standard. "nte" prints the Time-and-Materials-Not-To-Exceed
+	// wording Ireland (2026) was signed on, for clients who know that process.
+	const nte = ps.pricing === "nte";
 
 	// The rates stored on the agreement, else today's rate card (lib/rates.ts).
 	const rates = ratesFor(agreement, settings);
@@ -402,11 +407,11 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 
 		<div class="doc-section"><span class="doc-section-number">3. </span><span class="doc-section-title">DESCRIPTION OF SERVICES.</span> <span class="doc-section-body">${escLines(agreement.project_description) || "—"}</span></div>
 
-		<div class="doc-section"><span class="doc-section-number">4. </span><span class="doc-section-title">PROJECT COST.</span> <span class="doc-section-body">The fee for the Services is a fixed <strong>${formatCurrency(agreement.total_cost)}</strong> ("Project Cost"). The Project Cost is based on the scope, assumptions, and information available as of the Effective Date. Material changes in scope, assumptions, site conditions, Client direction, or code requirements may require an adjustment to the Project Cost, documented in writing and approved by both parties.</span></div>
+		${nte ? `<div class="doc-section"><span class="doc-section-number">4. </span><span class="doc-section-title">PROJECT COST.</span> <span class="doc-section-body">The parties agree that all Services shall be performed on a Time-And-Material-Not-To-Exceed basis. The total compensation to Designer under this Agreement shall not exceed <strong>${formatCurrency(agreement.total_cost)}</strong> ("NTE Amount"). The NTE Amount is based on the Project scope, assumptions, and information available as of the Effective Date. Material changes in scope, assumptions, site conditions, Client direction, code requirements, or other project conditions may require an equitable adjustment to the NTE Amount.</span></div>` : `<div class="doc-section"><span class="doc-section-number">4. </span><span class="doc-section-title">PROJECT COST.</span> <span class="doc-section-body">The fee for the Services is a fixed <strong>${formatCurrency(agreement.total_cost)}</strong> ("Project Cost"). The Project Cost is based on the scope, assumptions, and information available as of the Effective Date. Material changes in scope, assumptions, site conditions, Client direction, or code requirements may require an adjustment to the Project Cost, documented in writing and approved by both parties.</span></div>`}
 
 		<div class="doc-section"><span class="doc-section-number">5. </span><span class="doc-section-title">INITIAL PAYMENT.</span> <span class="doc-section-body">A payment of <strong>${formatCurrency(ps.initial_amount)}</strong> (${ps.initial_pct || 10}% of the Project Cost) is required to retain Upland's services and is due within 30 days of signing this Agreement. Work will not begin until the Initial Payment is received.</span></div>
 
-		<div class="doc-section"><span class="doc-section-number">6. </span><span class="doc-section-title">PROGRESS BILLINGS.</span> <span class="doc-section-body">${progressNote(ps.progress_note)}</span></div>
+		<div class="doc-section"><span class="doc-section-number">6. </span><span class="doc-section-title">PROGRESS BILLINGS.</span> <span class="doc-section-body">${progressNote(ps.progress_note, nte)}</span></div>
 
 		<div class="doc-section"><span class="doc-section-number">7. </span><span class="doc-section-title">FINAL PAYMENT.</span> <span class="doc-section-body">The remaining <strong>${formatCurrency(ps.final_amount)}</strong> (${ps.final_pct || 10}% of the Project Cost) may be invoiced once Substantial Completion is reached and the punch list is complete.</span></div>
 
@@ -419,7 +424,7 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 
 		<div class="doc-section"><span class="doc-section-number">9. </span><span class="doc-section-title">BEST EFFORTS BASIS.</span> <span class="doc-section-body">Services are provided on a "best effort" basis, meaning Designer will apply professional training, experience, and judgment. Non-acceptance of a design direction shall not constitute reason for non-payment.</span></div>
 
-		<div class="doc-section"><span class="doc-section-number">10. </span><span class="doc-section-title">CHANGES.</span> <span class="doc-section-body">Out-of-scope changes shall be billed on a time and materials basis at Designer's Service Rates, in addition to the Project Cost. Designer may extend the delivery schedule as required by such changes. Changes shall be documented in writing and may be approved by signed instrument or email. Rework of previously approved work shall be treated as Additional Services and billed accordingly.</span></div>
+		${nte ? `<div class="doc-section"><span class="doc-section-number">10. </span><span class="doc-section-title">CHANGES.</span> <span class="doc-section-body">Out-of-scope changes shall be billed on a time and materials basis at Designer's Service Rates, in addition to all other amounts payable, despite any maximum Project Cost. Designer may extend the delivery schedule as required by such changes. Changes shall be documented in writing and may be approved by signed instrument or email. Rework of previously approved work shall be treated as Additional Services and billed accordingly.</span></div>` : `<div class="doc-section"><span class="doc-section-number">10. </span><span class="doc-section-title">CHANGES.</span> <span class="doc-section-body">Out-of-scope changes shall be billed on a time and materials basis at Designer's Service Rates, in addition to the Project Cost. Designer may extend the delivery schedule as required by such changes. Changes shall be documented in writing and may be approved by signed instrument or email. Rework of previously approved work shall be treated as Additional Services and billed accordingly.</span></div>`}
 
 		<div class="doc-section"><span class="doc-section-number">11. </span><span class="doc-section-title">SERVICE RATES.</span>
 			<div class="doc-section-body">
