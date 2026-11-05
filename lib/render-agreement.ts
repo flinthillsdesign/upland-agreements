@@ -413,7 +413,7 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 
 		<div class="doc-section"><span class="doc-section-number">6. </span><span class="doc-section-title">PROGRESS BILLINGS.</span> <span class="doc-section-body">${progressNote(ps.progress_note, nte)}</span></div>
 
-		<div class="doc-section"><span class="doc-section-number">7. </span><span class="doc-section-title">FINAL PAYMENT.</span> <span class="doc-section-body">The remaining <strong>${formatCurrency(ps.final_amount)}</strong> (${ps.final_pct || 10}% of the Project Cost) may be invoiced once Substantial Completion is reached and the punch list is complete.</span></div>
+		<div class="doc-section"><span class="doc-section-number">7. </span><span class="doc-section-title">FINAL PAYMENT.</span> <span class="doc-section-body">The remaining ${nte ? "balance of approximately " : ""}<strong>${formatCurrency(ps.final_amount)}</strong> (${ps.final_pct || 10}% of the Project Cost) may be invoiced once Substantial Completion is reached and the punch list is complete.</span></div>
 
 		<div class="doc-section"><span class="doc-section-number">8. </span><span class="doc-section-title">PAYMENT TERMS AND REMEDIES.</span>
 			<div class="doc-section-body">
