@@ -403,7 +403,7 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 
 		<div class="doc-section"><span class="doc-section-number">1. </span><span class="doc-section-title">TERM.</span> <span class="doc-section-body">This Agreement begins on the Effective Date and continues until Substantial Completion and payment of all amounts due, unless earlier terminated.</span></div>
 
-		<div class="doc-section"><span class="doc-section-number">2. </span><span class="doc-section-title">COMPLETION DATE.</span> <span class="doc-section-body">Upland will reach Substantial Completion by <strong>${formatDate(agreement.end_date, "long")}</strong>. Substantial Completion means the exhibit is installed and open to the public, with only minor punch list items remaining. This date assumes the Agreement is signed by ${formatDate(agreement.valid_until || daysFromToday(30), "long")}, the Initial Payment is paid on time, and Client provides content, decisions, and approvals on time. A delay in any of these moves the date by the same number of days.</span></div>
+		<div class="doc-section"><span class="doc-section-number">2. </span><span class="doc-section-title">COMPLETION DATE.</span> <span class="doc-section-body">Upland will reach Substantial Completion by <strong>${formatDate(agreement.end_date, "long")}</strong>. Substantial Completion means the exhibit is installed and open to the public, with only minor Punch List items remaining. The "Punch List" is the list of minor items to complete or correct, made by Upland and Client together at the walkthrough when installation is done. This date assumes the Agreement is signed by ${formatDate(agreement.valid_until || daysFromToday(30), "long")}, the Initial Payment is paid on time, and Client provides content, decisions, and approvals on time. A delay in any of these moves the date by the same number of days.</span></div>
 
 		<div class="doc-section"><span class="doc-section-number">3. </span><span class="doc-section-title">DESCRIPTION OF SERVICES.</span> <span class="doc-section-body">${escLines(agreement.project_description) || "—"}</span></div>
 
@@ -413,7 +413,7 @@ function renderFullAgreementTerms(agreement: AgreementData, settings: SettingsDa
 
 		<div class="doc-section"><span class="doc-section-number">6. </span><span class="doc-section-title">PROGRESS BILLINGS.</span> <span class="doc-section-body">${progressNote(ps.progress_note, nte)}</span></div>
 
-		<div class="doc-section"><span class="doc-section-number">7. </span><span class="doc-section-title">FINAL PAYMENT.</span> <span class="doc-section-body">The remaining ${nte ? "balance of approximately " : ""}<strong>${formatCurrency(ps.final_amount)}</strong> (${ps.final_pct || 10}% of the Project Cost) may be invoiced once Substantial Completion is reached and the punch list is complete.</span></div>
+		<div class="doc-section"><span class="doc-section-number">7. </span><span class="doc-section-title">FINAL PAYMENT.</span> <span class="doc-section-body">The remaining ${nte ? "balance of approximately " : ""}<strong>${formatCurrency(ps.final_amount)}</strong> (${ps.final_pct || 10}% of the Project Cost) may be invoiced once Substantial Completion is reached and the Punch List is complete.</span></div>
 
 		<div class="doc-section"><span class="doc-section-number">8. </span><span class="doc-section-title">PAYMENT TERMS AND REMEDIES.</span>
 			<div class="doc-section-body">
