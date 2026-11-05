@@ -259,7 +259,7 @@ function renderForm() {
 					return `
 					<div class="form-row">
 						<div class="form-group">
-							<label>Not-to-Exceed (NTE) Amount ($)</label>
+							<label>Project Cost ($)</label>
 							<input type="number" data-field="total_cost" value="${agreement.total_cost || ""}" step="1000">
 						</div>
 					</div>
@@ -509,11 +509,11 @@ function renderForm() {
 		const srFields = ["sr_head", "sr_design", "sr_fab", "sr_travel", "sr_materials"];
 
 		function savePaymentStructure() {
-			const nte = agreement!.total_cost || 0;
+			const cost = agreement!.total_cost || 0;
 			const iPct = parseFloat((document.getElementById("ps_initial_pct") as HTMLInputElement)?.value) || 0;
 			const fPct = parseFloat((document.getElementById("ps_final_pct") as HTMLInputElement)?.value) || 0;
-			const iAmt = Math.round(nte * iPct / 100);
-			const fAmt = Math.round(nte * fPct / 100);
+			const iAmt = Math.round(cost * iPct / 100);
+			const fAmt = Math.round(cost * fPct / 100);
 			const data = {
 				initial_pct: iPct,
 				initial_amount: iAmt,
@@ -524,14 +524,14 @@ function renderForm() {
 			markDirty("payment_structure", JSON.stringify(data));
 			// Update calculated display
 			const calcEl = document.getElementById("paymentCalc");
-			if (calcEl && nte) {
+			if (calcEl && cost) {
 				calcEl.textContent = `${formatCurrency(iAmt)} initial / progress to 90% / ${formatCurrency(fAmt)} final`;
 			}
 		}
 
-		// Recalculate payment when NTE changes
-		const nteInput = main.querySelector("[data-field='total_cost']") as HTMLInputElement;
-		nteInput?.addEventListener("input", savePaymentStructure);
+		// Recalculate payment when the Project Cost changes
+		const costInput = main.querySelector("[data-field='total_cost']") as HTMLInputElement;
+		costInput?.addEventListener("input", savePaymentStructure);
 
 		function saveServiceRates() {
 			const data = {
@@ -634,7 +634,7 @@ ACCREDITATION/PROMOTIONS. Either party may reproduce, publish and display photog
 
 8. BEST EFFORTS BASIS. Designs based on training, experience, and professional judgment. Non-acceptance of designs shall not constitute reason for non-payment.
 
-9. CHANGES. Out-of-scope changes billed T&M at Service Rates, despite any NTE. Schedule may extend. Approved by signed writing or email. Rework of previously approved work is Additional Services.
+9. CHANGES. Out-of-scope changes billed T&M at Service Rates, in addition to the Project Cost. Schedule may extend. Approved by signed writing or email. Rework of previously approved work is Additional Services.
 
 11. CLIENT RESPONSIBILITIES. Standard list (a-i): decision-making, Client Content, site info, naming approvals, electrical/structural, existing displays, space prep, final approval, ADA compliance.
 
